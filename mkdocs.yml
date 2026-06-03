@@ -1,0 +1,165 @@
+site_name: 企业级 Agent 平台工程
+site_description: 数据智能与 Agent 平台的中文权威开源参考书
+site_author: 开源社区
+repo_url: https://github.com/your-org/agent_platform_book
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: zh
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: 切换深色模式
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: 切换浅色模式
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+
+nav:
+  - 首页: index.md
+
+  - Part I 总论与平台观:
+      - part01-overview/index.md
+      - Ch.01 Agent 的本质: part01-overview/ch01-agent.md
+      - Ch.02 平台边界: part01-overview/ch02-agent.md
+      - Ch.03 AI 原生业务系统: part01-overview/ch03-ai-agent.md
+      - Ch.04 参考架构总览: part01-overview/ch04.md
+
+  - Part II 模型与推理:
+      - part02-model-inference/index.md
+      - Ch.05 大模型选型: part02-model-inference/ch05.md
+      - Ch.06 本地推理引擎: part02-model-inference/ch06.md
+      - Ch.07 推理优化: part02-model-inference/ch07.md
+      - Ch.08 结构化输出与提示工程: part02-model-inference/ch08.md
+      - Ch.09 模型微调与对齐: part02-model-inference/ch09.md
+
+  - Part III 数据基础设施:
+      - part03-data-infra/index.md
+      - Ch.10 数据采集与集成: part03-data-infra/ch10.md
+      - Ch.11 数据湖与湖仓: part03-data-infra/ch11.md
+      - Ch.12 湖仓引擎与 OLAP: part03-data-infra/ch12-olap.md
+      - Ch.13 流式计算与实时数据: part03-data-infra/ch13.md
+      - Ch.14 数据编排与质量: part03-data-infra/ch14.md
+      - Ch.15 元数据/血缘/契约/指标: part03-data-infra/ch15.md
+
+  - Part IV 向量、检索与知识工程:
+      - part04-vector-knowledge/index.md
+      - Ch.16 嵌入模型: part04-vector-knowledge/ch16.md
+      - Ch.17 嵌入微调与重排: part04-vector-knowledge/ch17.md
+      - Ch.18 向量数据库与索引算法: part04-vector-knowledge/ch18.md
+      - Ch.19 文档解析与多模态 OCR: part04-vector-knowledge/ch19-ocr.md
+      - Ch.20 RAG 工程与高级检索: part04-vector-knowledge/ch20-rag.md
+      - Ch.21 知识工程: part04-vector-knowledge/ch21.md
+
+  - Part V Agent 能力百科:
+      - part05-agent-capabilities/index.md
+      - Ch.22 Agent Runtime: part05-agent-capabilities/ch22-agent-runtime.md
+      - Ch.23 Tool Registry & Function Calling: part05-agent-capabilities/ch23-tool-registry-function-calling.md
+      - Ch.24 MCP 与企业工具生态: part05-agent-capabilities/ch24-mcp.md
+      - Ch.25 Planner 与编排模式: part05-agent-capabilities/ch25-planner.md
+      - Ch.26 Agentic Workflow: part05-agent-capabilities/ch26-agentic-workflow.md
+      - Ch.27 Memory 系统: part05-agent-capabilities/ch27-memory.md
+      - Ch.28 多 Agent 协作: part05-agent-capabilities/ch28-agent.md
+      - Ch.29 Agent 协议与标准: part05-agent-capabilities/ch29-agent.md
+      - Ch.30 Human-in-the-loop 与长任务: part05-agent-capabilities/ch30-human-in-the-loop.md
+      - Ch.31 框架横向对标: part05-agent-capabilities/ch31.md
+
+  - Part VI DataAgent 主线深潜:
+      - part06-dataagent/index.md
+      - Ch.32 DataAgent 产品形态: part06-dataagent/ch32-dataagent.md
+      - Ch.33 语义层工程: part06-dataagent/ch33.md
+      - Ch.34 NL2SQL 工程化: part06-dataagent/ch34-nl2sql.md
+      - Ch.35 Text-to-Pandas / Text-to-Python: part06-dataagent/ch35-text-to-pandas-text-to-python.md
+      - Ch.36 数据分析、可视化与报告: part06-dataagent/ch36.md
+      - Ch.37 DataAgent 对标与生态: part06-dataagent/ch37-dataagent.md
+
+  - Part VII 可观测性、评估与成本:
+      - part07-observability-eval/index.md
+      - Ch.38 可观测性与 Trace: part07-observability-eval/ch38-trace.md
+      - Ch.39 离线评估与基准: part07-observability-eval/ch39.md
+      - Ch.40 在线评估与 LLM-as-Judge: part07-observability-eval/ch40-llm-as-judge.md
+      - Ch.41 成本治理与缓存: part07-observability-eval/ch41.md
+      - Ch.42 SLO、限流与降级: part07-observability-eval/ch42-slo.md
+
+  - Part VIII 部署与基础设施:
+      - part08-deployment/index.md
+      - Ch.43 GPU 调度与 Kubernetes: part08-deployment/ch43-gpu-kubernetes.md
+      - Ch.44 模型部署: part08-deployment/ch44.md
+      - Ch.45 LLM 网关与多租户: part08-deployment/ch45-llm.md
+      - Ch.46 GitOps、IaC 与边缘推理: part08-deployment/ch46-gitops-iac.md
+
+  - Part IX 前端、交互与多模态:
+      - part09-frontend-multimodal/index.md
+      - Ch.47 对话 UI 与流式输出: part09-frontend-multimodal/ch47-ui.md
+      - Ch.48 Generative UI 与富交互: part09-frontend-multimodal/ch48-generative-ui.md
+      - Ch.49 多模态输入与语音 Agent: part09-frontend-multimodal/ch49-agent.md
+
+  - Part X 安全、合规与组织:
+      - part10-security-org/index.md
+      - Ch.50 安全与攻防: part10-security-org/ch50.md
+      - Ch.51 Guardrails 与内容安全: part10-security-org/ch51-guardrails.md
+      - Ch.52 合规与法规: part10-security-org/ch52.md
+      - Ch.53 组织、人才与平台演进: part10-security-org/ch53.md
+
+  - Part XI 业务案例集:
+      - part11-cases/index.md
+      - Ch.54 案例集（上）: part11-cases/ch54-agent.md
+      - Ch.55 案例集（下）+ 平台化收束: part11-cases/ch55-agent.md
+
+  - 附录:
+      - appendix/index.md
+      - A. mini-platform 安装: appendix/appendix-a.md
+      - B. 术语表: appendix/appendix-b.md
+      - C. API 速查: appendix/appendix-c.md
+      - D. 评测集与数据集: appendix/appendix-d.md
+      - E. 写作规范: appendix/appendix-e.md
+      - F. 延伸阅读: appendix/appendix-f.md
+      - G. 全栈技术对标速查表: appendix/appendix-g.md
+      - H. 法规与合规清单: appendix/appendix-h.md
