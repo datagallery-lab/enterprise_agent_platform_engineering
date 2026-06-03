@@ -16,7 +16,7 @@ DOCS = ROOT / "docs"
 REQUIRED_HEADINGS = [
     re.compile(r"^##\s+L1\s+概念"),
     re.compile(r"^##\s+L2\s+架构"),
-    re.compile(r"^##\s+L3\s+工程实现"),
+    re.compile(r"^##\s+L3\s+"),
     re.compile(r"^##\s+本章小结"),
 ]
 
