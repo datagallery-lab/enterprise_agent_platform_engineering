@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="360" viewBox="0 0 980 360" role="img" aria-label="Prompt injection defense pipeline">
+  <defs>
+    <marker id="r" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#d14b4b"/></marker>
+    <style>.bg{fill:#fff}.comp{fill:#eef5ff;stroke:#2563eb;stroke-width:1.5}.ext{fill:#f4f4f5;stroke:#9ca3af;stroke-width:1.3}.risk{fill:#fff1f2;stroke:#d14b4b;stroke-width:1.4}.flow{fill:none;stroke:#d14b4b;stroke-width:2;marker-end:url(#r)}.txt{font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#111827}.sub{font:12px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#4b5563}</style>
+  </defs>
+  <rect class="bg" width="980" height="360"/>
+  <rect class="ext" x="34" y="78" width="136" height="64" rx="6"/><text class="txt" x="102" y="105" text-anchor="middle">输入与文档</text><text class="sub" x="102" y="127" text-anchor="middle">用户 / RAG / 工具</text>
+  <rect class="comp" x="226" y="78" width="136" height="64" rx="6"/><text class="txt" x="294" y="105" text-anchor="middle">来源标记</text><text class="sub" x="294" y="127" text-anchor="middle">指令 / 数据分层</text>
+  <rect class="comp" x="418" y="78" width="136" height="64" rx="6"/><text class="txt" x="486" y="105" text-anchor="middle">注入检测</text><text class="sub" x="486" y="127" text-anchor="middle">分类与规则</text>
+  <rect class="comp" x="610" y="78" width="136" height="64" rx="6"/><text class="txt" x="678" y="105" text-anchor="middle">上下文组装</text><text class="sub" x="678" y="127" text-anchor="middle">隔离外部内容</text>
+  <rect class="comp" x="802" y="78" width="136" height="64" rx="6"/><text class="txt" x="870" y="105" text-anchor="middle">模型调用</text><text class="sub" x="870" y="127" text-anchor="middle">生成候选意图</text>
+  <rect class="risk" x="418" y="218" width="136" height="58" rx="6"/><text class="txt" x="486" y="242" text-anchor="middle">工具策略</text><text class="sub" x="486" y="264" text-anchor="middle">权限 / 风险 / 审批</text>
+  <rect class="risk" x="610" y="218" width="136" height="58" rx="6"/><text class="txt" x="678" y="242" text-anchor="middle">输出校验</text><text class="sub" x="678" y="264" text-anchor="middle">DLP / 引用 / 拒答</text>
+  <path class="flow" d="M170 110H226"/><path class="flow" d="M362 110H418"/><path class="flow" d="M554 110H610"/><path class="flow" d="M746 110H802"/>
+  <path class="flow" d="M870 142 C864 218 602 247 554 247"/><path class="flow" d="M554 247H610"/>
+  <text class="sub" x="492" y="320" text-anchor="middle">模型可以表达意图，平台决定是否允许执行和展示。</text>
+</svg>
