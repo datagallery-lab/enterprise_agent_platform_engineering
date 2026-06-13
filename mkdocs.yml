@@ -123,9 +123,9 @@ nav:
   - Part VII 可观测性、评估与成本:
       - part07-observability-eval/index.md
       - Ch.38 可观测性与 Trace: part07-observability-eval/ch38-trace.md
-      - Ch.39 离线评估与基准: part07-observability-eval/ch39.md
+      - Ch.39 离线评估与基准: part07-observability-eval/ch39-dataagent-eval-benchmark.md
       - Ch.40 在线评估与 LLM-as-Judge: part07-observability-eval/ch40-llm-as-judge.md
-      - Ch.41 成本治理与缓存: part07-observability-eval/ch41.md
+      - Ch.41 成本治理与缓存: part07-observability-eval/ch41-cost-governance-cache.md
       - Ch.42 SLO、限流与降级: part07-observability-eval/ch42-slo.md
 
   - Part VIII 部署与基础设施:

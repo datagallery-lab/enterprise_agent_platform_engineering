@@ -8,14 +8,14 @@
 
 ## 本部分章节
 
-- [Ch.38 Agent可观测性与运行诊断](ch38-trace.md)
+- [Ch.38 Agent 可观测性与运行诊断](ch38-trace.md)
   - Agent 运行时观测模型
   - Trace 数据结构与生命周期
   - 全链路日志、指标与链路追踪
   - 会话回放与执行过程还原
   - 失败归因与根因分析
   - AgentOps 质量闭环实践
-- [Ch.39 企业级DataAgent评测体系设计与Benchmark构建](ch39.md)
+- [Ch.39 企业级 DataAgent 评测体系设计与 Benchmark 构建](ch39-dataagent-eval-benchmark.md)
   - DataAgent 能力边界与评测维度
   - Benchmark 任务空间设计
   - 企业数据分析场景抽象
@@ -24,21 +24,21 @@
   - 结果评测、过程评测与语义评测
   - 主流 DataAgent Benchmark 对比分析
   - 企业级持续评测平台建设
-- [Ch.40 在线评测、LLM-as-Judge与持续优化](ch40-llm-as-judge.md)
+- [Ch.40 在线评测、LLM-as-Judge 与持续优化](ch40-llm-as-judge.md)
   - 线上反馈信号采集
   - 用户行为与业务指标建模
   - LLM-as-Judge 评测框架
   - 评测偏差与一致性控制
   - A/B 实验与能力验证
   - 评测驱动的持续优化闭环
-- [Ch.41 成本治理与缓存优化](ch41.md)
+- [Ch.41 成本治理与缓存优化](ch41-cost-governance-cache.md)
   - Agent 成本结构分析
   - 模型路由与动态选型
   - Prompt Cache 与 Prefix Cache
   - Semantic Cache 与结果复用
   - Token 成本核算与预算控制
   - 性能、成本与质量平衡策略
-- [Ch.42 SLO管理、限流与系统韧性](ch42-slo.md)
+- [Ch.42 SLO 管理、限流与系统韧性](ch42-slo.md)
   - Agent 服务等级目标设计
   - 延迟、成功率与质量指标
   - 限流、熔断与降级策略
