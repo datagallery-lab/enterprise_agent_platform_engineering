@@ -6,14 +6,22 @@
 > **前置阅读**：Ch.22 Agent Runtime；Ch.23 Tool Registry & Function Calling；Ch.38 可观测性与 Trace。
 > **估计阅读**：L1 15 min / L1+L2 45 min / 全章 90 min
 > **mini-platform 关联**：`mini-platform/console/`；`mini-platform/core/runtime/`；`mini-platform/core/observability/`。当前仓库还没有完整 Console，本章先给出协议、组件和前端观测契约。
-> **实战项目**：`mini-platform/projects/16-generative-ui-dataagent/`（计划项目）。
-> **按角色推荐阅读层**：CTO ⇒ L1+L2 ｜ 架构师 ⇒ L1+L2 ｜ 工程师 ⇒ L1+L2+L3
 
-企业第一次做 Agent UI，最容易把问题简化成“做一个聊天窗口”。这在内部演示里通常能跑通：用户输入问题，模型输出一段文字，前端把 Markdown 渲染出来。真正进入企业场景后，聊天窗口很快会不够用。用户要看到 Agent 正在查哪张表、用了哪个指标口径、是否触发审批、为什么失败、能不能继续生成、这次回答能不能被审计追溯。
+**本章阅读路径**
 
-一个零售企业的 DataAgent 就是典型例子。零售负责人问“华东区本月毛利异常来自哪些 SKU”，系统不能只返回“主要来自生鲜和家电”。它还要展示 SQL 生成过程、权限过滤结果、数据查询状态、图表卡片、引用的指标口径、导出按钮、用户反馈入口。制造负责人继续追问“是否和上周补货延迟有关”时，前端还要把上一轮工具结果、当前用户权限和新的查询任务串起来。
+| 读者 | 建议重点 |
+|---|---|
+| AI 平台负责人 / CTO | 看对话 UI 为什么要从聊天框升级为任务工作台，以及前端体验如何影响平台采纳。 |
+| 架构师 | 看 Conversation API、Runtime、Tool Registry 和 Observability 之间的事件边界。 |
+| 数据智能工程师 | 看 DataAgent 如何展示 SQL、指标口径、图表、权限过滤和引用证据。 |
+| AI 应用开发者 | 看流式事件模型、前端 reducer、错误恢复和组件契约。 |
+| 安全 / 合规负责人 | 看前端如何接入 trace、权限提示、审批确认和会话回放。 |
 
-从业界产品看，Agent UI 正在从“对话组件”走向“任务工作台”。Vercel AI SDK 把模型调用、流式输出、工具调用和前端状态封装为开发框架；assistant-ui 聚焦生产级 React 对话组件；CopilotKit 把 Agent 嵌入现有应用状态；AG-UI 则尝试把 Agent 与前端之间的事件流、共享状态和人在回路抽象成协议。这些路线不同，但共同指向同一个结论：企业 Agent UI 的核心不是文本渲染，而是任务过程的可见、可控、可恢复和可审计。
+企业第一次做 Agent UI，最容易把问题简化成“做一个聊天窗口”。这在内部演示里通常能跑通：用户输入问题，模型输出一段文字，前端把 Markdown 渲染出来。一旦进入企业场景，用户很快会追问更多细节：Agent 正在查哪张表，用了哪个指标口径，是否触发审批，为什么失败，能不能继续生成，这次回答能不能被审计追溯。
+
+以零售 DataAgent 的毛利异常分析为例，负责人问“华东区本月毛利异常来自哪些 SKU”，系统如果只返回“主要来自生鲜和家电”，很难支撑业务判断。界面还要展示 SQL 生成过程、权限过滤结果、数据查询状态、图表卡片、引用的指标口径、导出按钮和用户反馈入口。用户继续追问“是否和上周补货延迟有关”时，前端还要把上一轮工具结果、当前用户权限和新的查询任务串起来。
+
+从业界产品看，Agent UI 正在从“对话组件”走向“任务工作台”。Vercel AI SDK 把模型调用、流式输出、工具调用和前端状态封装为开发框架；assistant-ui 聚焦生产级 React 对话组件；CopilotKit 把 Agent 嵌入现有应用状态；AG-UI 则尝试把 Agent 与前端之间的事件流、共享状态和人在回路抽象成协议。这些路线的出发点不同，但都把前端从文本渲染层推向任务过程层：过程要看得见，动作要可控，失败要能恢复，结果要能审计。
 
 可以把当前业界路线分成四类。
 
@@ -39,9 +47,9 @@
 | 工作流型 Agent 平台 | ServiceNow AI Agents | 让 Agent 围绕企业工作流执行任务，并纳入生命周期治理 | 对话 UI 只是入口，背后必须连接工作流、监控和治理 |
 | 开源/低代码 Agent 应用 | Dify Chatflow / Workflow | 把 Chatflow 用作多轮对话应用，把 Workflow 用作后台任务编排 | 对话 UI 要区分“持续会话”和“一次性任务执行” |
 
-这张表说明，对话 UI 在业界已经不再只是模型应用的外壳。它可能是 Copilot 的入口、业务动作的确认界面、工作流的观测窗口，也可能是低代码编排结果的交互层。企业自建平台时，不能只学习某个产品的视觉样式，而要抽取它们背后的共性：会话上下文、工具动作、状态流、权限确认和可观测闭环。
+表 47-2 里这些产品形态差异很大，但对话 UI 承担的角色已经接近：它可能是 Copilot 的入口、业务动作的确认界面、工作流的观测窗口，也可能是低代码编排结果的交互层。企业自建平台时，照搬某个产品的视觉样式意义不大，更值得沉淀的是会话上下文、工具动作、状态流、权限确认和可观测闭环。
 
-这类业界趋势给企业的启发是：不要把前端框架当成平台边界。框架可以帮助更快做出 chat UI，协议可以帮助不同 Agent 后端接入前端，但企业真正要沉淀的是自己的消息契约、工具渲染规范、权限策略和会话观测模型。
+这也意味着，前端框架不能成为平台边界。框架可以帮助团队更快做出 chat UI，协议可以让不同 Agent 后端接入前端，企业内部仍要定义自己的消息契约、工具渲染规范、权限策略和会话观测模型。
 
 本章沿着五个问题展开：企业 Agent UI 到底由哪些界面单元组成，为什么流式输出要按事件协议建模，消息模型怎样支持增量渲染，前端框架如何选型，以及如何把前端交互纳入可观测体系。
 
@@ -63,7 +71,7 @@
 | 反馈入口 | 点赞、差评、纠错、人工备注 | 进入评估集和会话回放 |
 | 观测标识 | trace、耗时、模型、工具版本 | 支持排障、复盘和审计 |
 
-这七类单元说明一个事实：对话 UI 不是 Agent 平台的边角料，而是 Runtime、Tool Registry、权限系统、观测系统暴露给用户的交互层。前端设计不清楚，后端再强也会变成黑盒。
+表 47-3 把界面单元拆开后，前端和平台底座的关系会更清楚：Runtime、Tool Registry、权限系统和观测系统，最终都要通过这些单元暴露给用户。前端设计不清楚，后端能力再强也会变成黑盒。
 
 ## 流式交互协议
 
@@ -82,7 +90,7 @@
 
 企业 DataAgent 默认可以选择 SSE 作为文本任务的主传输协议。原因很直接：大多数分析任务是服务端持续推送，用户偶尔打断；SSE 的部署、代理和浏览器支持成本更低。WebSocket 不是不用，而是留给 Ch.49 中的语音、多端协同和强实时控制场景。
 
-这个边界比“哪个协议更先进”更重要。企业平台选协议，不是为了炫技，而是为了让一次任务的事件可以排序、恢复、审计和解释。
+协议选择要服务这个边界。企业平台选择 SSE、WebSocket 或 WebRTC，不是为了证明技术先进，而是为了让一次任务的事件可以排序、恢复、审计和解释。
 
 ### 常见误区
 
@@ -100,7 +108,7 @@
 
 ![对话 UI 在企业 Agent 平台中的位置](images/ch47-position.svg)
 
-这张图里有三个关键边界。
+图 47-1 可以按三条边界读。
 
 第一，Agent Console 不直接调用模型。所有模型交互经过 Conversation API 和 Runtime，这样才能统一鉴权、trace、限流和错误处理。
 
@@ -114,7 +122,7 @@ DataAgent 的一次流式问答可以抽象成下面的时序。
 
 ![DataAgent 流式对话时序](images/ch47-sequence.svg)
 
-这条链路里，前端最重要的工作不是“接收字符串”，而是维护任务视图。用户看到的是一条回答，系统内部却包含消息创建、文本增量、工具开始、工具完成和最终完成多个阶段。任何阶段失败，都要有可解释的前端状态。
+沿着图 47-2 看，前端处理的不是一串字符串，而是一条任务视图。用户看到的是一条回答，系统内部却包含消息创建、文本增量、工具开始、工具完成和最终完成多个阶段。任何阶段失败，都要有可解释的前端状态。
 
 ### 组件划分与接口契约
 
@@ -205,7 +213,7 @@ data: {"event_id":"evt_2","message_id":"msg_1","run_id":"run_1","seq":2,"payload
 }
 ```
 
-这份契约的重点不是字段名，而是工程原则：每个事件都要能排序、能去重、能关联 trace、能判断是否属于当前任务。
+这份契约真正约束的是事件语义：每个事件都要能排序、能去重、能关联 trace、能判断是否属于当前任务。
 
 ## Agent 前端框架选型
 
@@ -240,7 +248,7 @@ data: {"event_id":"evt_2","message_id":"msg_1","run_id":"run_1","seq":2,"payload
 | 全量消息刷新 | 逻辑简单 | 大消息性能差，交互闪烁 | 低频后台任务 | 不采用 |
 | 事件 reducer | 可恢复、可观测、适合复杂工具流 | 需要严格事件契约 | 企业 Agent UI | 默认 |
 
-这一节的核心结论是：企业 Agent UI 的默认选择不是“最快写出来的聊天组件”，而是“可演进的事件协议 + 受控组件 + 可观测链路”。框架可以换，协议和治理边界不能丢。
+这一节最后落到一个工程选择：企业 Agent UI 的默认方案应是“可演进的事件协议 + 受控组件 + 可观测链路”。框架可以换，协议和治理边界不能丢。
 
 ### 国内企业 Agent / DataAgent UI 对比
 
@@ -254,25 +262,25 @@ data: {"event_id":"evt_2","message_id":"msg_1","run_id":"run_1","seq":2,"payload
 | 阿里云百炼 Model Studio | Agent 应用把模型、系统提示词、知识库、插件和文件输入放在应用配置面板中 | 对话窗口用于测试 Agent，配置面板决定模型参数、知识和插件能力 | DataAgent 需要把模型参数、知识来源、插件能力和测试对话放在同一个工程闭环里 | 官方文档也提示部分应用开发能力存在版本与可用范围限制，生产环境不能只依赖控制台能力 |
 | 字节 / 火山 Coze | 以低代码工作流、Chatflow、节点、插件和知识库组织 Agent 能力 | 对话是 Chatflow 的入口，Workflow 更偏自动化任务和节点编排 | DataAgent UI 要区分“多轮对话分析”和“后台任务编排”，并把节点执行状态映射回消息流 | 工作流画布便于业务编排，但企业数据权限、审批和内部系统连接仍需平台侧治理 |
 
-这张表不用于判断哪家产品更强，而是抽取企业前端设计的共性：Agent UI 需要同时支持“配置面、运行面、调试面和治理面”。聊天窗口属于运行面，不能替代配置、编排、权限和观测。对企业 DataAgent 来说，更合理的产品形态是：业务用户在对话里提出问题，平台在侧边栏展示数据域、指标口径和工具状态，管理员在配置面管理知识、插件、审批和发布策略。
+表 47-11 更适合当作产品边界清单来读，而不是厂商能力排名。Agent UI 至少要覆盖配置面、运行面、调试面和治理面；聊天窗口只是运行面的一部分，替代不了配置、编排、权限和观测。对企业 DataAgent 来说，更合理的产品形态是：业务用户在对话里提出问题，平台在侧边栏展示数据域、指标口径和工具状态，管理员在配置面管理知识、插件、审批和发布策略。
 
 **图 47-4：腾讯元器的智能体应用模式选择界面**
 
 ![腾讯元器的智能体应用模式选择界面](images/ch47-tencent-yuanqi-mode.png)
 
-图 47-4 展示的是腾讯元器帮助中心公开页面中的模式选择界面。它把智能体应用区分为标准模式、单工作流模式和 Multi-Agent 模式，说明企业 Agent UI 已经开始把“会话入口”前置到“任务模式选择”之上。DataAgent 如果只做一个统一输入框，就很难表达普通问答、数据分析工作流和多角色协作之间的差异。
+模式选择应该发生在用户提问之前，而不是等到 Runtime 里再猜。图 47-4 里的标准模式、单工作流模式和 Multi-Agent 模式，把这个产品边界放到了入口处。DataAgent 如果只保留一个统一输入框，就很难表达普通问答、数据分析工作流和多角色协作之间的差异。
 
 **图 47-5：阿里云百炼 Model Studio 的 Agent 配置界面**
 
 ![阿里云百炼 Model Studio 的 Agent 配置界面](images/ch47-alibaba-modelstudio-config.png)
 
-图 47-5 来自阿里云百炼 Model Studio 官方帮助文档中的 Agent 配置截图。它把模型选择、提示词、知识库和模型参数放在同一个配置界面里，提示企业前端不应把“模型设置”藏成后端配置。对 DataAgent 来说，用户看到的回答质量，往往取决于模型、知识来源、插件能力和上下文轮数这些配置是否可解释、可复现。
+配置面也不只是给开发者看的后台表单。图 47-5 把模型选择、提示词、知识库和模型参数放在同一个界面里，提示企业前端不要把影响回答质量的设置藏成后端参数。对 DataAgent 来说，模型、知识来源、插件能力和上下文轮数都需要可解释、可复现，否则线上问题很难定位到是模型、检索还是配置造成的。
 
 **图 47-6：Coze Studio 工作流画布中的节点与配置面板**
 
 ![Coze Studio 工作流画布中的节点与配置面板](images/ch47-coze-workflow-canvas.png)
 
-图 47-6 来自 Coze Studio 官方 GitHub wiki 中的工作流前端扩展示例，截图展示了真实工作流画布、开始节点、处理节点、结束节点、节点连线以及右侧节点配置面板。它给 DataAgent 的启发是：当任务从“问一句答一句”走向“查询、计算、绘图、审批、导出”的多步骤链路时，前端需要把节点执行状态、失败点、输入输出映射和可重试边界展示出来。对话消息可以是用户入口，但任务视图必须能够表达流程。
+多步骤任务需要流程视图承接。图 47-6 中的节点、连线和右侧配置面板，正好对应 DataAgent 里的查询、计算、绘图、审批和导出链路。对话消息可以是用户入口，但前端还要展示节点执行状态、失败点、输入输出映射和可重试边界，否则用户只能看到一段最终回答，看不到任务怎样完成。
 
 ## 可靠交互与前端可观测
 
@@ -314,158 +322,6 @@ data: {"event_id":"evt_2","message_id":"msg_1","run_id":"run_1","seq":2,"payload
 | 可靠性 | 断线率、恢复成功率、取消成功率、重复事件率 | 排查流式链路和前端 reducer |
 | 质量 | 差评率、追问率、复制率、人工纠错次数 | 进入离线评估和产品改进 |
 | 治理 | 权限拒绝、审批触发、导出动作、敏感字段拦截 | 支持安全审计和合规复盘 |
-
-<!--
-TODO(Project 16): 工程实验：DataAgent 流式对话 UI
-
-本节等 `mini-platform/projects/16-generative-ui-dataagent/` 实战项目启动后再恢复和完善。
-
-当前 mini-platform 还没有完整前端 Console。本章先给出 Project 16 的工程契约，后续实现时保持与 `core/runtime` 和 `core/observability` 的双向引用。
-
-```text
-mini-platform/
-├── console/
-│   └── src/
-│       ├── app/data-agent/page.tsx
-│       ├── api/conversations.ts
-│       ├── components/agent-chat/
-│       └── lib/
-│           ├── stream-reducer.ts
-│           ├── trace-client.ts
-│           └── tool-card-registry.ts
-├── core/
-│   ├── runtime/
-│   └── observability/
-└── projects/
-    └── 16-generative-ui-dataagent/
-        ├── README.md
-        ├── run.sh
-        ├── data/
-        └── evals/
-```
-
-模块职责建议如下。
-
-**表 47-14：DataAgent 流式对话 UI 模块职责**
-
-| 模块 | 职责 | 关联章节 |
-|---|---|---|
-| `api/conversations.ts` | 提交用户消息，建立 SSE 连接，处理恢复游标 | Ch.47 |
-| `stream-reducer.ts` | 将事件折叠为消息树和工具卡状态 | Ch.47 |
-| `tool-card-registry.ts` | 根据工具类型选择安全卡片渲染器 | Ch.48 |
-| `trace-client.ts` | 把前端交互事件写入观测链路 | Ch.38、Ch.47 |
-| `core/runtime/` | 产生统一任务事件，维护任务状态机 | Ch.22 |
-| `core/observability/` | 关联前后端 trace 和会话回放 | Ch.38 |
-
-### 可运行代码与配置
-
-事件 reducer 是这个实验的最小核心。它不直接依赖模型或前端框架，只处理事件到状态的折叠。
-
-```ts
-type StreamEvent =
-  | { type: "message.created"; message_id: string; run_id: string; seq: number }
-  | { type: "message.delta"; message_id: string; run_id: string; seq: number; content_delta: string }
-  | { type: "tool.call.started"; tool_call_id: string; run_id: string; name: string; seq: number }
-  | { type: "tool.call.delta"; tool_call_id: string; run_id: string; progress: string; seq: number }
-  | { type: "tool.call.completed"; tool_call_id: string; run_id: string; result_ref: string; seq: number }
-  | { type: "approval.required"; approval_id: string; run_id: string; reason: string; seq: number }
-  | { type: "message.completed"; message_id: string; run_id: string; seq: number }
-  | { type: "error"; code: string; reason: string; run_id: string; seq: number };
-
-function reduceEvent(state: ConversationState, event: StreamEvent): ConversationState {
-  if (event.run_id !== state.activeRunId) return state;
-  if (state.seenSeq.has(event.seq)) return state;
-
-  switch (event.type) {
-    case "message.delta":
-      return appendMessageDelta(state, event.message_id, event.content_delta);
-    case "tool.call.started":
-      return openToolCard(state, event.tool_call_id, event.name);
-    case "tool.call.completed":
-      return completeToolCard(state, event.tool_call_id, event.result_ref);
-    case "approval.required":
-      return showApprovalCard(state, event.approval_id, event.reason);
-    case "error":
-      return showRecoverableError(state, event.code, event.reason);
-    default:
-      return applyLifecycleEvent(state, event);
-  }
-}
-```
-
-配置文件不只写传输协议，还要写恢复、渲染、安全和观测策略。
-
-```yaml
-console:
-  streaming:
-    transport: sse
-    reconnect: true
-    max_resume_gap_seconds: 30
-    event_idempotency: true
-  rendering:
-    markdown_raw_html: false
-    max_tool_rows_preview: 50
-    tool_result_strategy: data_ref
-    show_trace_link: true
-  controls:
-    allow_cancel: true
-    allow_retry: true
-    require_approval_for_export: true
-  observability:
-    capture_frontend_events: true
-    redact_message_content: configurable
-```
-
-运行入口保持简单。
-
-```bash
-cd mini-platform/projects/16-generative-ui-dataagent
-./run.sh --scenario streaming-chat
-```
-
-验收报告至少输出四类结果。
-
-**表 47-15：DataAgent 流式对话 UI 验收报告项**
-
-| 报告项 | 示例 |
-|---|---|
-| 流式体验 | 首字到达时间、完整回答时间、工具卡首帧时间 |
-| 可靠性 | 断线恢复成功率、取消后旧事件丢弃情况 |
-| 安全性 | 未授权工具是否隐藏，导出是否触发审批 |
-| 可观测性 | 前端事件是否能关联后端 trace |
-
-### 生产化 checklist
-
-- [ ] 权限：前端只展示当前用户可见的工具、字段、数据引用和导出动作。
-- [ ] 审计：每次提问、工具调用、停止、重试、审批、导出均关联同一 trace。
-- [ ] 成本：长回答、多工具调用和重试有租户级配额和提示。
-- [ ] 性能：首字到达时间、工具卡首帧时间、消息渲染耗时有指标。
-- [ ] 稳定性：SSE 断线可恢复，旧请求不会污染新会话。
-- [ ] 可观测性：前端事件、Runtime trace、工具 trace 能串成一条链。
-- [ ] 灾难恢复：流式失败时能切换为非流式结果，或提供“继续生成”入口。
-
-### 踩坑记录
-
-**踩坑 1：流式文本完成了，工具卡片还在加载**
-- 现象：用户看到最终回答，但图表卡仍显示“查询中”。
-- 根因：文本增量和工具事件使用不同通道，前端按消息完成态关闭了整个任务。
-- 修复：统一事件协议，用 `run_id` 管理任务完成态，只有所有必须工具完成后才进入 `Completed`。
-
-**踩坑 2：用户取消后又出现旧回答**
-- 现象：用户点击停止生成并重新提问，上一轮回答片段继续写入新消息。
-- 根因：前端只关闭连接，没有在 reducer 中校验当前 `run_id`。
-- 修复：每次提交生成新的 `run_id`，前端丢弃非当前 `run_id` 事件，后端接收取消信号后停止工具执行。
-
-**踩坑 3：Markdown 表格让页面卡顿**
-- 现象：DataAgent 返回数千行表格，浏览器主线程长时间阻塞。
-- 根因：模型把数据结果当成 Markdown 表格输出，前端一次性渲染过大文本。
-- 修复：工具结果改为结构化引用，消息中只展示摘要；表格走虚拟滚动和行数上限。
-
-**踩坑 4：trace 中混入敏感输入**
-- 现象：会话回放中出现客户手机号和内部订单号。
-- 根因：前端把完整消息内容直接写入观测事件。
-- 修复：前端默认只记录事件类型、耗时、长度和哈希；内容记录受租户配置和脱敏策略控制。
--->
 
 ## 本章小结
 

@@ -78,7 +78,6 @@ ARTICLE_HEADINGS_BY_PATH = {
         re.compile(r"^##\s+Artifacts 与可编辑产物$"),
         re.compile(r"^##\s+业务控件与数据可视化$"),
         re.compile(r"^##\s+UI 安全与审批流程$"),
-        re.compile(r"^##\s+工程实验：Generative UI DataAgent 工作台$"),
         re.compile(r"^##\s+本章小结$"),
     ],
     Path("part09-frontend-multimodal/ch49-agent.md"): [
@@ -87,7 +86,6 @@ ARTICLE_HEADINGS_BY_PATH = {
         re.compile(r"^##\s+语音 Agent 架构$"),
         re.compile(r"^##\s+实时语音交互控制$"),
         re.compile(r"^##\s+多模态权限与审计留痕$"),
-        re.compile(r"^##\s+工程实验：语音与文件输入扩展$"),
         re.compile(r"^##\s+本章小结$"),
     ],
     Path("part10-security-org/ch50.md"): [

@@ -6,10 +6,18 @@
 > **前置阅读**：Ch.19 文档解析与多模态 OCR / Ch.22 Agent Runtime / Ch.47 对话 UI 与流式输出 / Ch.48 Generative UI 与富交互
 > **估计阅读**：L1 15 min / L1+L2 45 min / 全章 90 min
 > **mini-platform 关联**：`mini-platform/console/`、`mini-platform/tools/doc_parser/`、`mini-platform/core/policy/`、`mini-platform/core/observability/`
-> **实战项目**：`mini-platform/projects/16-generative-ui-dataagent/`（计划项目）。Project 16 将在后续实战阶段补齐，本章先聚焦多模态输入边界、实时会话事件和权限审计。
-> **按角色推荐阅读层**：CTO -> L1+L2；架构师 -> L1+L2；工程师 -> L1+L2+L3
 
-企业做多模态 Agent 时，最容易把问题想简单：支持上传文件、接入语音识别、播放语音回答，就算完成多模态。真正进入业务现场后，风险会很快出现。文件可能包含跨租户数据，图片可能拍到工牌和客户信息，Excel 可能有合并单元格导致字段错位，语音转写可能漏掉否定词，实时链路可能在用户打断后继续播放旧回答。
+**本章阅读路径**
+
+| 读者 | 建议重点 |
+|---|---|
+| AI 平台负责人 / CTO | 看多模态入口为什么会把权限、隐私和质量风险前移。 |
+| 架构师 | 看文件解析、实时媒体、Runtime、Policy 和 Observability 的边界。 |
+| 数据智能工程师 | 看文件、图片、录音如何以 `context_ref` 进入 DataAgent，而不是直接进入模型。 |
+| AI 应用开发者 | 看上传任务、异步解析、实时语音事件、打断和降级策略。 |
+| 安全 / 合规负责人 | 看原始文件、音频、转写、工具动作和审计留存如何治理。 |
+
+企业做多模态 Agent 时，很容易把问题想简单：支持上传文件、接入语音识别、播放语音回答，就算完成多模态。进入业务现场后，风险会很快出现。文件可能包含跨租户数据，图片可能拍到工牌和客户信息，Excel 可能有合并单元格导致字段错位，语音转写可能漏掉否定词，实时链路可能在用户打断后继续播放旧回答。
 
 企业业务人员不会只用文字提问。门店经理可能上传货架照片，询问“这组陈列是否符合促销标准”；财务人员可能上传 Excel，要求解释异常波动；售后主管可能把客户电话录音交给 Agent 总结投诉原因；高管则希望直接用语音追问经营指标。多模态输入把 Agent 从“文本问答”推进到“业务现场入口”，同时也把权限、质量、延迟和审计风险前移到输入阶段。
 
@@ -26,11 +34,11 @@
 | 语音能力编排层 | ASR、TTS、录音上传 | 支持录音分析、转写摘要、语音播报 | 不等同于语音 Agent，仍需轮次、工具和确认治理 |
 | 浏览器采集与传输层 | getUserMedia、WebRTC、WebSocket | 让前端采集音频并建立实时链路 | 要处理授权、降级、网络抖动和隐私提示 |
 
-这张表给企业的启发是：多模态不是“模型能力开关”，也不是 Ch.47/Ch.48 的又一组前端框架选择，而是一组输入治理、媒体链路、上下文引用和审计机制。本章沿着五个问题展开：多模态输入边界如何划定，文件上传为什么默认异步解析，语音 Agent 架构如何拆分，实时语音怎样处理打断和确认，多模态权限与审计怎样落到工程契约。
+表 49-1 把多模态拆成输入治理、媒体链路、上下文引用和审计机制，而不是一个“模型能力开关”。本章沿着五个问题展开：多模态输入边界如何划定，文件上传为什么默认异步解析，语音 Agent 架构如何拆分，实时语音怎样处理打断和确认，多模态权限与审计怎样落到工程契约。
 
 ### 国内多模态 / 语音 Agent UI 对比
 
-国内通用 Agent 和 DataAgent 平台在多模态入口上也呈现出分层趋势：文件和图片通常先作为受控附件进入对话，复杂文档要经过解析和切片治理，音视频能力更适合交给独立节点或实时会话控制。腾讯元器的知识库界面已经把 PDF 原文、解析切片和人工管理放到同一页；阿里云百炼 Model Studio 在 Agent 对话中呈现附件上传，同时在模型选择中区分图像理解、视频理解等能力；Coze Studio 则通过工作流节点把音视频处理、HTTP 请求、文本处理等能力放到画布中。对企业平台来说，关键不是“入口越多越好”，而是每一种输入都必须可授权、可解析、可确认、可审计。
+国内通用 Agent 和 DataAgent 平台在多模态入口上也呈现出分层趋势：文件和图片通常先作为受控附件进入对话，复杂文档要经过解析和切片治理，音视频能力更适合交给独立节点或实时会话控制。腾讯元器的知识库界面已经把 PDF 原文、解析切片和人工管理放到同一页；阿里云百炼 Model Studio 在 Agent 对话中呈现附件上传，同时在模型选择中区分图像理解、视频理解等能力；Coze Studio 则通过工作流节点把音视频处理、HTTP 请求、文本处理等能力放到画布中。企业平台不能只追求入口数量，每一种输入都要有授权、解析、确认和审计路径。
 
 **表 49-2：国内多模态 / 语音 Agent UI 产品对比**
 
@@ -44,19 +52,19 @@
 
 ![腾讯元器知识库文档解析切片管理界面](images/ch49-tencent-knowledge-splitting.png)
 
-图 49-1 来自腾讯元器公开帮助文档中的知识库解析切片界面。它展示了 PDF 原文、切片列表和管理入口，说明企业多模态能力不能停留在“上传文件”按钮上。文件进入 Agent 上下文前，还要经过解析、切分、质量判断和人工干预，最终以 `context_ref` 或知识切片引用进入后续推理。
+文件上传只是入口，解析和切片才决定后续回答质量。图 49-1 值得放在这里，是因为它把 PDF 原文、切片列表和管理入口放在同一页：文件进入 Agent 上下文前，需要经过解析、切分、质量判断和人工干预，最终以 `context_ref` 或知识切片引用进入后续推理。
 
 **图 49-2：阿里云百炼 Model Studio 对话输入区的附件入口**
 
 ![阿里云百炼 Model Studio 对话输入区的附件入口](images/ch49-alibaba-file-upload.png)
 
-图 49-2 来自阿里云百炼 Model Studio 官方帮助文档。它展示了 Agent 对话输入区中的附件入口，说明多模态能力首先表现为用户输入方式的扩展。但对企业 DataAgent 来说，附件按钮背后必须接上传任务、解析质量、权限判断和 `context_ref`，不能把原始文件直接交给模型。
+附件按钮越简单，背后的治理越不能省。图 49-2 的输入区很直观，但企业 DataAgent 不能让用户形成“上传后马上可信”的误解；附件入口后面必须接上传任务、解析质量、权限判断和 `context_ref`，原始文件不能直接交给模型。
 
 **图 49-3：Coze Studio 工作流画布中的音视频与工具节点面板**
 
 ![Coze Studio 工作流画布中的音视频与工具节点面板](images/ch49-coze-audio-video-node-panel.png)
 
-图 49-3 来自 Coze Studio 官方 GitHub wiki 的工作流前端扩展示例。节点面板中包含视频生成、视频提取音频、视频抽帧、HTTP 请求、文本处理和会话管理等能力，说明多模态 Agent UI 需要把输入、处理、工具调用和运行状态拆成可组合节点，而不是把所有逻辑藏在一段语音或文件上传之后。
+复杂多模态任务更适合拆成节点，而不是藏在一个上传入口后面。图 49-3 的节点面板覆盖视频生成、视频提取音频、视频抽帧、HTTP 请求、文本处理和会话管理等能力，放到企业平台里，对应的就是输入、处理、工具调用和运行状态都要有可组合、可回放的节点边界。
 
 ---
 
@@ -76,7 +84,7 @@
 | 实时语音问答 | 麦克风音频 | 转写增量、用户打断、工具确认 | WebRTC 实时会话 | 临时凭证、VAD、降级和审计 |
 | 移动现场作业 | 语音 + 图片 + 表单 | 现场证据、任务状态、确认动作 | 混合模式 | 离线重试、权限缓存、风险确认 |
 
-这个分层比“支持多少模态”更重要。低风险附件可以异步解析后进入上下文引用；高风险文件必须先过扫描和权限；实时语音适合短轮次、多打断的场景；录音分析适合异步处理，不需要强行做实时。
+表 49-3 的重点不在“支持多少模态”，而在不同输入的默认处理方式。低风险附件可以异步解析后进入上下文引用；高风险文件必须先过扫描和权限；实时语音适合短轮次、多打断的场景；录音分析适合异步处理，不需要强行做实时。
 
 #### 核心概念与边界
 
@@ -100,7 +108,7 @@
 #### 常见误区
 
 1. **上传文件后就能直接问。** 企业系统需要先做格式检查、病毒扫描、解析质量评估、权限确认和引用登记。
-2. **语音 Agent 只是 ASR 加 TTS。** 真正的语音 Agent 要处理打断、半双工/全双工、噪声、延迟、轮次、工具调用和审计。
+2. **语音 Agent 只是 ASR 加 TTS。** 生产语音 Agent 还要处理打断、半双工/全双工、噪声、延迟、轮次、工具调用和审计。
 3. **实时一定比异步高级。** 录音分析、复杂表格解析、票据识别更适合异步任务；强行实时化会牺牲质量和可审计性。
 4. **多模态模型可以替代数据治理。** 模型可以理解图片和文件，但权限、来源、字段脱敏和证据链仍由平台负责。
 5. **转写文本就是最终意图。** ASR 可能漏词、错词、混淆说话人，高风险工具调用必须展示文本化意图并由用户确认。
@@ -115,7 +123,7 @@
 
 ![多模态输入层在企业 Agent 平台中的位置](images/ch49-position.svg)
 
-这张图里有三个边界。
+图 49-4 可以按三个边界读。
 
 第一，上传入口和 Agent Runtime 解耦。文件先进入对象存储和解析任务，解析结果通过 Context Store 暴露给 Runtime，避免模型直接读取未经治理的原始文件。
 
@@ -184,7 +192,7 @@ Response:
 }
 ```
 
-这份契约的重点不是字段名，而是工程原则：原始文件、解析结果、上下文引用和 Agent 会话必须能串起来；低质量解析不能静默进入上下文；保留周期和删除策略要在上传时写入。
+这份契约真正约束的是文件生命周期：原始文件、解析结果、上下文引用和 Agent 会话必须能串起来；低质量解析不能静默进入上下文；保留周期和删除策略要在上传时写入。
 
 ## 语音 Agent 架构
 
@@ -226,7 +234,7 @@ Response:
 }
 ```
 
-语音 Agent 的工程难点不是“能不能听到声音”，而是轮次控制。用户打断时，前端要停止本地播放，服务端要取消当前 response，后续到达的旧音频和旧工具事件要按 `response_id` 丢弃。否则用户已经进入下一轮问题，系统还在播上一轮回答。
+语音 Agent 的工程难点在轮次控制。用户打断时，前端要停止本地播放，服务端要取消当前 response，后续到达的旧音频和旧工具事件要按 `response_id` 丢弃。否则用户已经进入下一轮问题，系统还在播上一轮回答。
 
 ## 多模态权限与审计留痕
 
@@ -303,225 +311,6 @@ Response:
 ```text
 生成一张企业多模态 Agent 控制台界面。界面包含文件上传解析任务、实时语音转写、语音播放控制、权限审计面板和 DataAgent 回答区。视觉风格为严肃企业后台，强调低延迟语音链路、文件解析质量、敏感字段脱敏、用户确认和 trace 留痕。中文标签，白底，蓝灰主色，不包含真实品牌、真实个人信息或夸张营销风格。
 ```
-
----
-
-<!--
-TODO(Project 16): 工程实验：语音与文件输入扩展
-
-## 工程实验：语音与文件输入扩展
-
-Project 16 在 Ch.47/Ch.48 的基础上扩展多模态输入。实验目标不是一次性实现完整语音平台，而是验证三件事：文件能否以安全引用进入 DataAgent，会话能否用 WebRTC 或 WebSocket 承载实时语音事件，高风险工具能否在转写后进入审批确认。
-
-建议实验阶段如下。
-
-**表 49-12：语音与文件输入扩展实验阶段**
-
-| 阶段 | 目标 | 验收结果 |
-|---|---|---|
-| 阶段一：文件上传 | 上传 Excel/PDF/图片并创建解析任务 | 得到 `upload_id` 和 `parse_task_id` |
-| 阶段二：异步解析 | 生成 `context_ref`、质量报告和审计记录 | 低质量解析触发确认 |
-| 阶段三：实时语音 | 建立会话、展示转写增量、播放回答 | 可打断、可取消、可降级 |
-| 阶段四：敏感动作确认 | 语音触发导出或审批时暂停 | 用户确认后才调用工具 |
-| 阶段五：统一回放 | 文件、转写、工具和 UI 动作继承 trace | 验收报告可复盘 |
-
-建议目录结构如下。
-
-```text
-mini-platform/projects/16-generative-ui-dataagent/
-├── README.md
-├── run.sh
-├── scenarios/
-│   ├── upload_margin_report.json
-│   ├── realtime_voice_query.json
-│   └── sensitive_export_confirmation.json
-├── configs/
-│   └── multimodal.yaml
-├── reports/
-│   └── multimodal_acceptance.md
-└── src/
-    ├── upload_client.ts
-    ├── parse_task_events.ts
-    ├── realtime_client.ts
-    ├── turn_controller.ts
-    └── audit_trace.ts
-```
-
-平台路径建议如下。
-
-**表 49-13：语音与文件输入扩展平台路径**
-
-| 能力 | 建议路径 | 说明 |
-|---|---|---|
-| 文件上传入口 | `mini-platform/console/src/app/data-agent/uploads.tsx` | 上传、任务状态、质量确认 |
-| 实时语音入口 | `mini-platform/console/src/app/data-agent/voice.tsx` | 麦克风授权、转写、播放、打断 |
-| 上传客户端 | `mini-platform/console/src/lib/upload-client.ts` | 创建上传和订阅解析事件 |
-| 实时客户端 | `mini-platform/console/src/lib/realtime-client.ts` | WebRTC/WebSocket 会话封装 |
-| 轮次控制 | `mini-platform/console/src/lib/turn-controller.ts` | VAD、打断、取消、确认 |
-| 解析任务 | `mini-platform/tools/doc_parser/` | OCR、表格抽取、ASR 批处理 |
-| 策略服务 | `mini-platform/core/policy/` | 文件、字段、工具动作权限 |
-| 审计服务 | `mini-platform/core/observability/` | trace、事件、质量报告 |
-
-#### 契约、配置与伪代码
-
-文件接入对话的伪代码如下。
-
-```ts
-async function attachFileToConversation(file: File, conversationId: string) {
-  const upload = await uploadClient.create({
-    file,
-    metadata: {
-      purpose: "data_agent_context",
-      conversation_id: conversationId,
-    },
-  });
-
-  subscribeParseEvents(upload.parse_task_id, (event) => {
-    if (event.type === "parse.completed") {
-      conversation.attachContextRef(event.context_ref);
-    }
-
-    if (event.type === "parse.quality_warning") {
-      ui.requestUserConfirmation(event.quality);
-    }
-
-    audit.link(event.trace_id, conversationId);
-  });
-}
-```
-
-实时语音会话伪代码如下。
-
-```ts
-async function startVoiceSession(conversationId: string) {
-  const session = await realtimeClient.createEphemeralSession({
-    conversation_id: conversationId,
-    default_transport: "webrtc",
-  });
-
-  const media = await navigator.mediaDevices.getUserMedia({ audio: true });
-  await realtimeClient.connectWebRTC(session, media);
-
-  realtimeClient.on("transcript.delta", ui.renderTranscript);
-  realtimeClient.on("response.audio.delta", audioPlayer.enqueue);
-  realtimeClient.on("tool.approval_required", (event) => {
-    audioPlayer.pause();
-    ui.showApprovalCard(event);
-  });
-  realtimeClient.on("response.cancelled", (event) => {
-    audioPlayer.drop(event.response_id);
-  });
-}
-```
-
-多模态配置示例：
-
-```yaml
-console:
-  multimodal:
-    upload:
-      max_file_mb: 50
-      allowed_types: ["pdf", "xlsx", "csv", "png", "jpg", "wav", "mp3"]
-      virus_scan_required: true
-      async_parse_required: true
-      context_ref_required: true
-    voice:
-      default_transport: webrtc
-      fallback_transport: websocket
-      vad_enabled: true
-      require_text_confirmation_for_sensitive_actions: true
-      max_realtime_session_minutes: 20
-    audit:
-      store_raw_audio: false
-      store_transcript: configurable
-      link_context_ref_to_trace: true
-      retention_policy: tenant_default
-```
-
-运行方式设计如下。
-
-```bash
-cd mini-platform/projects/16-generative-ui-dataagent
-./run.sh --scenario upload_margin_report
-./run.sh --scenario realtime_voice_query
-./run.sh --scenario sensitive_export_confirmation
-```
-
-验收报告应覆盖质量、延迟和治理。
-
-```markdown
-# Multimodal Acceptance Report
-
-## Upload
-- upload_id: upl_001
-- parse_task_id: parse_001
-- context_ref: context://retail-demo/parse_001
-- quality_warnings: merged_cells_detected
-
-## Realtime
-- session_id: rt_001
-- transport: webrtc
-- fallback_used: false
-- first_transcript_ms: 420
-- interruption_success: true
-
-## Policy
-- sensitive_action: export_detail_table
-- confirmation_required: true
-- confirmation_result: approved
-
-## Audit
-- trace_id: trace_mm_001
-- raw_audio_stored: false
-- transcript_retention: tenant_default
-```
-
-#### 生产化 checklist
-
-- [ ] 权限：文件、解析结果、语音转写和工具调用都绑定租户与用户权限。
-- [ ] 审计：上传、解析、转写、确认、工具调用、导出都继承同一 trace。
-- [ ] 成本：大文件解析、长音频转写和实时会话有配额和超时限制。
-- [ ] 性能：语音首包延迟、转写延迟、解析队列等待时间有监控。
-- [ ] 稳定性：实时链路失败可降级为文本或录音上传。
-- [ ] 可观测性：保留质量评分、转写确认、解析警告和用户修正记录。
-- [ ] 隐私：原始音频、图片和文件按租户保留策略处理，默认最小化留存。
-- [ ] 灾难恢复：解析任务可重试，上传引用可过期清理，实时会话可重新建立。
-
-#### 踩坑记录
-
-**踩坑 1：Excel 合并单元格导致指标口径错位**
-
-- 现象：Agent 把“区域”列识别成“月份”，生成错误分析。
-- 根因：解析器把合并单元格展开失败，表头层级丢失。
-- 修复：解析质量报告中标记合并单元格，进入人工确认；确认后的表头映射保存为上下文元数据。
-
-**踩坑 2：语音转写误触发高风险工具**
-
-- 现象：用户说“不要导出明细”，转写结果丢失否定词，触发导出意图。
-- 根因：ASR 误识别后直接进入工具调用。
-- 修复：所有高风险动作必须展示文本化意图和影响范围，由用户确认后再执行。
-
-**踩坑 3：实时语音播放无法被打断**
-
-- 现象：用户打断后，旧回答音频仍继续播放数秒。
-- 根因：前端只停止麦克风输入，没有清空播放队列，也没有取消服务端 response。
-- 修复：打断动作同时停止本地播放器、发送取消事件、丢弃旧 `response_id` 的音频片段。
-
-**踩坑 4：上传文件长期留存造成合规风险**
-
-- 现象：试点环境中的客户录音和合同扫描件未按租户策略清理。
-- 根因：对象存储缺少保留周期和清理任务。
-- 修复：上传时写入 retention policy，解析完成后按策略删除原文或转入受控归档。
-
-**踩坑 5：WebRTC 失败后没有降级路径**
-
-- 现象：部分企业网络禁用相关媒体通道，语音入口直接不可用。
-- 根因：前端只实现 WebRTC，没有 WebSocket 或录音上传兜底。
-- 修复：连接失败后自动降级到 WebSocket 事件通道；仍失败时改为录音上传和异步 ASR。
-
--->
-
----
 
 ## 本章小结
 
