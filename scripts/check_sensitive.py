@@ -33,6 +33,10 @@ EMAIL_ALLOWLIST = {
     "noreply@anthropic.com",
 }
 
+INTERNAL_HOST_ALLOWLIST = {
+    "history.internal",  # Debezium schema.history.internal.* config key
+}
+
 SKIP_DIRS = {".git", "node_modules", "__pycache__", ".pytest_cache", "site"}
 
 
@@ -62,6 +66,8 @@ def scan_file(path: Path) -> list[tuple[int, str, str]]:
         for name, pat in PATTERNS.items():
             for m in pat.finditer(line):
                 if name == "EMAIL" and m.group(0) in EMAIL_ALLOWLIST:
+                    continue
+                if name == "INTERNAL_HOST" and m.group(0) in INTERNAL_HOST_ALLOWLIST:
                     continue
                 hits.append((i, name, m.group(0)))
     return hits
