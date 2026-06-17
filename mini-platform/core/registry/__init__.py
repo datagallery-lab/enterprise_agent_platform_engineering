@@ -3,6 +3,22 @@
 关联章节：Ch.23 Tool Registry & Function Calling
 """
 
-from .tool_registry import ToolRegistry, ToolSpec
+from .errors import (
+    ArgumentInvalidError,
+    RegistryError,
+    ToolNotFoundError,
+    ToolUnavailableError,
+)
+from .openai_tools import to_openai_tool
+from .tool_registry import InvokeResult, ToolRegistry, ToolSpec
 
-__all__ = ["ToolRegistry", "ToolSpec"]
+__all__ = [
+    "ArgumentInvalidError",
+    "InvokeResult",
+    "RegistryError",
+    "ToolNotFoundError",
+    "ToolUnavailableError",
+    "ToolRegistry",
+    "ToolSpec",
+    "to_openai_tool",
+]

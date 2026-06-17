@@ -1,8 +1,10 @@
 # Part V Agent 能力百科
 
+**统一实战项目**：`mini-platform/projects/multi-agent-workflow/` — Ch.22–Ch.30 共用 **同一 `run_id`** Run 链（`start` → Handoff / MCP / 报告 → `waiting_human` → `approve` → `succeeded`）。各章 Registry、MCP 等能力另见 `tests/test_registry.py`、`tests/test_mcp_db.py` 单测。
+
 ## 本部分章节
 
-- [Ch.22 Agent Runtime](ch22-agent-runtime.md) — 任务执行、状态机、检查点、失败恢复、超时重试
+- [Ch.22 Agent Runtime](ch22-agent-runtime.md) — Run 六态、任务执行、检查点、失败恢复、超时重试
 - [Ch.23 Tool Registry & Function Calling](ch23-tool-registry-function-calling.md) — 能力注册、Schema、版本治理、调用契约
 - [Ch.24 MCP 与企业工具生态](ch24-mcp.md) — host-client-server 架构、tools/resources/prompts、企业接入
 - [Ch.25 Planner 与编排模式](ch25-planner.md) — ReAct、Plan-and-Execute、状态机、工作流取舍

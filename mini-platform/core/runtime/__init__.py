@@ -3,6 +3,21 @@
 关联章节：Ch.22 Agent Runtime
 """
 
+from .approval import ApprovalRequest, ApprovalStatus
+from .checkpoint import CheckpointStore
+from .run_loop import RunLoop
+from .run_models import RunContext, ToolCallRecord, ToolCallStatus
 from .state_machine import AgentState, AgentStateMachine, Transition
 
-__all__ = ["AgentState", "AgentStateMachine", "Transition"]
+__all__ = [
+    "AgentState",
+    "AgentStateMachine",
+    "ApprovalRequest",
+    "ApprovalStatus",
+    "CheckpointStore",
+    "RunContext",
+    "RunLoop",
+    "ToolCallRecord",
+    "ToolCallStatus",
+    "Transition",
+]
