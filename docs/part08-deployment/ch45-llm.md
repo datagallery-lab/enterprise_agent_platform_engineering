@@ -1,7 +1,7 @@
 # Ch.45 LLM 网关与多租户
 
 > **本章目标**：读者学完后能设计并实现 LLM 统一网关，完成多租户路由、限流、配额与降级链路。
-> **前置阅读**：[Ch.6 本地推理引擎](../part02-model-inference/ch06-local-inference.md) / [Ch.44 模型部署](ch44.md) / [Ch.41 成本治理与缓存](../part07-observability-eval/ch41.md)
+> **前置阅读**：[Ch.6 本地推理引擎](../part02-model-inference/ch06.md) / [Ch.44 模型部署](ch44.md) / [Ch.41 成本治理与缓存](../part07-observability-eval/ch41-cost-governance-cache.md)
 > **估计阅读**：L1 15 min / L1+L2 45 min / 全章 90 min
 > **按角色推荐阅读层**：CTO ⇒ L1+L2 ｜ 架构师 ⇒ L1+L2 ｜ 工程师 ⇒ L1+L2+L3
 
@@ -415,4 +415,4 @@ ArgoCD Application `llm-gateway-prod` 的 `targetRevision` 与 `model-serving-pr
 
 - 官方文档：[LiteLLM 文档](https://docs.litellm.ai/)、[Higress AI Gateway](https://higress.io/)、[Kong AI Plugin](https://docs.konghq.com/)
 - 对标产品：Portkey、Helicone、Cloudflare AI Gateway
-- 相关章节：Part VII [Ch.41–42](../part07-observability-eval/ch41.md)、Part VIII [Ch.44 模型部署](ch44.md)、Part X [Ch.50 安全](../part10-security-org/ch50.md)
+- 相关章节：Part VII [Ch.41–42](../part07-observability-eval/ch41-cost-governance-cache.md)、Part VIII [Ch.44 模型部署](ch44.md)、Part X [Ch.50 安全](../part10-security-org/ch50.md)

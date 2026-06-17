@@ -523,7 +523,7 @@ Text-to-Chart / Text-to-Pandas 代表工具。
 
 ## 缩写速查（CI 白名单）
 
-A2A / ACP / AGI / AI / API / AWQ / BGE / BI / BM25 / CDC / CLIP / CoT / CRM / DAG / DDL / DPO / E5 / ERP / ETL / FP16 / GET / GMV / GPT / GPTQ / GTE / GUI / GraphRAG / HA / HITL / HNSW / HTTP / IaC / INT4 / INT8 / IVF / JSON / KPI / KV / LLM / LoRA / MCP / MIG / MTEB / MVP / NER / NL2SQL / OCR / OLAP / ONNX / OPA / OWASP / NIST / PEFT / PII / POS / POST / PQ / PR / RAG / RBAC / RE / ReAct / RDF / RLHF / ROI / RPC / RRF / SaaS / SDK / SKU / SLA / SLO / SOAP / SOC / SQL / SRE / SFT / SPLADE / SSE / SSO / TTS / ToT / UI / WASM / XSS / YAML / OWL / OSS / GPU / KTO / IAM / REST
+A2A / A100 / ACP / AGI / AI / API / ARN / AWQ / AZ / BGE / BI / BM25 / CDC / CDN / CFD / CLIP / CMDB / CoT / CR / CRM / CRUD / CUDA / DAG / DCGM / DDL / DMA / DNS / DPO / E5 / ERP / ESO / ETL / FAQ / FP16 / GET / GMV / GPT / GPTQ / GTE / GUI / GraphRAG / HA / HCL / HITL / HNSW / HPA / HPC / HTTP / IAM / IaC / INT4 / INT8 / IP / IVF / JSON / KPI / KTO / KV / L0 / L5 / L6 / L7 / LLM / LoRA / MCP / MIG / MTEB / MVP / NER / NL2SQL / NIST / NPU / NUMA / OCR / OLAP / ONNX / OPA / OSS / OWASP / OWL / P99 / PEFT / PII / POS / POST / PP / PQ / PR / PVC / Q4 / QPS / RAG / RBAC / RE / REST / ReAct / RDF / RLHF / ROI / RPC / RPM / RRF / RTT / SaaS / SDK / SFT / SKU / SLA / SLO / SOAP / SOC / SPLADE / SQL / SRE / SSE / SSH / SSO / TGI / TLS / TP / TPM / TTS / ToT / UI / URI / VPC / WAF / WASM / XSS / YAML
 
 Roman numerals used as Part numbers in this book are also exempt:
 II / III / IV / V / VI / VII / VIII / IX / X / XI / L1 / L2 / L3 / L4

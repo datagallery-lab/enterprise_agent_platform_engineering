@@ -35,6 +35,7 @@ EMAIL_ALLOWLIST = {
 
 INTERNAL_HOST_ALLOWLIST = {
     "history.internal",  # Debezium schema.history.internal.* config key
+    "llm-gateway.internal",  # Documentation example host for the internal LLM gateway.
 }
 
 SKIP_DIRS = {".git", "node_modules", "__pycache__", ".pytest_cache", "site"}

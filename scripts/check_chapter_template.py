@@ -20,6 +20,13 @@ REQUIRED_HEADINGS = [
     re.compile(r"^##\s+本章小结"),
 ]
 
+ARTICLE_CLOSING_HEADING = re.compile(
+    r"^##\s+(?:(?:\d+\.\s*)?本章小结|第[一二三四五六七八九十百0-9]+章收束.*|(?:\d+\.\s*)?上线检查与延伸阅读)$"
+)
+ARTICLE_H2_HEADING = re.compile(r"^##\s+")
+ARTICLE_H3_HEADING = re.compile(r"^###\s+")
+ARTICLE_REFERENCE_HEADING = re.compile(r"^##\s+参考文献$")
+
 ARTICLE_HEADINGS_BY_PATH = {
     Path("part04-vector-knowledge/ch16.md"): [
         re.compile(r"^##\s+嵌入模型的企业应用场景$"),
@@ -127,16 +134,61 @@ ARTICLE_HEADINGS_BY_PATH = {
 }
 
 
-def check_file(path: Path) -> list[str]:
-    text = path.read_text(encoding="utf-8")
-    lines = text.splitlines()
+def content_lines(lines: list[str]) -> list[str]:
+    result: list[str] = []
+    in_fence = False
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("```") or stripped.startswith("~~~"):
+            in_fence = not in_fence
+            continue
+        if not in_fence:
+            result.append(line)
+    return result
+
+
+def missing_patterns(lines: list[str], patterns: list[re.Pattern[str]]) -> list[str]:
     errors: list[str] = []
-    rel = path.relative_to(DOCS)
-    required = ARTICLE_HEADINGS_BY_PATH.get(rel, REQUIRED_HEADINGS)
-    for pat in required:
+    for pat in patterns:
         if not any(pat.search(line) for line in lines):
             errors.append(f"missing section matching {pat.pattern}")
     return errors
+
+
+def check_article_structure(lines: list[str]) -> list[str]:
+    closing_index = next(
+        (i for i, line in enumerate(lines) if ARTICLE_CLOSING_HEADING.search(line)),
+        None,
+    )
+    if closing_index is None:
+        return [f"missing article closing section matching {ARTICLE_CLOSING_HEADING.pattern}"]
+
+    body_lines = lines[:closing_index]
+    body_h2_count = sum(
+        1
+        for line in body_lines
+        if ARTICLE_H2_HEADING.search(line)
+        and not ARTICLE_REFERENCE_HEADING.search(line)
+        and not ARTICLE_CLOSING_HEADING.search(line)
+    )
+    body_h3_count = sum(1 for line in body_lines if ARTICLE_H3_HEADING.search(line))
+    if body_h2_count >= 3 or body_h3_count >= 3:
+        return []
+    return ["missing article body structure with at least 3 H2 or H3 sections"]
+
+
+def check_file(path: Path) -> list[str]:
+    text = path.read_text(encoding="utf-8")
+    lines = content_lines(text.splitlines())
+    rel = path.relative_to(DOCS)
+    required = ARTICLE_HEADINGS_BY_PATH.get(rel, REQUIRED_HEADINGS)
+    errors = missing_patterns(lines, required)
+    if not errors or rel in ARTICLE_HEADINGS_BY_PATH:
+        return errors
+    article_errors = check_article_structure(lines)
+    if not article_errors:
+        return []
+    return errors + article_errors
 
 
 def main() -> int:
