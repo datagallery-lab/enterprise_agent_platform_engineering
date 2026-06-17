@@ -68,9 +68,9 @@ nav:
   - Part I 总论与平台观:
       - part01-overview/index.md
       - Ch.01 Agent 的本质: part01-overview/ch01-agent.md
-      - Ch.02 平台边界: part01-overview/ch02-agent.md
-      - Ch.03 AI 原生业务系统: part01-overview/ch03-ai-agent.md
-      - Ch.04 参考架构总览: part01-overview/ch04.md
+      - Ch.02 企业级 Agent 平台的边界: part01-overview/ch02-agent.md
+      - Ch.03 AI 原生业务系统：Agent 重塑企业软件: part01-overview/ch03-ai-agent.md
+      - Ch.04 全书地图：平台参考架构与阅读路径: part01-overview/ch04.md
 
   - Part II 模型与推理:
       - part02-model-inference/index.md
@@ -78,7 +78,7 @@ nav:
       - Ch.06 本地推理引擎: part02-model-inference/ch06.md
       - Ch.07 推理优化: part02-model-inference/ch07.md
       - Ch.08 结构化输出与提示工程: part02-model-inference/ch08.md
-      - Ch.09 模型微调与对齐: part02-model-inference/ch09.md
+      - Ch.09 模型能力定制与知识增强: part02-model-inference/ch09.md
 
   - Part III 数据基础设施:
       - part03-data-infra/index.md
@@ -123,9 +123,9 @@ nav:
   - Part VII 可观测性、评估与成本:
       - part07-observability-eval/index.md
       - Ch.38 可观测性与 Trace: part07-observability-eval/ch38-trace.md
-      - Ch.39 离线评估与基准: part07-observability-eval/ch39.md
+      - Ch.39 离线评估与基准: part07-observability-eval/ch39-dataagent-eval-benchmark.md
       - Ch.40 在线评估与 LLM-as-Judge: part07-observability-eval/ch40-llm-as-judge.md
-      - Ch.41 成本治理与缓存: part07-observability-eval/ch41.md
+      - Ch.41 成本治理与缓存: part07-observability-eval/ch41-cost-governance-cache.md
       - Ch.42 SLO、限流与降级: part07-observability-eval/ch42-slo.md
 
   - Part VIII 部署与基础设施:

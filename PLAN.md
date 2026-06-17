@@ -86,7 +86,7 @@
 | 6 | 本地推理引擎 | vLLM、SGLang、LMDeploy、TGI、Ollama；吞吐 vs 延迟取舍 |
 | 7 | 推理优化 | KV cache、prefix cache、speculative decoding、量化（GPTQ/AWQ/INT4） |
 | 8 | 结构化输出与提示工程 | JSON Schema、Outlines、Instructor、Few-shot/CoT/ToT/Self-Consistency、Prompt 模板管理 |
-| 9 | 模型微调与对齐 | LoRA、QLoRA、PEFT、SFT、DPO、KTO、领域微调；何时微调何时 RAG |
+| 9 | 模型能力定制与知识增强 | 微调：让模型适配特定任务；对齐：让模型符合偏好与规范；RAG：让模型接入外部知识 |
 
 ---
 

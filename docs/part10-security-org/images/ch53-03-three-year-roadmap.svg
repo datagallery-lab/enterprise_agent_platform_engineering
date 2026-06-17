@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="380" viewBox="0 0 980 380" role="img" aria-label="Three-year Agent platform roadmap">
+  <defs><marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#d14b4b"/></marker><style>.bg{fill:#fff}.comp{fill:#eef5ff;stroke:#2563eb;stroke-width:1.5}.ext{fill:#f4f4f5;stroke:#9ca3af;stroke-width:1.3}.ctrl{fill:#fff1f2;stroke:#d14b4b;stroke-width:1.4}.line{fill:none;stroke:#d14b4b;stroke-width:2;marker-end:url(#a)}.txt{font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#111827}.sub{font:12px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#4b5563}</style></defs>
+  <rect class="bg" width="980" height="380"/>
+  <line x1="90" y1="190" x2="890" y2="190" stroke="#d1d5db" stroke-width="2"/>
+  <rect class="ext" x="70" y="92" width="170" height="88" rx="6"/><text class="txt" x="155" y="122" text-anchor="middle">0-6 个月</text><text class="sub" x="155" y="147" text-anchor="middle">高价值场景</text><text class="sub" x="155" y="166" text-anchor="middle">模型网关 / trace</text>
+  <rect class="comp" x="292" y="202" width="170" height="96" rx="6"/><text class="txt" x="377" y="232" text-anchor="middle">6-12 个月</text><text class="sub" x="377" y="257" text-anchor="middle">Runtime / Guardrails</text><text class="sub" x="377" y="276" text-anchor="middle">标准接入流程</text>
+  <rect class="comp" x="514" y="92" width="170" height="96" rx="6"/><text class="txt" x="599" y="122" text-anchor="middle">第 2 年</text><text class="sub" x="599" y="147" text-anchor="middle">多租户 / SLO</text><text class="sub" x="599" y="166" text-anchor="middle">评估与合规矩阵</text>
+  <rect class="ctrl" x="736" y="202" width="170" height="96" rx="6"/><text class="txt" x="821" y="232" text-anchor="middle">第 3 年</text><text class="sub" x="821" y="257" text-anchor="middle">AI 原生业务系统</text><text class="sub" x="821" y="276" text-anchor="middle">生态工具市场</text>
+  <path class="line" d="M240 136 C270 150 272 232 292 244"/><path class="line" d="M462 250 C492 238 492 150 514 140"/><path class="line" d="M684 140 C714 154 714 238 736 250"/>
+  <text class="sub" x="488" y="344" text-anchor="middle">路线图按成熟度推进：场景价值、能力复用、运行治理、安全合规同步增长。</text>
+</svg>

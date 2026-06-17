@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="560" viewBox="0 0 1320 560" role="img">
+  <defs>
+    <marker id="blue-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M1 1 L9 5 L1 9 Z" fill="#1f5f8b"/>
+    </marker>
+    <marker id="red-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M1 1 L9 5 L1 9 Z" fill="#b33939"/>
+    </marker>
+    <style>
+      .bg { fill: #fff; }
+      .external { fill: #f3f4f5; stroke: #8f989f; stroke-width: 1.4; }
+      .component { fill: #f8fbfd; stroke: #1f5f8b; stroke-width: 1.7; }
+      .control { fill: #fff8f8; stroke: #b33939; stroke-width: 1.5; }
+      .flow { stroke: #1f5f8b; stroke-width: 2.1; fill: none; marker-end: url(#blue-arrow); }
+      .control-flow { stroke: #b33939; stroke-width: 1.9; fill: none; marker-end: url(#red-arrow); stroke-dasharray: 7 5; }
+      .label { font-family: "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif; font-size: 18px; font-weight: 700; fill: #202a33; }
+      .sub { font-family: "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif; font-size: 14px; fill: #52606d; }
+      .tag { font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; font-weight: 700; fill: #1f5f8b; }
+      .tag-red { font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; font-weight: 700; fill: #b33939; }
+    </style>
+  </defs>
+  <rect class="bg" width="1320" height="560"/>
+
+  <g transform="translate(70 84)">
+    <rect class="external" width="190" height="104" rx="3"/>
+    <text class="tag" x="18" y="27">Q</text>
+    <text class="label" x="18" y="58">真实 query 集</text>
+    <text class="sub" x="18" y="82">问题 / 改写 / 难例</text>
+  </g>
+  <g transform="translate(70 250)">
+    <rect class="external" width="190" height="104" rx="3"/>
+    <text class="tag" x="18" y="27">D</text>
+    <text class="label" x="18" y="58">企业语料</text>
+    <text class="sub" x="18" y="82">文档 / 字段 / 工单</text>
+  </g>
+
+  <path class="flow" d="M260 136 C330 136 326 220 390 220"/>
+  <path class="flow" d="M260 302 C330 302 326 220 390 220"/>
+
+  <g transform="translate(408 168)">
+    <rect class="component" width="196" height="112" rx="3"/>
+    <text class="tag" x="18" y="27">01</text>
+    <text class="label" x="18" y="58">候选 embedding 模型</text>
+    <text class="sub" x="18" y="84">API / 开源 / 私有化</text>
+  </g>
+
+  <path class="flow" d="M604 224 H680"/>
+
+  <g transform="translate(698 168)">
+    <rect class="component" width="190" height="112" rx="3"/>
+    <text class="tag" x="18" y="27">02</text>
+    <text class="label" x="18" y="58">向量索引</text>
+    <text class="sub" x="18" y="84">pgvector / Qdrant / Milvus</text>
+  </g>
+
+  <path class="flow" d="M888 224 H964"/>
+
+  <g transform="translate(982 168)">
+    <rect class="component" width="174" height="112" rx="3"/>
+    <text class="tag" x="18" y="27">03</text>
+    <text class="label" x="18" y="58">top-k 检索</text>
+    <text class="sub" x="18" y="84">metadata filter</text>
+  </g>
+
+  <path class="flow" d="M1069 280 V346"/>
+  <path class="flow" d="M1156 224 H1212 V346"/>
+
+  <g transform="translate(920 364)">
+    <rect class="component" width="220" height="108" rx="3"/>
+    <text class="tag" x="18" y="27">04A</text>
+    <text class="label" x="18" y="58">指标计算</text>
+    <text class="sub" x="18" y="84">recall / MRR / nDCG / cost</text>
+  </g>
+
+  <g transform="translate(1160 364)">
+    <rect class="control" width="220" height="108" rx="3"/>
+    <text class="tag-red" x="18" y="27">04B</text>
+    <text class="label" x="18" y="58">失败样例分析</text>
+    <text class="sub" x="18" y="84">术语 / 权限 / chunk / OCR</text>
+  </g>
+
+  <path class="flow" d="M920 418 H820"/>
+  <path class="flow" d="M1160 418 H820"/>
+
+  <g transform="translate(600 364)">
+    <rect class="component" width="202" height="108" rx="3"/>
+    <text class="tag" x="18" y="27">05</text>
+    <text class="label" x="18" y="58">选型报告</text>
+    <text class="sub" x="18" y="84">分数 + 失败样例 + 成本</text>
+  </g>
+
+  <path class="flow" d="M600 418 H502"/>
+
+  <g transform="translate(286 364)">
+    <rect class="control" width="198" height="108" rx="3"/>
+    <text class="tag-red" x="18" y="27">06</text>
+    <text class="label" x="18" y="58">生产策略</text>
+    <text class="sub" x="18" y="84">默认 / 敏感 / 回滚模型</text>
+  </g>
+
+  <path class="control-flow" d="M385 364 C380 314 430 288 506 280"/>
+  <text class="sub" x="282" y="326">报告结论反馈到模型候选、索引版本和评测集维护</text>
+</svg>

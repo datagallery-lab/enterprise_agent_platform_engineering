@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">图 6-2：吞吐与延迟的取舍曲线</title>
+  <desc id="desc">不同推理服务形态在吞吐和交互延迟上有不同定位，高吞吐通常需要接受更复杂的调度和尾延迟治理。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#334155"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#0f172a" flood-opacity="0.13"/>
+    </filter>
+    <style>
+      .bg { fill: #f8fafc; }
+      .plot { fill: #ffffff; stroke: #cbd5e1; rx: 8; filter: url(#shadow); }
+      .grid { stroke: #e2e8f0; stroke-width: 1; }
+      .axis { stroke: #334155; stroke-width: 2; marker-end: url(#arrow); }
+      .curve { fill: none; stroke: #0891b2; stroke-width: 4; stroke-linecap: round; }
+      .bubble1 { fill: #dbeafe; stroke: #3b82f6; stroke-width: 2; }
+      .bubble2 { fill: #dcfce7; stroke: #22c55e; stroke-width: 2; }
+      .bubble3 { fill: #ffedd5; stroke: #fb923c; stroke-width: 2; }
+      .bubble4 { fill: #fce7f3; stroke: #ec4899; stroke-width: 2; }
+      .note { fill: #ffffff; stroke: #cbd5e1; rx: 8; filter: url(#shadow); }
+      .title { font: 700 32px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 16px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #475569; }
+      .label { font: 700 16px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #1e293b; }
+      .text { font: 400 14px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #475569; }
+      .tiny { font: 400 12px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #64748b; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1200" height="720"/>
+  <text class="title" x="60" y="58">吞吐提高后，尾延迟治理会成为平台问题</text>
+  <text class="subtitle" x="60" y="88">连续批处理、分页 KV 和并行能提升 tokens/s，但交互场景仍要守住 TTFT 与 P95/P99。</text>
+
+  <rect class="plot" x="92" y="130" width="770" height="500"/>
+  <line class="grid" x1="170" y1="200" x2="810" y2="200"/>
+  <line class="grid" x1="170" y1="300" x2="810" y2="300"/>
+  <line class="grid" x1="170" y1="400" x2="810" y2="400"/>
+  <line class="grid" x1="170" y1="500" x2="810" y2="500"/>
+  <line class="grid" x1="300" y1="170" x2="300" y2="560"/>
+  <line class="grid" x1="430" y1="170" x2="430" y2="560"/>
+  <line class="grid" x1="560" y1="170" x2="560" y2="560"/>
+  <line class="grid" x1="690" y1="170" x2="690" y2="560"/>
+  <line class="axis" x1="170" y1="560" x2="822" y2="560"/>
+  <line class="axis" x1="170" y1="560" x2="170" y2="160"/>
+  <text class="label" x="820" y="594" text-anchor="end">吞吐 tokens/s</text>
+  <text class="label" x="122" y="174" transform="rotate(-90 122 174)">P95 延迟 / TTFT</text>
+
+  <path class="curve" d="M210 510 C330 455 442 390 545 315 C650 240 726 222 790 210"/>
+  <text class="tiny" x="446" y="338">优化曲线：调度、缓存、并行、量化</text>
+
+  <circle class="bubble3" cx="250" cy="495" r="54"/>
+  <text class="label" x="250" y="489" text-anchor="middle">Ollama</text>
+  <text class="tiny" x="250" y="510" text-anchor="middle">试模型 / 边缘</text>
+
+  <circle class="bubble1" cx="410" cy="405" r="58"/>
+  <text class="label" x="410" y="399" text-anchor="middle">单机服务</text>
+  <text class="tiny" x="410" y="420" text-anchor="middle">低并发 API</text>
+
+  <circle class="bubble2" cx="585" cy="300" r="66"/>
+  <text class="label" x="585" y="294" text-anchor="middle">vLLM / TGI</text>
+  <text class="tiny" x="585" y="315" text-anchor="middle">连续批处理</text>
+
+  <circle class="bubble4" cx="745" cy="228" r="68"/>
+  <text class="label" x="745" y="222" text-anchor="middle">推理集群</text>
+  <text class="tiny" x="745" y="243" text-anchor="middle">多租户 / 高并发</text>
+
+  <rect class="note" x="910" y="164" width="220" height="122"/>
+  <text class="label" x="934" y="197">交互式负载</text>
+  <text class="text" x="934" y="224">TTFT 优先</text>
+  <text class="text" x="934" y="247">短上下文 / 流式输出</text>
+  <text class="text" x="934" y="270">控制 P95/P99</text>
+
+  <rect class="note" x="910" y="320" width="220" height="122"/>
+  <text class="label" x="934" y="353">批量与后台任务</text>
+  <text class="text" x="934" y="380">吞吐优先</text>
+  <text class="text" x="934" y="403">大 batch / 队列</text>
+  <text class="text" x="934" y="426">可接受更高 TTFT</text>
+
+  <rect class="note" x="910" y="476" width="220" height="122"/>
+  <text class="label" x="934" y="509">平台必须补齐</text>
+  <text class="text" x="934" y="536">限流 / 配额 / 熔断</text>
+  <text class="text" x="934" y="559">请求长度治理</text>
+  <text class="text" x="934" y="582">容量与成本核算</text>
+</svg>

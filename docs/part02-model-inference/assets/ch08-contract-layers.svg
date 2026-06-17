@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">图 8-1：结构化任务的四层契约</title>
+  <desc id="desc">结构化输出需要语义契约、结构契约、执行契约和治理契约共同约束，Prompt、Schema、Tool Registry 和发布记录绑定成可发布资产。</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .bg { fill: #f8fafc; }
+      .panel { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.3; rx: 8; filter: url(#shadow); }
+      .layer-a { fill: #eff6ff; stroke: #93c5fd; rx: 8; }
+      .layer-b { fill: #f0fdfa; stroke: #5eead4; rx: 8; }
+      .layer-c { fill: #fff7ed; stroke: #fdba74; rx: 8; }
+      .layer-d { fill: #f5f3ff; stroke: #c4b5fd; rx: 8; }
+      .asset { fill: #fff1f2; stroke: #fda4af; rx: 8; }
+      .title { font: 700 32px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 16px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #475569; }
+      .head { font: 700 22px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0f172a; }
+      .label { font: 700 17px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #1e293b; }
+      .text { font: 400 14px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #475569; }
+      .tiny { font: 400 12px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #64748b; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1200" height="720"/>
+  <text class="title" x="60" y="58">Prompt、Schema、工具和治理要绑定发布</text>
+  <text class="subtitle" x="60" y="88">结构化输出的稳定性来自四层契约，而不是单条提示词。</text>
+
+  <rect class="panel" x="82" y="140" width="530" height="454"/>
+  <text class="head" x="116" y="180">四层契约</text>
+
+  <rect class="layer-a" x="126" y="216" width="442" height="68"/>
+  <text class="label" x="150" y="244">1. 语义契约</text>
+  <text class="text" x="150" y="267">模型要完成什么业务动作，何时说信息不足。</text>
+
+  <rect class="layer-b" x="126" y="306" width="442" height="68"/>
+  <text class="label" x="150" y="334">2. 结构契约</text>
+  <text class="text" x="150" y="357">字段、类型、枚举、必填项和 additionalProperties。</text>
+
+  <rect class="layer-c" x="126" y="396" width="442" height="68"/>
+  <text class="label" x="150" y="424">3. 执行契约</text>
+  <text class="text" x="150" y="447">可用工具、参数 schema、权限、幂等和确认策略。</text>
+
+  <rect class="layer-d" x="126" y="486" width="442" height="68"/>
+  <text class="label" x="150" y="514">4. 治理契约</text>
+  <text class="text" x="150" y="537">版本、评测、灰度、审计、脱敏、回滚和人工兜底。</text>
+
+  <rect class="panel" x="690" y="140" width="426" height="454"/>
+  <text class="head" x="724" y="180">可发布资产包</text>
+
+  <rect class="asset" x="736" y="218" width="334" height="64"/>
+  <text class="label" x="760" y="245">Prompt Template</text>
+  <text class="text" x="760" y="267">template_id + version + examples</text>
+
+  <rect class="asset" x="736" y="304" width="334" height="64"/>
+  <text class="label" x="760" y="331">Schema Registry</text>
+  <text class="text" x="760" y="353">schema_id + schema_version</text>
+
+  <rect class="asset" x="736" y="390" width="334" height="64"/>
+  <text class="label" x="760" y="417">Tool Registry</text>
+  <text class="text" x="760" y="439">tool name + parameters + auth policy</text>
+
+  <rect class="asset" x="736" y="476" width="334" height="64"/>
+  <text class="label" x="760" y="503">Release Record</text>
+  <text class="text" x="760" y="525">model + generation config + eval gate</text>
+
+  <text class="tiny" x="132" y="650">上线后 trace 至少能还原：template、schema、tool、model、raw output、validation error、retry count 和最终状态。</text>
+</svg>
