@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Figure 5-1: Enterprise model matrix and runtime routing</title>
+  <desc id="desc">Business task profiles pass through policy, model catalog, eval gates, and selectors, then route to model pools with fallback and guardrails recorded.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#334155"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="9" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .bg { fill: #f8fafc; }
+      .panel { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.4; rx: 8; filter: url(#shadow); }
+      .task { fill: #eef6ff; stroke: #7dd3fc; stroke-width: 1.2; rx: 8; }
+      .gov { fill: #f7fee7; stroke: #bef264; stroke-width: 1.2; rx: 8; }
+      .model { fill: #fff7ed; stroke: #fdba74; stroke-width: 1.2; rx: 8; }
+      .guard { fill: #fff1f2; stroke: #fda4af; stroke-width: 1.2; rx: 8; }
+      .title { font: 700 32px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 16px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #475569; }
+      .head { font: 700 20px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0f172a; }
+      .label { font: 600 16px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #1e293b; }
+      .text { font: 400 14px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #475569; }
+      .tiny { font: 400 12px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #64748b; }
+      .line { stroke: #334155; stroke-width: 2; fill: none; marker-end: url(#arrow); }
+      .dash { stroke: #94a3b8; stroke-width: 1.6; stroke-dasharray: 6 6; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1200" height="720"/>
+  <text class="title" x="60" y="58">Enterprise model selection is a governed model matrix</text>
+  <text class="subtitle" x="60" y="88">Apps declare task profiles; the platform chooses primary, fallback, and guards by data boundary, SLO, cost, and eval results.</text>
+
+  <rect class="panel" x="46" y="122" width="300" height="510"/>
+  <text class="head" x="72" y="158">Task profile</text>
+  <text class="tiny" x="72" y="180">input, output, risk, data class, SLO</text>
+
+  <rect class="task" x="72" y="205" width="248" height="72"/>
+  <text class="label" x="92" y="232">Ticket classification</text>
+  <text class="text" x="92" y="255">JSON validity / cost / P95</text>
+
+  <rect class="task" x="72" y="294" width="248" height="72"/>
+  <text class="label" x="92" y="321">DataAgent / NL2SQL</text>
+  <text class="text" x="92" y="344">reasoning / tools / SQL safety</text>
+
+  <rect class="task" x="72" y="383" width="248" height="72"/>
+  <text class="label" x="92" y="410">Contract review</text>
+  <text class="text" x="92" y="433">evidence / risk tiering / HITL</text>
+
+  <rect class="task" x="72" y="472" width="248" height="72"/>
+  <text class="label" x="92" y="499">Store offline assistant</text>
+  <text class="text" x="92" y="522">local deploy / low network</text>
+
+  <rect class="panel" x="448" y="122" width="304" height="510"/>
+  <text class="head" x="476" y="158">Governance and selection</text>
+  <text class="tiny" x="476" y="180">turn preferences into auditable decisions</text>
+
+  <rect class="gov" x="484" y="210" width="232" height="58"/>
+  <text class="label" x="508" y="237">Policy Engine</text>
+  <text class="text" x="508" y="258">data boundary / tenant / region</text>
+
+  <rect class="gov" x="484" y="292" width="232" height="58"/>
+  <text class="label" x="508" y="319">Model Catalog</text>
+  <text class="text" x="508" y="340">version / license / price</text>
+
+  <rect class="gov" x="484" y="374" width="232" height="58"/>
+  <text class="label" x="508" y="401">Eval Gate</text>
+  <text class="text" x="508" y="422">eval set / regression bar</text>
+
+  <rect class="gov" x="484" y="456" width="232" height="58"/>
+  <text class="label" x="508" y="483">Model Selector</text>
+  <text class="text" x="508" y="504">primary / fallback / guards</text>
+
+  <rect class="guard" x="484" y="540" width="232" height="58"/>
+  <text class="label" x="508" y="567">Release Controller</text>
+  <text class="text" x="508" y="588">canary / pinning / rollback</text>
+
+  <rect class="panel" x="854" y="122" width="300" height="510"/>
+  <text class="head" x="882" y="158">Model matrix</text>
+  <text class="tiny" x="882" y="180">combined by task, risk, and cost</text>
+
+  <rect class="model" x="882" y="205" width="244" height="72"/>
+  <text class="label" x="902" y="232">fast-classifier</text>
+  <text class="text" x="902" y="255">low cost / volume / low risk</text>
+
+  <rect class="model" x="882" y="294" width="244" height="72"/>
+  <text class="label" x="902" y="321">frontier-reasoner</text>
+  <text class="text" x="902" y="344">hard reasoning / strong fallback</text>
+
+  <rect class="model" x="882" y="383" width="244" height="72"/>
+  <text class="label" x="902" y="410">local-qwen3-32b</text>
+  <text class="text" x="902" y="433">local / sensitive / steady load</text>
+
+  <rect class="model" x="882" y="472" width="244" height="72"/>
+  <text class="label" x="902" y="499">edge-small-model</text>
+  <text class="text" x="902" y="522">offline nodes / store SOPs</text>
+
+  <path class="line" d="M346 376 C386 376 404 376 448 376"/>
+  <path class="line" d="M752 376 C792 376 810 376 854 376"/>
+  <path class="dash" d="M1004 544 C1004 618 600 670 196 544"/>
+  <text class="tiny" x="452" y="675">trace records: why selected, when it fell back, what data was allowed, and which checks ran</text>
+</svg>
