@@ -1,7 +1,7 @@
 # Ch.43 GPU 调度与 Kubernetes
 
 > **本章目标**：读者学完后能为企业 Agent 平台设计 GPU 资源池与 Kubernetes 调度策略，并识别常见调度失败模式。
-> **前置阅读**：[Ch.4 平台参考架构总览](../part01-overview/ch04.md) / [Ch.6 本地推理引擎](../part02-model-inference/ch06.md)
+> **前置阅读**：[Ch.4 平台参考架构总览](../part01-overview/zh/ch04.md) / [Ch.6 本地推理引擎](../part02-model-inference/ch06.md)
 > **估计阅读**：L1 15 min / L1+L2 45 min / 全章 90 min
 > **按角色推荐阅读层**：CTO ⇒ L1+L2 ｜ 架构师 ⇒ L1+L2 ｜ 工程师 ⇒ L1+L2+L3
 

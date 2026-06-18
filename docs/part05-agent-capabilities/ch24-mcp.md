@@ -2,7 +2,7 @@
 
 > **本章目标**：读者学完能说明 **Model Context Protocol（MCP）** 在平台 L3 协议层的位置、Host/Client/Server 拓扑，以及 Tools/Resources/Prompts 三类能力与 Tool Registry 的集成方式，并在 Part V 实战项目 Run 链中观察 MCP 工具经 Registry 的调用。  
 > **关键议题**：host-client-server、tools/resources/prompts、企业接入  
-> **前置阅读**：[Ch.23 Tool Registry](ch23-tool-registry-function-calling.md)、[Ch.02 §2.3](../part01-overview/ch02-agent.md)  
+> **前置阅读**：[Ch.23 Tool Registry](ch23-tool-registry-function-calling.md)、[Ch.02 §2.3](../part01-overview/zh/ch02-agent.md)  
 > **估计阅读**：约 90 min（含实战项目）  
 > **mini-platform 关联**：`tools/mcp_db/` · `projects/multi-agent-workflow/lib/registry_setup.py`  
 > **实战项目**：`projects/multi-agent-workflow/`（Data Agent 阶段调用 `mcp_db_query_sales@v1`；单测见 `tests/test_mcp_db.py`）  

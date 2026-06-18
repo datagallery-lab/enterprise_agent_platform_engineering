@@ -2,7 +2,7 @@
 
 > **本章目标**：读者学完能说清一次 Agent 运行会沉淀哪些数据，能区分会话、运行、Trace、Memory、Checkpoint、Artifact、日志与指标的边界，并能基于这些观测数据还原执行过程、定位失败原因、推动 AgentOps 质量闭环。
 > **关键议题**：Agent 运行数据地图；Session、Run、Trace、Memory、Checkpoint、Artifact 的边界；运行轨迹采集；日志、指标、Trace 与产物的关联；会话回放与失败诊断；AgentOps 质量闭环实践
-> **前置阅读**：[Ch.01 Agent 的本质](../part01-overview/ch01-agent.md)、[Ch.22 Agent Runtime](../part05-agent-capabilities/ch22-agent-runtime.md)、[Ch.23 Tool Registry & Function Calling](../part05-agent-capabilities/ch23-tool-registry-function-calling.md)、[Ch.30 Human-in-the-loop 与长任务](../part05-agent-capabilities/ch30-human-in-the-loop.md)
+> **前置阅读**：[Ch.01 Agent 的本质](../part01-overview/zh/ch01-agent.md)、[Ch.22 Agent Runtime](../part05-agent-capabilities/ch22-agent-runtime.md)、[Ch.23 Tool Registry & Function Calling](../part05-agent-capabilities/ch23-tool-registry-function-calling.md)、[Ch.30 Human-in-the-loop 与长任务](../part05-agent-capabilities/ch30-human-in-the-loop.md)
 > **估计阅读**：L1 15 min / L1+L2 45 min / 全章 90 min
 > **mini-platform 关联**：`core/observability/`、`core/runtime/`、`core/registry/`
 > **实战项目**：`projects/08-trace-replay/`

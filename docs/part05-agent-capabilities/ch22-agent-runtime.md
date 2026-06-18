@@ -2,7 +2,7 @@
 
 > **本章目标**：读者学完能说明一次 `POST /agents/{agent_id}/run` 涉及的 **Run / Step / Tool Call** 模型、**Run 六态**何时迁移、检查点应持久化哪些字段，并能对照 `mini-platform` 跑通 Part V 实战项目 `projects/multi-agent-workflow/`。  
 > **关键议题**：任务执行、状态机、检查点、失败恢复、超时重试  
-> **前置阅读**：[Ch.01 §2.2–2.3](../part01-overview/ch01-agent.md)、[Ch.02 §2.2](../part01-overview/ch02-agent.md)、[Ch.04 §2.2](../part01-overview/ch04.md)  
+> **前置阅读**：[Ch.01 §2.2–2.3](../part01-overview/zh/ch01-agent.md)、[Ch.02 §2.2](../part01-overview/zh/ch02-agent.md)、[Ch.04 §2.2](../part01-overview/zh/ch04.md)  
 > **估计阅读**：约 90 min（含实战项目）  
 > **mini-platform 关联**：`core/runtime/`  
 > **实战项目**：`projects/multi-agent-workflow/`（Part V 统一 Run 链；本章 Runtime 概念均在其中）  
@@ -200,7 +200,7 @@ data: {"run_id":"run-8f3a","state":"succeeded","answer":"华东区下滑 Top3 SK
 
 ReAct 将推理与行动交错为可解释轨迹 [4]。企业 Runtime 用**有限状态机**约束其边界，避免仅靠模型自由文本驱动生命周期。下文 **迁移标签**（如 `start`、`plan_ready`、`done`）表示「在当前状态下触发哪条边」；参考实现里用 `AgentStateMachine.fire(label)` 执行迁移，正文统一称 **触发迁移**。
 
-本书将一次 Run 的六个 Runtime 状态统称为 **Run 六态**，与 [Ch.01 §2.3](../part01-overview/ch01-agent.md) 状态图、`core/runtime/state_machine.py` 中 `AgentState` 一致（取消等业务语义经 `failed` + 错误码表达，不单独增加第七个状态）。下表列出各状态含义与典型迁移：
+本书将一次 Run 的六个 Runtime 状态统称为 **Run 六态**，与 [Ch.01 §2.3](../part01-overview/zh/ch01-agent.md) 状态图、`core/runtime/state_machine.py` 中 `AgentState` 一致（取消等业务语义经 `failed` + 错误码表达，不单独增加第七个状态）。下表列出各状态含义与典型迁移：
 
 
 | 状态              | 含义                                      | 典型迁移                                     |

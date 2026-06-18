@@ -2,7 +2,7 @@
 
 > **本章目标**：读者学完能绘制 Agent 互操作协议版图、说明 MCP / A2A / Agent Card / ACP 各自生态位与边界，并能在 `mini-platform` 中定位 **协议适配层** 如何把 L3 协议折叠进 Ch.22 Runtime 与 Ch.23 Registry 的统一调用链。  
 > **关键议题**：MCP、A2A、Agent Card、ACP；跨平台协作；协议适配层  
-> **前置阅读**：[Ch.24 MCP 与企业工具生态](ch24-mcp.md)、[Ch.28 多 Agent 协作](ch28-agent.md)、[Ch.02 §2.2–2.3](../part01-overview/ch02-agent.md)  
+> **前置阅读**：[Ch.24 MCP 与企业工具生态](ch24-mcp.md)、[Ch.28 多 Agent 协作](ch28-agent.md)、[Ch.02 §2.2–2.3](../part01-overview/zh/ch02-agent.md)  
 > **估计阅读**：约 90 min（含工程对照）  
 > **mini-platform 关联**：`core/protocol/`（协议适配层，本章 §6 展开）  
 > **实战项目**：`projects/multi-agent-workflow/`（MCP 经 Ch.24 `registry_bridge` 注册为 ToolSpec，实战 Run 链经 Registry `invoke` 调用；`ProtocolAdapter` 为调用侧扩展，见 §6）
@@ -578,7 +578,7 @@ output = adapter.invoke_tool(
 
 - [Ch.24 MCP 与企业工具生态](ch24-mcp.md)  
 - [Ch.28 多 Agent 协作](ch28-agent.md)  
-- [Ch.02 平台 API 分层](../part01-overview/ch02-agent.md)  
+- [Ch.02 平台 API 分层](../part01-overview/zh/ch02-agent.md)  
 - [Ch.50 Policy 与权限](../part10-security-org/ch50.md)  
 - [Ch.38 Agent Trace 与会话回放](../part07-observability-eval/ch38-trace.md)
 

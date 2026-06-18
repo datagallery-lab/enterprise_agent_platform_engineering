@@ -2,7 +2,7 @@
 
 > **本章目标**：读者学完能说明 **Tool Registry** 在平台三层 API 中的位置、`ToolSpec` 如何注册与解析、Function Calling 的 JSON Schema 如何与平台校验分工，以及一次 Tool Call 从 Runtime 到 handler 的调用链与错误码；并能对照 `mini-platform` 在 Part V 实战项目 Run 链中观察 Registry `invoke` 与错误码行为。  
 > **关键议题**：能力注册、Schema、版本治理、调用契约  
-> **前置阅读**：[Ch.22 Agent Runtime](ch22-agent-runtime.md)、[Ch.01 §2.2](../part01-overview/ch01-agent.md)、[Ch.02 §2.2–2.3](../part01-overview/ch02-agent.md)  
+> **前置阅读**：[Ch.22 Agent Runtime](ch22-agent-runtime.md)、[Ch.01 §2.2](../part01-overview/zh/ch01-agent.md)、[Ch.02 §2.2–2.3](../part01-overview/zh/ch02-agent.md)  
 > **估计阅读**：约 90 min（含实战项目）  
 > **mini-platform 关联**：`core/registry/` · `projects/multi-agent-workflow/lib/registry_setup.py`  
 > **实战项目**：`projects/multi-agent-workflow/`（Registry 经 RunLoop 全链调用；单测见 `tests/test_registry.py`）  

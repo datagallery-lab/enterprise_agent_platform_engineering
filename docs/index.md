@@ -8,7 +8,7 @@
 
 ## 快速导航
 
-- [Part I 总论与平台观](part01-overview/index.md)
+- [Part I 总论与平台观](part01-overview/zh/index.md)
 - [Part II 模型与推理](part02-model-inference/index.md)
 - [Part III 数据基础设施](part03-data-infra/index.md)
 - [Part IV 向量、检索与知识工程](part04-vector-knowledge/index.md)
@@ -49,4 +49,4 @@
 
 本书所有 L3 工程代码都对应 `mini-enterprise-agent-platform` 仓库的真实文件。仓库与书稿采用 monorepo，单一真相源。
 
-[开始阅读 →](part01-overview/index.md)
+[开始阅读 →](part01-overview/zh/index.md)

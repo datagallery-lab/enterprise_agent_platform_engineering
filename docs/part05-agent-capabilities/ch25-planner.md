@@ -2,7 +2,7 @@
 
 > **本章目标**：读者学完能说明 **Planner** 在平台中的职责边界、`ReAct` 与 `Plan-and-Execute` 两种编排模式的适用场景与配置方式，以及编排图内部状态与 [Ch.22 Run 六态](ch22-agent-runtime.md) 的分工；并能对照 `mini-platform` 在 Part V 实战项目 Run 链中观察 `MultiAgentPlanner` 与 `core/planner/` 的接口边界。  
 > **关键议题**：ReAct、Plan-and-Execute、状态机、工作流取舍  
-> **前置阅读**：[Ch.22 Agent Runtime](ch22-agent-runtime.md)、[Ch.23 Tool Registry & Function Calling](ch23-tool-registry-function-calling.md)、[Ch.01 §2.4](../part01-overview/ch01-agent.md)  
+> **前置阅读**：[Ch.22 Agent Runtime](ch22-agent-runtime.md)、[Ch.23 Tool Registry & Function Calling](ch23-tool-registry-function-calling.md)、[Ch.01 §2.4](../part01-overview/zh/ch01-agent.md)  
 > **估计阅读**：约 85 min（含工程节）  
 > **mini-platform 关联**：`core/planner/` · `projects/multi-agent-workflow/lib/planner.py`  
 > **实战项目**：`projects/multi-agent-workflow/`（`MultiAgentPlanner` 驱动 Handoff 链；`core/planner/` 提供 ReAct / P&E 规则 Demo）  
@@ -655,7 +655,7 @@ planner = create_planner(config)
 
 [8] LangChain. (n.d.). *Plan-and-Execute agents*. LangGraph / LangChain documentation. [https://python.langchain.com/docs/tutorials/plan-and-execute/](https://python.langchain.com/docs/tutorials/plan-and-execute/)
 
-[9] 本书 Ch.01 §2.4 — ReAct vs Plan-and-Execute 取舍表。 [../part01-overview/ch01-agent.md](../part01-overview/ch01-agent.md)
+[9] 本书 Ch.01 §2.4 — ReAct vs Plan-and-Execute 取舍表。 [../part01-overview/zh/ch01-agent.md](../part01-overview/zh/ch01-agent.md)
 
 [10] LangChain. (n.d.). *Persistence*. LangGraph documentation. [https://docs.langchain.com/oss/python/langgraph/persistence](https://docs.langchain.com/oss/python/langgraph/persistence)
 

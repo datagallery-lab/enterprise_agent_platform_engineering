@@ -1,7 +1,7 @@
 # Ch.46 GitOps、IaC 与边缘推理
 
 > **本章目标**：读者学完后能用 GitOps + IaC 交付完整 Agent 平台栈，并设计边缘推理的混合部署方案。
-> **前置阅读**：[Ch.43 GPU 调度](ch43-gpu-kubernetes.md)–[Ch.45 LLM 网关](ch45-llm.md) / [Ch.4 平台参考架构总览](../part01-overview/ch04.md)
+> **前置阅读**：[Ch.43 GPU 调度](ch43-gpu-kubernetes.md)–[Ch.45 LLM 网关](ch45-llm.md) / [Ch.4 平台参考架构总览](../part01-overview/zh/ch04.md)
 > **估计阅读**：L1 15 min / L1+L2 45 min / 全章 90 min
 > **按角色推荐阅读层**：CTO ⇒ L1+L2 ｜ 架构师 ⇒ L1+L2 ｜ 工程师 ⇒ L1+L2+L3
 

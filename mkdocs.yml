@@ -65,12 +65,19 @@ plugins:
 nav:
   - 首页: index.md
 
-  - Part I 总论与平台观:
-      - part01-overview/index.md
-      - Ch.01 Agent 的本质: part01-overview/ch01-agent.md
-      - Ch.02 企业级 Agent 平台的边界: part01-overview/ch02-agent.md
-      - Ch.03 AI 原生业务系统：Agent 重塑企业软件: part01-overview/ch03-ai-agent.md
-      - Ch.04 全书地图：平台参考架构与阅读路径: part01-overview/ch04.md
+  - Part I 总论与平台观 / Overview:
+      - 中文:
+          - part01-overview/zh/index.md
+          - Ch.01 Agent 的本质: part01-overview/zh/ch01-agent.md
+          - Ch.02 企业级 Agent 平台的边界: part01-overview/zh/ch02-agent.md
+          - Ch.03 AI 原生业务系统：Agent 重塑企业软件: part01-overview/zh/ch03-ai-agent.md
+          - Ch.04 全书地图：平台参考架构与阅读路径: part01-overview/zh/ch04.md
+      - English:
+          - part01-overview/en/index.md
+          - Ch.01 The Nature of Agents: part01-overview/en/ch01-agent.md
+          - Ch.02 Enterprise Agent Platform Boundaries: part01-overview/en/ch02-agent.md
+          - Ch.03 AI-Native Business Systems: part01-overview/en/ch03-ai-agent.md
+          - Ch.04 Book Map: part01-overview/en/ch04.md
 
   - Part II 模型与推理:
       - part02-model-inference/index.md
