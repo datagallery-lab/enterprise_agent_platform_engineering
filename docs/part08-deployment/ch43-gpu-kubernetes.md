@@ -30,7 +30,7 @@ GPU 调度层在 Part VIII 中位于最底端，回答一个精确问题：**哪
 - 不负责请求走哪个模型、租户配额多少 Token——属于 Ch.45；
 - 不负责 vLLM 的 KV Cache 如何优化——属于 Part II Ch.7。
 
-![图 43-1：GPU 调度层位于 Agent 平台算力底座，向上支撑模型服务与业务 Agent](../assets/images/ch43-01.png)
+![图 43-1：GPU 调度层位于 Agent 平台算力底座，向上支撑模型服务与业务 Agent](../images/ch/ch43-01.png)
 
 图 43-1 展示 Part VIII 的「算力从哪来」。读者应看到：GPU 调度不是 vLLM 启动参数里的 `--gpu-memory-utilization`，而是平台基础设施；没有这一层，Ch.44 的 InferenceService 只是在 YAML 里写 `nvidia.com/gpu: 1`，却无法保证高峰时不被训练 Job 挤占。
 
@@ -70,7 +70,7 @@ Embedding 重建、RAG 索引刷新、Ch.39 评测集批跑，属于高吞吐、
 | 离线批推理 | Embedding 重建、评测批跑 | 分钟–小时级 | 中低 | `gpu-batch` |
 | 弹性尖峰 | 促销夜、月末分析 | 突发 | 可抢占缓冲 | `gpu-burst` |
 
-![图 43-2：四类 GPU 负载的延迟、时长与优先级差异决定节点池划分](../assets/images/ch43-02.png)
+![图 43-2：四类 GPU 负载的延迟、时长与优先级差异决定节点池划分](../images/ch/ch43-02.png)
 
 图 43-2 的核心读法是：**先问负载属于哪个象限，再问进哪个池**；反过来「统一 GPU 池、各团队共用」是在用运维复杂度换取采购时的决策便利，规模化后几乎必然出现 OOM 或排队失控。
 
@@ -130,7 +130,7 @@ resources:
 | `gpu.topology` | `nvlink-2` | 多卡 NVLink 拓扑 |
 | `workload` | `online-infer` | 允许的工作负载类型 |
 
-![图 43-3：Pod 从资源声明到物理 GPU 绑定的五步调度链路](../assets/images/ch43-03.png)
+![图 43-3：Pod 从资源声明到物理 GPU 绑定的五步调度链路](../images/ch/ch43-03.png)
 
 图 43-3 的第 ③ 步只是「数卡」；第 ④ 步才是平台纪律。读者在设计集群时应问：**如果去掉 Affinity，批 Job 会不会溜进推理池？** 若会，则调度设计尚未完成。
 
@@ -152,7 +152,7 @@ resources:
 | Volcano | Gang、队列、批作业原生 | CRD 与运维学习成本 | 微调、批推理、多卡并行 | `gpu-train` / `gpu-batch` ⭐ |
 | Kueue | 轻量、多租户配额 | Gang 弱于 Volcano | 跨事业部 GPU 预算 | 配额治理 ⭐ |
 
-![图 43-4：三类调度器按工作负载特征分工，而非互相替代](../assets/images/ch43-04.png)
+![图 43-4：三类调度器按工作负载特征分工，而非互相替代](../images/ch/ch43-04.png)
 
 图 43-4 对比三类调度器的职责边界：默认 scheduler 管单 Pod 即时绑定，Volcano 管 Gang 与批队列，Kueue 管跨租户 GPU 预算。三者不是互斥关系。本书推荐的目标架构是：**推理 Pod 仍由默认 scheduler 绑定到推理池；训练/批 Job 进 Volcano Queue；所有 Job 类负载受 Kueue 配额约束**。
 
@@ -180,7 +180,7 @@ Ray 在企业 Agent 平台中的典型用法包括：
 
 混淆 Volcano 与 Ray 是常见架构错误：Volcano 决定「4 个 GPU Pod 能否同时启动」；Ray 决定「Pod 启动后内部 200 个 Task 怎么分配 CPU/GPU」。排查 Pending 看 Volcano；排查 Task 慢看 Ray Dashboard。
 
-![图 43-5：K8s 供给节点与 Pod 边界，Ray 在集群内调度 Task](../assets/images/ch43-05.png)
+![图 43-5：K8s 供给节点与 Pod 边界，Ray 在集群内调度 Task](../images/ch/ch43-05.png)
 
 图 43-5 把 K8s 与 Ray 的分工画成双层：上层节点池与 Volcano 队列决定 Pod 何时获得 GPU，下层 Ray Head 在 Pod 内调度 Task/Actor。Pending 查 Volcano，Task 慢查 Ray Dashboard——混查两层是常见排障误区。
 
@@ -228,7 +228,7 @@ spec:
 | 配额耗尽 | Kueue 达上限 | Job 无限排队 | Workload Pending | 提配额、清僵尸 Job |
 | 节点漂移 | 驱动/CUDA 不一致 | 部分节点不可用 | 标签对账 | 节点池标准化滚动升级 |
 
-![图 43-6：五类调度失败的可检测信号与恢复动作应写入 Runbook](../assets/images/ch43-06.png)
+![图 43-6：五类调度失败的可检测信号与恢复动作应写入 Runbook](../images/ch/ch43-06.png)
 
 图 43-6 归纳 OOM、Gang Pending、误抢占、配额耗尽、节点漂移五类失败的检测信号与恢复动作——On-call 应能按图对号入座写入 Runbook，而非默认逐卡重启。
 
