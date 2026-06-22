@@ -15,8 +15,39 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  pages-status:
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+    steps:
+      - name: Check whether Pages is enabled
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          status="$(
+            curl -sS -L \
+              -o /tmp/pages.json \
+              -w "%{http_code}" \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/pages"
+          )"
+
+          if [ "$status" = "200" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "enabled=false" >> "$GITHUB_OUTPUT"
+          echo "::notice::GitHub Pages is not enabled for ${GITHUB_REPOSITORY}; skipping Pages deployment."
+          cat /tmp/pages.json
+
   build:
     runs-on: ubuntu-latest
+    needs: pages-status
+    if: needs.pages-status.outputs.enabled == 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -45,11 +76,12 @@ jobs:
           path: site
 
   deploy:
+    needs: [pages-status, build]
+    if: needs.pages-status.outputs.enabled == 'true'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    needs: build
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
