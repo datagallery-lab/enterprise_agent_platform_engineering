@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Figure 7-2: How KV Cache grows with context and concurrency</title>
+  <desc id="desc">KV Cache memory usage depends on batch size, sequence length, number of layers, KV heads, head dimension, and bytes per element.</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .bg { fill: #f8fafc; }
+      .panel { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.3; rx: 8; filter: url(#shadow); }
+      .formula { fill: #0f172a; rx: 8; }
+      .token-a { fill: #bfdbfe; stroke: #60a5fa; }
+      .token-b { fill: #bbf7d0; stroke: #4ade80; }
+      .token-c { fill: #fed7aa; stroke: #fb923c; }
+      .bar { fill: #e2e8f0; rx: 5; }
+      .bar-fill { fill: #0891b2; rx: 5; }
+      .chip { fill: #f1f5f9; stroke: #cbd5e1; rx: 8; }
+      .warn { fill: #fff1f2; stroke: #fda4af; rx: 8; }
+      .title { font: 700 32px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 16px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #475569; }
+      .mono { font: 600 19px "SFMono-Regular", Consolas, "Noto Sans Mono CJK SC", monospace; fill: #f8fafc; }
+      .label { font: 700 16px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #1e293b; }
+      .text { font: 400 14px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #475569; }
+      .tiny { font: 400 12px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #64748b; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1200" height="720"/>
+  <text class="title" x="60" y="58">KV Cache is the memory bottleneck for long-context concurrency</text>
+  <text class="subtitle" x="60" y="88">Once model weights are fixed, more active requests and longer contexts make KV Cache determine serving capacity.</text>
+
+  <rect class="formula" x="76" y="126" width="1048" height="88"/>
+  <text class="mono" x="106" y="164">KV bytes ≈ batch_size × sequence_length × num_layers × 2 × num_kv_heads</text>
+  <text class="mono" x="106" y="190">× head_dim × bytes_per_element</text>
+
+  <rect class="panel" x="76" y="232" width="650" height="372"/>
+  <text class="label" x="108" y="270">Active requests hold KV blocks of different lengths</text>
+
+  <text class="text" x="108" y="322">Req A: short Q&amp;A</text>
+  <rect class="token-a" x="260" y="296" width="34" height="34" rx="5"/>
+  <rect class="token-a" x="300" y="296" width="34" height="34" rx="5"/>
+  <rect class="token-a" x="340" y="296" width="34" height="34" rx="5"/>
+  <rect class="token-a" x="380" y="296" width="34" height="34" rx="5"/>
+  <rect class="token-a" x="420" y="296" width="34" height="34" rx="5"/>
+
+  <text class="text" x="108" y="402">Req B: long RAG</text>
+  <rect class="token-b" x="260" y="376" width="34" height="34" rx="5"/>
+  <rect class="token-b" x="300" y="376" width="34" height="34" rx="5"/>
+  <rect class="token-b" x="340" y="376" width="34" height="34" rx="5"/>
+  <rect class="token-b" x="380" y="376" width="34" height="34" rx="5"/>
+  <rect class="token-b" x="420" y="376" width="34" height="34" rx="5"/>
+  <rect class="token-b" x="460" y="376" width="34" height="34" rx="5"/>
+  <rect class="token-b" x="500" y="376" width="34" height="34" rx="5"/>
+  <rect class="token-b" x="540" y="376" width="34" height="34" rx="5"/>
+  <rect class="token-b" x="580" y="376" width="34" height="34" rx="5"/>
+  <rect class="token-b" x="620" y="376" width="34" height="34" rx="5"/>
+
+  <text class="text" x="108" y="482">Req C: long output</text>
+  <rect class="token-c" x="260" y="456" width="34" height="34" rx="5"/>
+  <rect class="token-c" x="300" y="456" width="34" height="34" rx="5"/>
+  <rect class="token-c" x="340" y="456" width="34" height="34" rx="5"/>
+  <rect class="token-c" x="380" y="456" width="34" height="34" rx="5"/>
+  <rect class="token-c" x="420" y="456" width="34" height="34" rx="5"/>
+  <rect class="token-c" x="460" y="456" width="34" height="34" rx="5"/>
+  <rect class="token-c" x="500" y="456" width="34" height="34" rx="5"/>
+  <rect class="token-c" x="540" y="456" width="34" height="34" rx="5"/>
+
+  <text class="tiny" x="260" y="526">Each block stores Key/Value states.</text>
+  <text class="tiny" x="260" y="544">Every decoded token appends to the cache.</text>
+
+  <rect class="panel" x="776" y="232" width="348" height="372"/>
+  <text class="label" x="806" y="270">Which term each optimization changes</text>
+
+  <rect class="chip" x="806" y="300" width="288" height="54"/>
+  <text class="label" x="826" y="324">Context limits and compression</text>
+  <text class="text" x="826" y="344">reduce sequence_length</text>
+
+  <rect class="chip" x="806" y="374" width="288" height="54"/>
+  <text class="label" x="826" y="398">Batching and throttling</text>
+  <text class="text" x="826" y="418">control active batch_size</text>
+
+  <rect class="chip" x="806" y="448" width="288" height="54"/>
+  <text class="label" x="826" y="472">Paged KV / eviction / offload</text>
+  <text class="text" x="826" y="492">reduce fragmentation;</text>
+  <text class="text" x="826" y="510">raise utilization</text>
+
+  <rect class="chip" x="806" y="522" width="288" height="54"/>
+  <text class="label" x="826" y="546">KV Cache quantization</text>
+  <text class="text" x="826" y="566">reduce bytes_per_element</text>
+
+  <rect class="bar" x="112" y="638" width="450" height="18"/>
+  <rect class="bar-fill" x="112" y="638" width="322" height="18"/>
+  <text class="tiny" x="580" y="646">Memory pressure: model weights + KV Cache</text>
+  <text class="tiny" x="580" y="664">+ activations + runtime overhead</text>
+</svg>

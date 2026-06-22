@@ -1,0 +1,34 @@
+:root {
+  --md-primary-fg-color: #ffffff;
+  --md-primary-bg-color: #1f2937;
+  --md-accent-fg-color: #c2410c;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #111827;
+  --md-accent-fg-color: #fb923c;
+}
+
+.md-header {
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+  box-shadow: none;
+}
+
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3 {
+  letter-spacing: 0;
+}
+
+.md-typeset h1 {
+  font-weight: 700;
+}
+
+.md-typeset table:not([class]) {
+  font-size: 0.72rem;
+}
+
+.md-typeset figcaption,
+.md-typeset p em {
+  color: var(--md-default-fg-color--light);
+}

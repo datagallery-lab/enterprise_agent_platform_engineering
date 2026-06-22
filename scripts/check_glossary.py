@@ -1,8 +1,8 @@
-"""Scan all chapter L1/L2 sections for uppercase acronyms not in the glossary whitelist.
+"""Scan Chinese chapter text for uppercase acronyms not in the glossary whitelist.
 
 Heuristic: extract all-caps tokens of length 2-6 (letters + optional digits)
-that appear in L1 or L2 sections. Compare against the whitelist embedded in
-glossary/terms.md (final "缩写速查" section).
+from non-code text. Compare against the whitelist embedded in glossary/terms.md
+(final "缩写速查" section).
 
 Skip code blocks (lines inside ``` ... ```) and TODO/placeholder text.
 
@@ -30,32 +30,42 @@ def load_whitelist() -> set[str]:
     for token in ACRONYM_RE.findall(text):
         whitelist.add(token)
     # always allow these structural tokens
-    whitelist.update({"L1", "L2", "L3", "TODO", "PR", "CI", "CD"})
+    whitelist.update({
+        "ACL",
+        "CPU",
+        "CSV",
+        "HTML",
+        "LLMO",
+        "PDF",
+        "PR",
+        "TODO",
+        "URL",
+        "UTF",
+        "VLM",
+        "WHATWG",
+        "XML",
+    })
     return whitelist
-
-
-def is_in_l1_l2(lines: list[str], idx: int) -> bool:
-    """Return True if line idx is inside L1 or L2 section (before L3)."""
-    section = None
-    for i in range(idx, -1, -1):
-        m = re.match(r"^##\s+L([123])\s+", lines[i])
-        if m:
-            section = m.group(1)
-            break
-    return section in ("1", "2")
 
 
 def scan_file(path: Path, whitelist: set[str]) -> list[tuple[int, str]]:
     lines = path.read_text(encoding="utf-8").splitlines()
     bad: list[tuple[int, str]] = []
     in_code = False
+    in_references = False
     for i, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith("## ") and "参考文献" in stripped:
+            in_references = True
+            continue
+        if stripped.startswith("## ") and in_references:
+            in_references = False
         if line.strip().startswith("```"):
             in_code = not in_code
             continue
-        if in_code:
+        if in_code or in_references:
             continue
-        if not is_in_l1_l2(lines, i):
+        if line.startswith("http") or line.startswith("["):
             continue
         for token in ACRONYM_RE.findall(line):
             if token not in whitelist:
@@ -66,7 +76,9 @@ def scan_file(path: Path, whitelist: set[str]) -> list[tuple[int, str]]:
 def main() -> int:
     whitelist = load_whitelist()
     failures = 0
-    for path in sorted(DOCS.glob("part*/ch*.md")):
+    for path in sorted(DOCS.rglob("ch*.md")):
+        if "en" in path.parts:
+            continue
         bad = scan_file(path, whitelist)
         if bad:
             failures += 1

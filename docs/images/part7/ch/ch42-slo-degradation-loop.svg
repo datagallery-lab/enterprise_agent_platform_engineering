@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">SLO、错误预算与降级闭环</title>
+  <desc id="desc">展示任务 SLO、观测指标、错误预算、发布治理和限流熔断降级之间的闭环关系。</desc>
+  <rect width="1280" height="720" fill="#f7f8fb"/>
+  <text x="640" y="56" text-anchor="middle" font-family="Arial, 'PingFang SC', sans-serif" font-size="28" font-weight="700" fill="#1f2937">SLO、错误预算与降级闭环</text>
+  <g font-family="Arial, 'PingFang SC', sans-serif">
+    <rect x="520" y="105" width="240" height="84" rx="12" fill="#eef2ff" stroke="#4f46e5" stroke-width="2"/>
+    <text x="640" y="140" text-anchor="middle" font-size="21" font-weight="700" fill="#3730a3">任务 SLO</text>
+    <text x="640" y="168" text-anchor="middle" font-size="16" fill="#334155">成功率 / 延迟 / 成本 / 安全</text>
+
+    <rect x="850" y="245" width="230" height="84" rx="12" fill="#ecfdf5" stroke="#16a34a" stroke-width="2"/>
+    <text x="965" y="280" text-anchor="middle" font-size="21" font-weight="700" fill="#15803d">观测指标</text>
+    <text x="965" y="308" text-anchor="middle" font-size="16" fill="#334155">Trace / Eval / Cost</text>
+
+    <rect x="720" y="465" width="240" height="84" rx="12" fill="#fff7ed" stroke="#f97316" stroke-width="2"/>
+    <text x="840" y="500" text-anchor="middle" font-size="21" font-weight="700" fill="#c2410c">错误预算</text>
+    <text x="840" y="528" text-anchor="middle" font-size="16" fill="#334155">扩量 / 冻结 / 回滚</text>
+
+    <rect x="320" y="465" width="240" height="84" rx="12" fill="#fdf2f8" stroke="#db2777" stroke-width="2"/>
+    <text x="440" y="500" text-anchor="middle" font-size="21" font-weight="700" fill="#be185d">保护动作</text>
+    <text x="440" y="528" text-anchor="middle" font-size="16" fill="#334155">限流 / 熔断 / 降级</text>
+
+    <rect x="200" y="245" width="230" height="84" rx="12" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+    <text x="315" y="280" text-anchor="middle" font-size="21" font-weight="700" fill="#a16207">长任务恢复</text>
+    <text x="315" y="308" text-anchor="middle" font-size="16" fill="#334155">队列 / Checkpoint / 幂等</text>
+  </g>
+  <g stroke="#64748b" stroke-width="3" fill="none" marker-end="url(#arrow)">
+    <path d="M760 147 C860 160 930 195 965 245"/>
+    <path d="M965 329 C950 405 910 440 840 465"/>
+    <path d="M720 507 L560 507"/>
+    <path d="M440 465 C360 430 320 385 315 329"/>
+    <path d="M315 245 C350 190 440 155 520 147"/>
+  </g>
+  <text x="640" y="630" text-anchor="middle" font-family="Arial, 'PingFang SC', sans-serif" font-size="18" fill="#475569">稳定性治理把线上信号转成发布规则，再把运行时保护反馈到任务恢复与容量规划</text>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+    </marker>
+  </defs>
+</svg>

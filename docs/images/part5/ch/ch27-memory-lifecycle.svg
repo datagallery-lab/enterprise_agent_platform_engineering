@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Memory 生命周期与治理边界</title>
+  <desc id="desc">展示 Working Memory、Episodic Memory、Profile 和 Org Context 的读写、过期、删除与审计边界。</desc>
+  <rect width="1280" height="720" fill="#f7f8fb"/>
+  <text x="640" y="54" text-anchor="middle" font-family="Arial, 'PingFang SC', sans-serif" font-size="28" font-weight="700" fill="#1f2937">Memory 生命周期与治理边界</text>
+  <g font-family="Arial, 'PingFang SC', sans-serif">
+    <rect x="90" y="165" width="190" height="96" rx="10" fill="#eef2ff" stroke="#4f46e5" stroke-width="2"/>
+    <text x="185" y="205" text-anchor="middle" font-size="21" font-weight="700" fill="#3730a3">Run 输入</text>
+    <text x="185" y="235" text-anchor="middle" font-size="16" fill="#334155">Turn / Tool Result</text>
+
+    <rect x="365" y="120" width="210" height="92" rx="10" fill="#ecfdf5" stroke="#16a34a" stroke-width="2"/>
+    <text x="470" y="156" text-anchor="middle" font-size="21" font-weight="700" fill="#15803d">Working</text>
+    <text x="470" y="185" text-anchor="middle" font-size="16" fill="#334155">当前 Run 可见事实</text>
+
+    <rect x="365" y="250" width="210" height="92" rx="10" fill="#fff7ed" stroke="#f97316" stroke-width="2"/>
+    <text x="470" y="286" text-anchor="middle" font-size="21" font-weight="700" fill="#c2410c">Episodic</text>
+    <text x="470" y="315" text-anchor="middle" font-size="16" fill="#334155">历史任务经验</text>
+
+    <rect x="365" y="380" width="210" height="92" rx="10" fill="#fdf2f8" stroke="#db2777" stroke-width="2"/>
+    <text x="470" y="416" text-anchor="middle" font-size="21" font-weight="700" fill="#be185d">Profile</text>
+    <text x="470" y="445" text-anchor="middle" font-size="16" fill="#334155">用户偏好</text>
+
+    <rect x="365" y="510" width="210" height="92" rx="10" fill="#fefce8" stroke="#ca8a04" stroke-width="2"/>
+    <text x="470" y="546" text-anchor="middle" font-size="21" font-weight="700" fill="#a16207">Org Context</text>
+    <text x="470" y="575" text-anchor="middle" font-size="16" fill="#334155">组织口径与策略</text>
+
+    <rect x="700" y="205" width="220" height="116" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="2"/>
+    <text x="810" y="247" text-anchor="middle" font-size="21" font-weight="700" fill="#334155">治理动作</text>
+    <text x="810" y="278" text-anchor="middle" font-size="16" fill="#475569">来源 / TTL / 删除</text>
+    <text x="810" y="303" text-anchor="middle" font-size="16" fill="#475569">权限 / 版本 / 审计</text>
+
+    <rect x="1000" y="255" width="190" height="96" rx="10" fill="#eef2ff" stroke="#4f46e5" stroke-width="2"/>
+    <text x="1095" y="294" text-anchor="middle" font-size="21" font-weight="700" fill="#3730a3">Planner</text>
+    <text x="1095" y="324" text-anchor="middle" font-size="16" fill="#334155">按需读取最小上下文</text>
+  </g>
+  <g stroke="#64748b" stroke-width="3" fill="none" marker-end="url(#arrow)">
+    <path d="M280 213 L355 166"/>
+    <path d="M280 213 L355 296"/>
+    <path d="M575 166 C660 166 670 235 700 250"/>
+    <path d="M575 296 L700 268"/>
+    <path d="M575 426 L700 288"/>
+    <path d="M575 556 C655 520 670 330 700 300"/>
+    <path d="M920 263 L990 303"/>
+  </g>
+  <text x="640" y="655" text-anchor="middle" font-family="Arial, 'PingFang SC', sans-serif" font-size="18" fill="#475569">Memory 不是事实口径来源；指标公式、权限和质量仍由语义层与 Policy 持有</text>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+    </marker>
+  </defs>
+</svg>

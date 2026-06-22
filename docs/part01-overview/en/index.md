@@ -1,46 +1,46 @@
 # Part I Overview and Platform Perspective
 
-> 4 chapters · The opening part of the book, responsible for establishing a shared vocabulary, a platform perspective, and a reading map.
+> 4 chapters · Serving as the book’s introduction, responsible for establishing a common language, platform viewpoint, and reading roadmap
 
-Part I does not immediately enter a specific framework, a codebase, or a product. It first answers four more fundamental questions:
+The task of Part I is not to dive immediately into a particular framework, code segment, or product, but first to answer four more fundamental questions:
 
-1. What exactly is an Agent, and where are the boundaries between Agent, RAG, Copilot, and Workflow?
-2. Why do enterprises ultimately need a platform, rather than a set of fragmented intelligent projects?
-3. What is an AI-native business system, and how is it different from adding AI features to legacy systems?
-4. Why are the later chapters organized in this order, and how should different readers use the book?
+1. What exactly is an Agent, and how does it differ from RAG, Copilot, or Workflow?
+2. Why do enterprises truly need a platform rather than a collection of disconnected intelligent projects?
+3. What is an AI-native business system, and how does it differ from simply “adding AI features to existing systems”?
+4. Why are the subsequent 55 chapters organized in the current order, and how should they be read?
 
-Together, these four chapters serve as the book's opening overview. They do not rush into implementation details. Instead, they pursue three goals:
+These four chapters jointly serve as the “foundational overview” of the volume. They do not rush into specific implementations but rather pursue three objectives:
 
-- Clarify concepts and boundaries first;
-- Then raise the perspective to enterprise platforms and business systems;
-- Finally provide a map of the book and a set of reading paths.
+- First, clarify concepts and boundaries;
+- Then, raise the discussion to the enterprise and business system perspectives;
+- Finally, provide the overall book map and recommended reading path.
 
-## Relationship Between the Four Chapters
+## Relationship Among the Four Chapters
 
-| Chapter | Question it answers | How it prepares the next chapter |
+| Chapter | Question Answered | Role for Next Chapter |
 |---|---|---|
-| [Ch.01 The Nature of Agents: From Conversational Assistants to Task Execution Systems](ch01-agent.md) | What counts as an Agent, and why an enterprise enters a new problem space once a system begins to "do things" | Prepares Ch.02 by explaining why platform boundaries emerge |
-| [Ch.02 The Boundary of an Enterprise Agent Platform](ch02-agent.md) | What kind of platform an enterprise is actually building, and how platform, application, and framework responsibilities differ | Prepares Ch.03 by explaining what kind of business system the platform ultimately serves |
-| [Ch.03 AI-Native Business Systems: Agents Reshape Enterprise Software](ch03-ai-agent.md) | Why AI-native systems are not "just another chat box," but a change in business-system form | Prepares Ch.04 by explaining why the book needs an architecture map |
-| [Ch.04 Book Map: Platform Reference Architecture and Reading Paths](ch04.md) | The architecture map, chapter dependencies, reader paths, and platform-building roadmap for the book | Leads readers into the later technical chapters |
+| [Chapter 1 The Nature of Agents: From Conversational Assistants to Task Execution Systems](ch01-agent.md) | What qualifies as an Agent, and why enterprises enter a new problem domain once systems “do work” | Sets the stage for Chapter 2’s “why platform boundaries emerge” |
+| [Chapter 2 Boundaries of Enterprise-Level Agent Platforms](ch02-agent.md) | What exactly enterprises are building as a platform, and the distinct roles of platform, application, and framework | Sets the stage for Chapter 3’s “which business systems platforms ultimately serve” |
+| [Chapter 3 AI-Native Business Systems: How Agents Reshape Enterprise Software](ch03-ai-agent.md) | Why AI-native is not just “adding another chat box,” but a fundamental change in business system form | Sets the stage for Chapter 4’s “why a full book map and architectural panorama are needed” |
+| [Chapter 4 Complete Book Map: Platform Reference Architecture and Reading Path](ch04.md) | The architecture map of the whole book, chapter dependencies, reader paths, and platform building roadmap | Leads readers into the deep dive of the subsequent 55 chapters |
 
-## How to Read This Part
+## Recommended Reading Approach for This Section
 
-If you are encountering enterprise Agent platforms for the first time, read the four chapters in order. They are designed as a progressive argument.
+If you are encountering enterprise-level Agent platforms for the first time, we recommend reading the four chapters in order, as they form a progressive argument chain.
 
-If you already have project experience, you can also jump according to your current concern:
+If you already have some project experience, you can skim selectively as follows:
 
-| Current concern | Read first |
+| Your Current Top Question | Recommended First Chapter to Read |
 |---|---|
-| Which requirements deserve to become Agents | Ch.01 |
-| Your team is debating what "platform" really means | Ch.02 |
-| You want to judge which businesses are suitable for AI-native transformation | Ch.03 |
-| You want a quick map of the book and the later roadmap | Ch.04 |
+| Which requirements are suitable for building Agents | Chapter 1 |
+| The team is debating “What exactly is a platform?” | Chapter 2 |
+| Want to assess which business systems are fit for AI-native transformation | Chapter 3 |
+| Want a quick overview of the book structure and roadmap | Chapter 4 |
 
-After finishing Part I, readers should have at least three abilities:
+After completing Part I, readers should have developed at least these three capabilities:
 
-- Distinguish different types of large-model systems;
-- Re-evaluate enterprise AI projects from a platform perspective;
-- Understand why each later technical topic exists.
+- The ability to distinguish different types of large model systems;
+- The ability to view enterprise AI projects from a platform perspective;
+- The understanding of why each technical topic in the following chapters exists.
 
-With these three abilities, the chapters on models, data, knowledge, Runtime, evaluation, security, and frontend experience in Part II and beyond will no longer feel like isolated knowledge points. They will gradually assemble into a complete engineering map for enterprise Agent platforms.
+Armed with these three capabilities as you enter Part II, the upcoming chapters on models, data, knowledge, runtime, evaluation, security, and frontend will no longer be isolated facts but will gradually assemble into a complete engineering blueprint for enterprise-level Agent platforms.

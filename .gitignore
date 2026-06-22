@@ -11,6 +11,7 @@ env/
 
 # mkdocs
 site/
+.mkdocs*.yml
 
 # OS
 .DS_Store

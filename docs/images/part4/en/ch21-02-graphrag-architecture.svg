@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="540" viewBox="0 0 1440 540" role="img">
+  <defs><marker id="blue-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9 Z" fill="#1f5f8b"/></marker><marker id="red-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9 Z" fill="#b33939"/></marker><style>.bg{fill:#fff}.external{fill:#f3f4f5;stroke:#8f989f;stroke-width:1.4}.component{fill:#f8fbfd;stroke:#1f5f8b;stroke-width:1.7}.control{fill:#fff8f8;stroke:#b33939;stroke-width:1.5}.flow{stroke:#1f5f8b;stroke-width:2.1;fill:none;marker-end:url(#blue-arrow)}.control-flow{stroke:#b33939;stroke-width:1.9;fill:none;marker-end:url(#red-arrow);stroke-dasharray:7 5}.label{font-family:"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",Arial,sans-serif;font-size:18px;font-weight:700;fill:#202a33}.sub{font-family:"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",Arial,sans-serif;font-size:14px;fill:#52606d}.tag{font-family:"SFMono-Regular",Consolas,monospace;font-size:12px;font-weight:700;fill:#1f5f8b}.tag-red{font-family:"SFMono-Regular",Consolas,monospace;font-size:12px;font-weight:700;fill:#b33939}</style></defs>
+  <rect class="bg" width="1440" height="540"/>
+  <g transform="translate(70 96)"><rect class="external" width="196" height="110" rx="3"/><text class="tag" x="18" y="27">01</text><text class="label" x="18" y="58">User question</text><text class="sub" x="18" y="82">Entities / relations / topics</text></g>
+  <path class="flow" d="M240 151 H316"/>
+  <g transform="translate(334 96)"><rect class="component" width="210" height="110" rx="3"/><text class="tag" x="18" y="27">02</text><text class="label" x="18" y="58">Entity grounding</text><text class="sub" x="18" y="82">Vector + alias + primary key</text></g>
+  <path class="flow" d="M512 151 H588"/>
+  <g transform="translate(606 60)"><rect class="component" width="190" height="110" rx="3"/><text class="tag" x="18" y="27">03A</text><text class="label" x="18" y="58">Graph expansion</text><text class="sub" x="18" y="82">Neighbors / paths</text></g>
+  <g transform="translate(606 220)"><rect class="component" width="190" height="110" rx="3"/><text class="tag" x="18" y="27">03B</text><text class="label" x="18" y="58">Text retrieval</text><text class="sub" x="18" y="82">chunk / citation span</text></g>
+  <path class="flow" d="M796 115 C876 115 888 178 950 178"/>
+  <path class="flow" d="M796 275 C876 275 888 178 950 178"/>
+  <g transform="translate(968 124)"><rect class="component" width="190" height="110" rx="3"/><text class="tag" x="18" y="27">04</text><text class="label" x="18" y="58">Evidence assembly</text><text class="sub" x="18" y="82">Graph paths + text</text></g>
+  <path class="flow" d="M1158 178 H1214"/>
+  <g transform="translate(1232 124)"><rect class="component" width="170" height="110" rx="3"/><text class="tag" x="18" y="27">05</text><text class="label" x="18" y="58">Answer</text><text class="sub" x="18" y="82">Citations / path</text></g>
+  <g transform="translate(470 390)"><rect class="control" width="300" height="82" rx="3"/><text class="tag-red" x="18" y="27">QC</text><text class="sub" x="74" y="27">Fact confidence / conflicts</text><text class="sub" x="74" y="49">Exclude low-confidence paths</text><text class="sub" x="74" y="67">before generation</text></g>
+  <g transform="translate(850 390)"><rect class="control" width="280" height="82" rx="3"/><text class="tag-red" x="18" y="27">ACL</text><text class="sub" x="74" y="27">Node, edge, evidence ACL</text><text class="sub" x="74" y="49">Unified check before output</text></g>
+  <path class="control-flow" d="M595 390 C610 326 648 286 702 330"/>
+  <path class="control-flow" d="M975 390 C1002 310 1024 250 1068 234"/>
+</svg>

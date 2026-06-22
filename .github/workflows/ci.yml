@@ -20,24 +20,14 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest mkdocs-material pymdown-extensions
+          pip install -r requirements-docs.txt
           pip install -e mini-platform
 
-      - name: Chapter template check
-        run: python scripts/check_chapter_template.py
-
-      - name: Glossary acronym check
-        run: python scripts/check_glossary.py
-
-      - name: Sensitive info scan
-        run: python scripts/check_sensitive.py
-
-      - name: mini-platform tests
-        working-directory: mini-platform
-        run: pytest tests/ -q
+      - name: Chinese first-version quality gates
+        run: bash scripts/check_all.sh
 
       - name: mkdocs build (strict)
-        run: mkdocs build --strict
+        run: mkdocs build --strict --clean
 
   markdownlint:
     runs-on: ubuntu-latest
@@ -50,7 +40,7 @@ jobs:
             docs/**/*.md
             README.md
             PLAN.md
-        continue-on-error: true   # v0.1 软门禁，避免空壳大量警告阻断；后续转为强门禁
+        continue-on-error: true
 
   link-check:
     runs-on: ubuntu-latest
@@ -60,4 +50,4 @@ jobs:
         uses: lycheeverse/lychee-action@v2
         with:
           args: --no-progress --max-concurrency 8 docs README.md PLAN.md
-        continue-on-error: true   # v0.1 软门禁
+        continue-on-error: true

@@ -57,13 +57,19 @@ def iter_files() -> list[Path]:
     return out
 
 
+def iter_text_lines(path: Path) -> list[str]:
+    with path.open("rb") as fh:
+        data = fh.read()
+    return data.decode("utf-8").splitlines()
+
+
 def scan_file(path: Path) -> list[tuple[int, str, str]]:
     hits: list[tuple[int, str, str]] = []
     try:
-        text = path.read_text(encoding="utf-8")
+        lines = iter_text_lines(path)
     except UnicodeDecodeError:
         return hits
-    for i, line in enumerate(text.splitlines(), start=1):
+    for i, line in enumerate(lines, start=1):
         for name, pat in PATTERNS.items():
             for m in pat.finditer(line):
                 if name == "EMAIL" and m.group(0) in EMAIL_ALLOWLIST:

@@ -1,6 +1,6 @@
 # 术语表
 
-> 本术语表是全书的强约束词汇源。CI 会扫描 L1/L2 段落中的英文缩写，若未在此表中登记则报警。
+> 本术语表是全书的强约束词汇源。CI 会扫描正文中的英文缩写，若未在此表中登记则报警。
 > v0.1 收录 ≥50 条；目标 v1.0 收录 ≈120 条。
 
 ## 编辑规范
@@ -32,9 +32,6 @@
 
 ### mini-platform
 本书配套开源参考实现 `mini-enterprise-agent-platform` 的简称。
-
-### L1 / L2 / L3
-本书三层阅读法：L1 概念层 / L2 架构层 / L3 工程实现层。
 
 ### CPU / 中央处理器
 计算机核心运算单元。在 OLAP 语境中常讨论向量化执行对 CPU 缓存的利用效率。
@@ -405,6 +402,9 @@ OWASP 组织维护的 LLM 应用十大安全风险清单。
 ### NIST AI RMF
 美国 NIST 的 AI 风险管理框架，含生成式 AI Profile。
 
+### GOVERN / MAP / MEASURE / MANAGE
+NIST AI RMF 的四个核心功能：GOVERN 关注治理结构和责任，MAP 关注场景与风险识别，MEASURE 关注风险度量与证据，MANAGE 关注风险处置和持续改进。
+
 ### EU AI Act
 欧盟人工智能法案。
 
@@ -482,11 +482,26 @@ NVIDIA GPU 切分技术，多实例共享单卡。
 ### SSE / Server-Sent Events
 单向流式 HTTP 协议，常用于 LLM 流式输出。
 
+### CSP / Content Security Policy
+浏览器内容安全策略，用于限制脚本、样式、图片等资源加载来源，降低 XSS 与模型输出脚本注入风险。
+
+### DOM / Document Object Model
+浏览器中的文档对象模型。Generative UI 场景下，模型输出不能直接写入 DOM，必须经过转义、白名单组件或沙箱隔离。
+
 ### Generative UI / 生成式 UI
 LLM 输出驱动 UI 组件渲染（图表、表单、表格），代表 Vercel AI SDK 的 useChat + tool 渲染。
 
 ### Artifacts
 Claude.ai 等产品中独立画布展示长内容的范式。
+
+### STT / Speech to Text
+语音转文字，是语音 Agent 链路中将用户音频转换为文本上下文的环节。
+
+### TTS / Text to Speech
+文字转语音，是语音 Agent 链路中将模型或业务回答合成为音频的环节。
+
+### VAD / Voice Activity Detection
+语音活动检测，用于判断用户说话开始、结束和打断时机。
 
 ### Realtime API
 OpenAI 等厂商提供的低延迟语音/多模态接口。
@@ -523,13 +538,16 @@ Text-to-Chart / Text-to-Pandas 代表工具。
 
 ## 缩写速查（CI 白名单）
 
-A2A / A100 / ACP / AGI / AI / API / ARN / AWQ / AZ / BGE / BI / BM25 / CDC / CDN / CFD / CLIP / CMDB / CoT / CR / CRM / CRUD / CUDA / DAG / DCGM / DDL / DMA / DNS / DPO / E5 / ERP / ESO / ETL / FAQ / FP16 / GET / GMV / GPT / GPTQ / GTE / GUI / GraphRAG / HA / HCL / HITL / HNSW / HPA / HPC / HTTP / IAM / IaC / INT4 / INT8 / IP / IVF / JSON / KPI / KTO / KV / L0 / L5 / L6 / L7 / LLM / LoRA / MCP / MIG / MTEB / MVP / NER / NL2SQL / NIST / NPU / NUMA / OCR / OLAP / ONNX / OPA / OSS / OWASP / OWL / P99 / PEFT / PII / POS / POST / PP / PQ / PR / PVC / Q4 / QPS / RAG / RBAC / RE / REST / ReAct / RDF / RLHF / ROI / RPC / RPM / RRF / RTT / SaaS / SDK / SFT / SKU / SLA / SLO / SOAP / SOC / SPLADE / SQL / SRE / SSE / SSH / SSO / TGI / TLS / TP / TPM / TTS / ToT / UI / URI / VPC / WAF / WASM / XSS / YAML
+A2A / A100 / ACP / AGI / AI / API / ARN / AWQ / AZ / BGE / BI / BM25 / CDC / CDN / CFD / CLIP / CMDB / CoT / CR / CRM / CRUD / CSP / CUDA / DAG / DCGM / DDL / DMA / DNS / DPO / E5 / ERP / ESO / ETL / FAQ / FP16 / GET / GMV / GOVERN / GPT / GPTQ / GTE / GUI / GraphRAG / HA / HCL / HITL / HNSW / HPA / HPC / HTTP / IAM / IaC / INT4 / INT8 / IP / IVF / JSON / KPI / KTO / KV / L0 / L5 / L6 / L7 / LLM / LoRA / MANAGE / MAP / MCP / MEASURE / MIG / MTEB / MVP / NER / NL2SQL / NIST / NPU / NUMA / OCR / OLAP / ONNX / OPA / OSS / OWASP / OWL / P99 / PEFT / PII / POS / POST / PP / PQ / PR / PVC / Q4 / QPS / RAG / RBAC / RE / REST / ReAct / RDF / RLHF / ROI / RPC / RPM / RRF / RTT / SaaS / SDK / SFT / SKU / SLA / SLO / SOAP / SOC / SPLADE / SQL / SRE / SSE / SSH / SSO / STT / TGI / TLS / TP / TPM / TTS / ToT / UI / URI / VPC / WAF / WASM / XSS / YAML
+
+Additional acronyms and benchmark names used in chapter prose:
+ABAC / AG / ANN / ASK / ASR / AST / BAAI / BEAVER / BF16 / BIG / BLEU / BPM / BPMN / CA / CD / CG / CHESS / CMMLU / COGS / CTE / CTO / DA / DACOMP / DAIL / DIN / DLP / DOM / DSL / EAD / EAST / EM / ERNIE / EX / F1 / FACT / FINISH / FP8 / GDPR / GLM / GSB / HELM / HF / HR / IBM / ICML / IDE / IEC / IO / IR / ISO / IT / JS / JSONL / KA / LGD / LIDA / M3 / MDM / MDN / MMLU / MRR / MT / NCCL / NDCG / NLP / OA / ODS / OKR / OS / P0 / P1 / P2 / P50 / P95 / PD / PM / PNG / POC / PPT / PRD / PTQ / QAT / R1 / R2 / RACE / RAGAS / RAM / RAROC / README / RFP / RLS / RPA / SIEM / SIP / SLI / SOP / SQ / SQS / SS / SSRF / SWE / TCO / TEI / TPOT / TRL / TTL / UDF / US / UT / VAD / VIP / VL / W3C / WARN / WM / YTD
 
 Roman numerals used as Part numbers in this book are also exempt:
 II / III / IV / V / VI / VII / VIII / IX / X / XI / L1 / L2 / L3 / L4
 
 SQL keywords and code identifiers that may appear inline in narrative:
-SELECT / FROM / WHERE / DROP / TABLE / INSERT / UPDATE / DELETE / JOIN / GROUP / ORDER / BY / NULL / NOT / AND / OR / TRUE / FALSE / ID
+SELECT / FROM / WHERE / DROP / TABLE / INSERT / UPDATE / DELETE / JOIN / GROUP / ORDER / BY / NULL / NOT / AND / OR / TRUE / FALSE / ID / ALL / CREATE / INTO / LIMIT / SUM / UNION / WITH
 
 State machine state names used in Ch.22 and beyond:
-PENDING / PLANNING / EXECUTING / WAITING / HUMAN / SUCCEEDED / FAILED
+PENDING / PLANNING / EXECUTING / WAITING / HUMAN / SUCCEEDED / FAILED / T0 / T1 / T2 / T3 / T4 / T5 / D1 / D2 / Q1 / Q2 / Q3 / W52
