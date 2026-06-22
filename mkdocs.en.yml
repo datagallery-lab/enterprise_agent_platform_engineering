@@ -1,9 +1,9 @@
 site_name: Enterprise Agent Platform Engineering
 site_description: An engineering book for enterprise Agent platforms
 site_author: 开源社区
-site_url: https://zyairehhh.github.io/enterprise_agent_platform_book/
+site_url: https://datagallery-lab.github.io/enterprise_agent_platform_engineering/en/
 repo_name: GitHub
-repo_url: https://github.com/zyairehhh/enterprise_agent_platform_book
+repo_url: https://github.com/datagallery-lab/enterprise_agent_platform_engineering
 edit_uri: edit/main/docs/
 
 theme:
@@ -73,10 +73,10 @@ extra_css:
 extra:
   alternate:
     - name: 简体中文
-      link: /
+      link: /enterprise_agent_platform_engineering/
       lang: zh
     - name: English
-      link: /en/
+      link: /enterprise_agent_platform_engineering/en/
       lang: en
 
 nav:
