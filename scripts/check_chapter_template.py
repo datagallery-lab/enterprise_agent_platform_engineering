@@ -73,12 +73,19 @@ SPECIAL_H3_HEADINGS = {
     "事故复盘模板",
     "关键指标改进效果",
 }
-REQUIRED_FRONT_MATTER_HEADINGS = [
+FORBIDDEN_FRONT_MATTER_HEADINGS = {
     "本章摘要",
     "关键词",
     "学习目标",
-    "场景引入",
-]
+}
+NARRATIVE_LEAD_CHAPTERS = {
+    Path("part01-overview/ch/ch01-agent.md"),
+    Path("part01-overview/ch/ch02-agent.md"),
+    Path("part01-overview/ch/ch03-ai-agent.md"),
+    Path("part06-dataagent/ch/ch32-dataagent.md"),
+    Path("part06-dataagent/ch/ch33.md"),
+    Path("part06-dataagent/ch/ch34-nl2sql.md"),
+}
 
 ARTICLE_HEADINGS_BY_PATH = {
     Path("part04-vector-knowledge/ch/ch16.md"): [
@@ -243,7 +250,7 @@ def heading_tone_errors(lines: list[str]) -> list[str]:
     return errors
 
 
-def front_matter_errors(lines: list[str]) -> list[str]:
+def front_matter_errors(lines: list[str], rel: Path) -> list[str]:
     """Require the published-book style chapter lead before the numbered body."""
     errors: list[str] = []
     first_numbered_h2 = next(
@@ -258,19 +265,18 @@ def front_matter_errors(lines: list[str]) -> list[str]:
         return ["missing first numbered H2 body section"]
 
     front_lines = lines[:first_numbered_h2]
-    seen: list[str] = []
-    for line in front_lines:
-        if not line.startswith("## "):
-            continue
-        heading = line[3:].strip()
-        if heading in REQUIRED_FRONT_MATTER_HEADINGS:
-            seen.append(heading)
+    headings = [line[3:].strip() for line in front_lines if line.startswith("## ")]
+    forbidden = sorted(FORBIDDEN_FRONT_MATTER_HEADINGS.intersection(headings))
+    if forbidden:
+        errors.append("published chapters must not include: " + ", ".join(forbidden))
 
-    if seen != REQUIRED_FRONT_MATTER_HEADINGS:
-        errors.append(
-            "front matter must be ordered as: "
-            + " -> ".join(REQUIRED_FRONT_MATTER_HEADINGS)
-        )
+    lead_chars = sum(
+        len(line.strip())
+        for line in front_lines
+        if line.strip() and not line.startswith("#") and not line.startswith("---")
+    )
+    if lead_chars < 600:
+        errors.append("narrative lead before first numbered section is too short")
 
     for line in front_lines:
         if line.startswith(">"):
@@ -345,7 +351,7 @@ def check_file(path: Path) -> list[str]:
     rel = path.relative_to(DOCS)
     errors = legacy_template_errors(lines)
     errors.extend(heading_tone_errors(lines))
-    errors.extend(front_matter_errors(lines))
+    errors.extend(front_matter_errors(lines, rel))
     errors.extend(chapter_numbering_errors(lines))
     if rel in ARTICLE_HEADINGS_BY_PATH:
         errors.extend(missing_patterns(lines, ARTICLE_HEADINGS_BY_PATH[rel]))
