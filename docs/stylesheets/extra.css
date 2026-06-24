@@ -35,15 +35,15 @@
 
 @media screen and (min-width: 76.25em) {
   .md-grid {
-    max-width: 92rem;
+    max-width: 64rem;
   }
 
   .md-main__inner {
-    column-gap: 1.2rem;
+    column-gap: 1rem;
   }
 
   .md-sidebar {
-    width: 12rem;
+    width: 11rem;
   }
 
   .md-content {
@@ -51,21 +51,21 @@
   }
 
   .md-content__inner {
-    margin-left: 1.2rem;
-    margin-right: 1.2rem;
+    margin-left: 1rem;
+    margin-right: 1rem;
   }
 }
 
 @media screen and (min-width: 100em) {
   .md-grid {
-    max-width: 106rem;
+    max-width: 70rem;
   }
 
   .md-main__inner {
-    column-gap: 1.4rem;
+    column-gap: 1.2rem;
   }
 
   .md-sidebar {
-    width: 12.5rem;
+    width: 11.5rem;
   }
 }
