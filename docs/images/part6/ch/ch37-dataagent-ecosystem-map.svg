@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">DataAgent 生态能力地图</title>
+  <desc id="desc">以偏库到偏平台、偏 NL2SQL 到偏完整任务两个维度展示 DataAgent 生态方案的位置。</desc>
+  <rect width="1280" height="720" fill="#f7f8fb"/>
+  <rect x="110" y="80" width="1060" height="520" fill="#ffffff" stroke="#c9ced8" stroke-width="2"/>
+  <line x1="110" y1="340" x2="1170" y2="340" stroke="#8b94a6" stroke-width="2" stroke-dasharray="8 8"/>
+  <line x1="640" y1="80" x2="640" y2="600" stroke="#8b94a6" stroke-width="2" stroke-dasharray="8 8"/>
+  <text x="640" y="48" text-anchor="middle" font-family="Arial, 'PingFang SC', sans-serif" font-size="28" font-weight="700" fill="#202636">DataAgent 生态能力地图</text>
+  <text x="1180" y="625" text-anchor="end" font-family="Arial, 'PingFang SC', sans-serif" font-size="20" fill="#374151">偏平台</text>
+  <text x="105" y="625" text-anchor="start" font-family="Arial, 'PingFang SC', sans-serif" font-size="20" fill="#374151">偏库 / 组件</text>
+  <text x="76" y="94" text-anchor="middle" font-family="Arial, 'PingFang SC', sans-serif" font-size="20" fill="#374151" transform="rotate(-90 76 94)">偏完整任务</text>
+  <text x="76" y="590" text-anchor="middle" font-family="Arial, 'PingFang SC', sans-serif" font-size="20" fill="#374151" transform="rotate(-90 76 590)">偏 NL2SQL</text>
+
+  <g font-family="Arial, 'PingFang SC', sans-serif">
+    <rect x="205" y="405" width="165" height="78" rx="10" fill="#e8f3ff" stroke="#2563eb" stroke-width="2"/>
+    <text x="287" y="438" text-anchor="middle" font-size="23" font-weight="700" fill="#1d4ed8">Vanna</text>
+    <text x="287" y="466" text-anchor="middle" font-size="16" fill="#334155">Question-SQL 检索</text>
+
+    <rect x="425" y="300" width="180" height="82" rx="10" fill="#eef7ed" stroke="#16a34a" stroke-width="2"/>
+    <text x="515" y="333" text-anchor="middle" font-size="23" font-weight="700" fill="#15803d">WrenAI</text>
+    <text x="515" y="361" text-anchor="middle" font-size="16" fill="#334155">语义层 + 对话 BI</text>
+
+    <rect x="760" y="380" width="175" height="82" rx="10" fill="#fff4e6" stroke="#f59e0b" stroke-width="2"/>
+    <text x="848" y="414" text-anchor="middle" font-size="23" font-weight="700" fill="#b45309">DB-GPT</text>
+    <text x="848" y="442" text-anchor="middle" font-size="16" fill="#334155">平台壳与数据插件</text>
+
+    <rect x="330" y="185" width="170" height="78" rx="10" fill="#f3e8ff" stroke="#9333ea" stroke-width="2"/>
+    <text x="415" y="218" text-anchor="middle" font-size="23" font-weight="700" fill="#7e22ce">Defog</text>
+    <text x="415" y="246" text-anchor="middle" font-size="16" fill="#334155">Python 分析 / 报告</text>
+
+    <rect x="865" y="205" width="195" height="86" rx="10" fill="#feecec" stroke="#dc2626" stroke-width="2"/>
+    <text x="962" y="240" text-anchor="middle" font-size="23" font-weight="700" fill="#b91c1c">BI Copilot</text>
+    <text x="962" y="268" text-anchor="middle" font-size="16" fill="#334155">嵌入 BI 产品内</text>
+
+    <rect x="720" y="120" width="260" height="92" rx="12" fill="#eef2ff" stroke="#4f46e5" stroke-width="3"/>
+    <text x="850" y="156" text-anchor="middle" font-size="23" font-weight="700" fill="#3730a3">mini-platform</text>
+    <text x="850" y="184" text-anchor="middle" font-size="16" fill="#334155">Runtime / Registry / Trace</text>
+  </g>
+
+  <g font-family="Arial, 'PingFang SC', sans-serif" font-size="17" fill="#4b5563">
+    <text x="145" y="126">组件可进入 Registry</text>
+    <text x="145" y="150">但不接管平台状态</text>
+    <text x="690" y="565">越靠右越需要统一运行、权限、审计与评测</text>
+  </g>
+</svg>

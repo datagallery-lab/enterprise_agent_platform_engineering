@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="470" viewBox="0 0 1320 470" role="img">
+  <defs>
+    <marker id="blue-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M1 1 L9 5 L1 9 Z" fill="#1f5f8b"/>
+    </marker>
+    <style>
+      .bg { fill: #fff; }
+      .external { fill: #f3f4f5; stroke: #8f989f; stroke-width: 1.4; }
+      .component { fill: #f8fbfd; stroke: #1f5f8b; stroke-width: 1.7; }
+      .control { fill: #fff8f8; stroke: #b33939; stroke-width: 1.5; }
+      .flow { stroke: #1f5f8b; stroke-width: 2.1; fill: none; marker-end: url(#blue-arrow); }
+      .thin { stroke: #aab7bf; stroke-width: 1; }
+      .label { font-family: "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif; font-size: 19px; font-weight: 700; fill: #202a33; }
+      .sub { font-family: "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif; font-size: 14px; fill: #52606d; }
+      .tag { font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; font-weight: 700; fill: #1f5f8b; }
+      .tag-red { font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; font-weight: 700; fill: #b33939; }
+    </style>
+  </defs>
+  <rect class="bg" width="1320" height="470"/>
+
+  <g transform="translate(52 112)">
+    <rect class="external" width="170" height="112" rx="3"/>
+    <text class="tag" x="18" y="27">01</text>
+    <text class="label" x="18" y="58">原始内容</text>
+    <text class="sub" x="18" y="84">query / chunk</text>
+  </g>
+
+  <path class="flow" d="M240 168 H322"/>
+
+  <g transform="translate(340 112)">
+    <rect class="component" width="170" height="112" rx="3"/>
+    <text class="tag" x="18" y="27">02</text>
+    <text class="label" x="18" y="58">Embedding 模型</text>
+    <text class="sub" x="18" y="84">model version</text>
+  </g>
+
+  <path class="flow" d="M528 168 H610"/>
+
+  <g transform="translate(628 112)">
+    <rect class="component" width="188" height="112" rx="3"/>
+    <text class="tag" x="18" y="27">03</text>
+    <text class="label" x="18" y="58">向量表示</text>
+    <text class="sub" x="18" y="84">dimension / normalized</text>
+  </g>
+
+  <path class="flow" d="M834 168 H916"/>
+
+  <g transform="translate(934 82)">
+    <rect class="control" width="170" height="172" rx="3"/>
+    <text class="tag-red" x="18" y="27">04</text>
+    <text class="label" x="18" y="58">相似度度量</text>
+    <line class="thin" x1="18" y1="76" x2="152" y2="76"/>
+    <text class="sub" x="18" y="102">cosine: 方向</text>
+    <text class="sub" x="18" y="128">dot: 方向 + 长度</text>
+    <text class="sub" x="18" y="154">euclidean: 几何距离</text>
+  </g>
+
+  <path class="flow" d="M1122 168 H1204"/>
+
+  <g transform="translate(1202 112)">
+    <rect class="component" width="118" height="112" rx="3"/>
+    <text class="tag" x="18" y="27">05</text>
+    <text class="label" x="18" y="58">top-k</text>
+    <text class="sub" x="18" y="84">候选集合</text>
+  </g>
+
+  <g transform="translate(226 310)">
+    <rect class="control" width="888" height="62" rx="3"/>
+    <text class="tag-red" x="18" y="27">CHECK</text>
+    <text class="sub" x="86" y="27">索引契约必须同时记录 model_name、model_version、dimension、metric、normalize 与 index_version。</text>
+    <text class="sub" x="86" y="49">模型升级或归一化策略变化时，应新建索引或双写灰度，不能在同一索引混用不同向量空间。</text>
+  </g>
+</svg>

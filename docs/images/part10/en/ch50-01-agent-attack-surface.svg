@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="430" viewBox="0 0 980 430" role="img" aria-label="Enterprise Agent attack surface map">
+  <defs>
+    <marker id="redArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#d14b4b"/></marker>
+    <marker id="blueArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#2563eb"/></marker>
+    <style>
+      .bg{fill:#fff}.comp{fill:#eef5ff;stroke:#2563eb;stroke-width:1.5}.ext{fill:#f4f4f5;stroke:#9ca3af;stroke-width:1.3}.risk{fill:#fff1f2;stroke:#d14b4b;stroke-width:1.4}.flow{fill:none;stroke:#d14b4b;stroke-width:2;marker-end:url(#redArrow)}.data{fill:none;stroke:#2563eb;stroke-width:2;marker-end:url(#blueArrow)}.txt{font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#111827}.sub{font:12px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#4b5563}
+    </style>
+  </defs>
+  <rect class="bg" width="980" height="430"/>
+  <rect class="ext" x="44" y="70" width="150" height="66" rx="6"/><text class="txt" x="119" y="94" text-anchor="middle">User input</text><text class="sub" x="119" y="114" text-anchor="middle">Chat / attachment</text><text class="sub" x="119" y="130" text-anchor="middle">/ URL</text>
+  <rect class="ext" x="44" y="190" width="150" height="66" rx="6"/><text class="txt" x="119" y="214" text-anchor="middle">External content</text><text class="sub" x="119" y="234" text-anchor="middle">Docs / web pages</text><text class="sub" x="119" y="250" text-anchor="middle">/ emails</text>
+  <rect class="comp" x="268" y="70" width="150" height="66" rx="6"/><text class="txt" x="343" y="94" text-anchor="middle">Input Gateway</text><text class="sub" x="343" y="114" text-anchor="middle">Identity and</text><text class="sub" x="343" y="130" text-anchor="middle">classification</text>
+  <rect class="comp" x="268" y="190" width="150" height="62" rx="6"/><text class="txt" x="343" y="217" text-anchor="middle">RAG Context</text><text class="sub" x="343" y="239" text-anchor="middle">Source and trust level</text>
+  <rect class="comp" x="494" y="130" width="150" height="62" rx="6"/><text class="txt" x="569" y="157" text-anchor="middle">Agent Runtime</text><text class="sub" x="569" y="179" text-anchor="middle">Plan and state machine</text>
+  <rect class="comp" x="494" y="280" width="150" height="66" rx="6"/><text class="txt" x="569" y="304" text-anchor="middle">Policy Engine</text><text class="sub" x="569" y="324" text-anchor="middle">Permission / risk</text><text class="sub" x="569" y="340" text-anchor="middle">/ approval</text>
+  <rect class="ext" x="724" y="70" width="160" height="62" rx="6"/><text class="txt" x="804" y="97" text-anchor="middle">LLM Gateway</text><text class="sub" x="804" y="119" text-anchor="middle">Model and routing</text>
+  <rect class="ext" x="724" y="190" width="160" height="62" rx="6"/><text class="txt" x="804" y="217" text-anchor="middle">Enterprise tools</text><text class="sub" x="804" y="239" text-anchor="middle">SQL / CRM / tickets</text>
+  <rect class="ext" x="724" y="310" width="170" height="62" rx="6"/><text class="txt" x="809" y="337" text-anchor="middle">Audit and observability</text><text class="sub" x="809" y="359" text-anchor="middle">trace / alerts / replay</text>
+  <rect class="risk" x="52" y="318" width="134" height="40" rx="20"/><text class="sub" x="119" y="343" text-anchor="middle">Injection / leakage</text>
+  <path class="flow" d="M194 101H268"/><path class="flow" d="M194 221H268"/><path class="flow" d="M418 101 C454 101 458 145 494 151"/><path class="flow" d="M418 221 C456 221 456 177 494 171"/><path class="flow" d="M644 151 C680 146 690 101 724 101"/><path class="flow" d="M644 170 C680 176 690 221 724 221"/><path class="flow" d="M569 192V280"/><path class="data" d="M644 311H724"/><path class="data" d="M804 252V310"/>
+</svg>

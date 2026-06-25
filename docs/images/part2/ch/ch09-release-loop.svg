@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">图 9-2：模型能力定制的持续闭环</title>
+  <desc id="desc">线上日志和反馈经过数据治理，进入训练、RAG 更新和评测，再通过模型注册、灰度发布和监控回到线上。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#334155"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .bg { fill: #f8fafc; }
+      .box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.3; rx: 8; filter: url(#shadow); }
+      .data { fill: #eff6ff; stroke: #93c5fd; rx: 8; }
+      .train { fill: #fff7ed; stroke: #fdba74; rx: 8; }
+      .eval { fill: #ecfdf5; stroke: #86efac; rx: 8; }
+      .release { fill: #f5f3ff; stroke: #c4b5fd; rx: 8; }
+      .risk { fill: #fff1f2; stroke: #fda4af; rx: 8; }
+      .title { font: 700 32px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 16px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #475569; }
+      .label { font: 700 16px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #1e293b; }
+      .text { font: 400 13px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #475569; }
+      .tiny { font: 400 12px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #64748b; }
+      .line { stroke: #334155; stroke-width: 2; fill: none; marker-end: url(#arrow); }
+      .dash { stroke: #64748b; stroke-width: 1.7; stroke-dasharray: 6 6; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1200" height="720"/>
+  <text class="title" x="60" y="58">能力定制是一条发布闭环，不是一次训练脚本</text>
+  <text class="subtitle" x="60" y="88">模型、adapter、prompt、RAG snapshot 和评测报告都要进入注册表，线上问题才能复现和回滚。</text>
+
+  <rect class="box" x="80" y="246" width="158" height="92"/>
+  <text class="label" x="159" y="278" text-anchor="middle">线上反馈</text>
+  <text class="text" x="159" y="302" text-anchor="middle">trace / 纠错</text>
+  <text class="text" x="159" y="322" text-anchor="middle">人工标注</text>
+
+  <rect class="data" x="298" y="160" width="176" height="92"/>
+  <text class="label" x="386" y="192" text-anchor="middle">数据治理</text>
+  <text class="text" x="386" y="216" text-anchor="middle">清洗 / 脱敏</text>
+  <text class="text" x="386" y="236" text-anchor="middle">去重 / 分层</text>
+
+  <rect class="train" x="536" y="150" width="178" height="102"/>
+  <text class="label" x="625" y="182" text-anchor="middle">训练与对齐</text>
+  <text class="text" x="625" y="206" text-anchor="middle">SFT / LoRA</text>
+  <text class="text" x="625" y="226" text-anchor="middle">DPO / KTO</text>
+
+  <rect class="train" x="536" y="374" width="178" height="102"/>
+  <text class="label" x="625" y="406" text-anchor="middle">RAG 更新</text>
+  <text class="text" x="625" y="430" text-anchor="middle">文档 / 切分</text>
+  <text class="text" x="625" y="450" text-anchor="middle">索引 / snapshot</text>
+
+  <rect class="eval" x="774" y="246" width="178" height="92"/>
+  <text class="label" x="863" y="278" text-anchor="middle">评测门禁</text>
+  <text class="text" x="863" y="302" text-anchor="middle">任务 / 安全</text>
+  <text class="text" x="863" y="322" text-anchor="middle">回归 / 成本</text>
+
+  <rect class="release" x="1010" y="160" width="150" height="92"/>
+  <text class="label" x="1085" y="192" text-anchor="middle">注册表</text>
+  <text class="text" x="1085" y="216" text-anchor="middle">版本 / adapter</text>
+  <text class="text" x="1085" y="236" text-anchor="middle">评测报告</text>
+
+  <rect class="release" x="1010" y="374" width="150" height="92"/>
+  <text class="label" x="1085" y="406" text-anchor="middle">灰度发布</text>
+  <text class="text" x="1085" y="430" text-anchor="middle">路由 / 回滚</text>
+  <text class="text" x="1085" y="450" text-anchor="middle">监控 / 告警</text>
+
+  <rect class="risk" x="298" y="536" width="654" height="74"/>
+  <text class="label" x="326" y="566">关键隔离</text>
+  <text class="text" x="326" y="590">训练数据与评测数据必须隔离；RAG 知识、adapter 和 prompt 都要可版本化、可审计、可回滚。</text>
+
+  <path class="line" d="M238 292 C264 262 282 228 298 206"/>
+  <path class="line" d="M474 206 L536 201"/>
+  <path class="line" d="M474 228 C502 286 536 350 562 374"/>
+  <path class="line" d="M714 201 C752 208 782 228 814 246"/>
+  <path class="line" d="M714 425 C752 410 790 366 824 338"/>
+  <path class="line" d="M952 292 C986 252 1004 226 1010 206"/>
+  <path class="line" d="M1085 252 L1085 374"/>
+  <path class="dash" d="M1010 420 C760 644 356 604 159 338"/>
+  <text class="tiny" x="146" y="654">线上监控把新失败样本带回样本池，形成持续改进闭环。</text>
+</svg>

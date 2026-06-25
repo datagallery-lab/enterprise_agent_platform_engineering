@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420" height="330" viewBox="0 0 1420 330" role="img" aria-label="Position of Dialogue UI in Enterprise Agent Platform">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9 Z" fill="#263238"/></marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9 Z" fill="#1f5f8b"/></marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9 Z" fill="#b33939"/></marker>
+    <style>
+      .bg{fill:#fff}.box{fill:#eef5ff;stroke:#2b66ff;stroke-width:1.5}.side{fill:#f8fafc;stroke:#7d8b99;stroke-width:1.3}.store{fill:#f8fafc;stroke:#7d8b99;stroke-width:1.3}.txt{font-family:"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",Arial,sans-serif;font-size:16px;fill:#111827}.small{font-size:14px;fill:#374151}.flow{stroke:#263238;stroke-width:1.5;fill:none;marker-end:url(#arrow)}.flow-blue{stroke:#1f5f8b;stroke-width:1.8;fill:none;marker-end:url(#arrow-blue)}.flow-red{stroke:#b33939;stroke-width:1.8;fill:none;marker-end:url(#arrow-red)}.label{font-size:14px;font-weight:700;fill:#b33939}
+    </style>
+  </defs>
+  <rect class="bg" width="1420" height="330"/>
+  <rect class="side" x="30" y="145" width="130" height="54"/><text class="txt" x="95" y="178" text-anchor="middle">Business user</text>
+  <rect class="box" x="210" y="145" width="170" height="54"/><text class="txt" x="295" y="178" text-anchor="middle">Agent Console</text>
+  <rect class="box" x="510" y="92" width="180" height="54"/><text class="txt" x="600" y="125" text-anchor="middle">Conversation API</text>
+  <rect class="box" x="740" y="92" width="170" height="54"/><text class="txt" x="825" y="125" text-anchor="middle">Agent Runtime</text>
+  <rect class="box" x="980" y="40" width="160" height="54"/><text class="txt" x="1060" y="73" text-anchor="middle">LLM Gateway</text>
+  <rect class="box" x="980" y="92" width="160" height="54"/><text class="txt" x="1060" y="125" text-anchor="middle">Tool Registry</text>
+  <rect class="box" x="960" y="200" width="210" height="54"/><text class="txt" x="1065" y="233" text-anchor="middle">Trace and session replay</text>
+  <path class="store" d="M1220 92 h110 a18 14 0 0 1 0 28 h-110 a18 14 0 0 1 0 -28 M1220 120 v38 a18 14 0 0 0 0 28 h110 a18 14 0 0 0 0 -28 v-38"/>
+  <text class="txt" x="1275" y="133" text-anchor="middle">Data sources</text><text class="txt" x="1275" y="153" text-anchor="middle">and tools</text>
+  <path class="flow" d="M160 172 H210"/>
+  <path class="flow" d="M380 145 C430 102 455 119 510 119"/>
+  <path class="flow-blue" d="M690 119 H740"/>
+  <path class="flow" d="M910 119 H980"/>
+  <path class="flow" d="M910 92 C938 60 948 67 980 67"/>
+  <path class="flow" d="M1140 119 H1200"/>
+  <path class="flow" d="M875 146 C905 180 925 200 960 215"/>
+  <path class="flow" d="M380 188 C520 260 760 245 960 227"/>
+  <path class="flow-red" d="M510 145 C460 185 420 182 380 172"/>
+  <rect x="382" y="196" width="142" height="20" fill="#fff"/>
+  <text class="label" x="453" y="211" text-anchor="middle">SSE event stream</text>
+</svg>

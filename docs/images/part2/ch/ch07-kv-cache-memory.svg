@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">图 7-2：KV Cache 如何随上下文和并发增长</title>
+  <desc id="desc">KV Cache 的显存占用与 batch size、sequence length、层数、KV heads、head dim 和元素字节数相关。</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .bg { fill: #f8fafc; }
+      .panel { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.3; rx: 8; filter: url(#shadow); }
+      .formula { fill: #0f172a; rx: 8; }
+      .token-a { fill: #bfdbfe; stroke: #60a5fa; }
+      .token-b { fill: #bbf7d0; stroke: #4ade80; }
+      .token-c { fill: #fed7aa; stroke: #fb923c; }
+      .bar { fill: #e2e8f0; rx: 5; }
+      .bar-fill { fill: #0891b2; rx: 5; }
+      .chip { fill: #f1f5f9; stroke: #cbd5e1; rx: 8; }
+      .warn { fill: #fff1f2; stroke: #fda4af; rx: 8; }
+      .title { font: 700 32px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 16px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #475569; }
+      .mono { font: 600 19px "SFMono-Regular", Consolas, "Noto Sans Mono CJK SC", monospace; fill: #f8fafc; }
+      .label { font: 700 16px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #1e293b; }
+      .text { font: 400 14px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #475569; }
+      .tiny { font: 400 12px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #64748b; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1200" height="720"/>
+  <text class="title" x="60" y="58">KV Cache 是长上下文并发的显存瓶颈</text>
+  <text class="subtitle" x="60" y="88">模型权重固定以后，活跃请求越多、上下文越长，KV Cache 越容易决定可承载容量。</text>
+
+  <rect class="formula" x="76" y="126" width="1048" height="88"/>
+  <text class="mono" x="106" y="164">KV bytes ≈ batch_size × sequence_length × num_layers × 2 × num_kv_heads</text>
+  <text class="mono" x="106" y="190">× head_dim × bytes_per_element</text>
+
+  <rect class="panel" x="76" y="232" width="650" height="372"/>
+  <text class="label" x="108" y="270">活跃请求持有不同长度的 KV block</text>
+
+  <text class="text" x="108" y="322">Request A 短问答</text>
+  <rect class="token-a" x="260" y="296" width="34" height="34" rx="5"/>
+  <rect class="token-a" x="300" y="296" width="34" height="34" rx="5"/>
+  <rect class="token-a" x="340" y="296" width="34" height="34" rx="5"/>
+  <rect class="token-a" x="380" y="296" width="34" height="34" rx="5"/>
+  <rect class="token-a" x="420" y="296" width="34" height="34" rx="5"/>
+
+  <text class="text" x="108" y="402">Request B RAG 长上下文</text>
+  <rect class="token-b" x="260" y="376" width="34" height="34" rx="5"/>
+  <rect class="token-b" x="300" y="376" width="34" height="34" rx="5"/>
+  <rect class="token-b" x="340" y="376" width="34" height="34" rx="5"/>
+  <rect class="token-b" x="380" y="376" width="34" height="34" rx="5"/>
+  <rect class="token-b" x="420" y="376" width="34" height="34" rx="5"/>
+  <rect class="token-b" x="460" y="376" width="34" height="34" rx="5"/>
+  <rect class="token-b" x="500" y="376" width="34" height="34" rx="5"/>
+  <rect class="token-b" x="540" y="376" width="34" height="34" rx="5"/>
+  <rect class="token-b" x="580" y="376" width="34" height="34" rx="5"/>
+  <rect class="token-b" x="620" y="376" width="34" height="34" rx="5"/>
+
+  <text class="text" x="108" y="482">Request C 长输出</text>
+  <rect class="token-c" x="260" y="456" width="34" height="34" rx="5"/>
+  <rect class="token-c" x="300" y="456" width="34" height="34" rx="5"/>
+  <rect class="token-c" x="340" y="456" width="34" height="34" rx="5"/>
+  <rect class="token-c" x="380" y="456" width="34" height="34" rx="5"/>
+  <rect class="token-c" x="420" y="456" width="34" height="34" rx="5"/>
+  <rect class="token-c" x="460" y="456" width="34" height="34" rx="5"/>
+  <rect class="token-c" x="500" y="456" width="34" height="34" rx="5"/>
+  <rect class="token-c" x="540" y="456" width="34" height="34" rx="5"/>
+
+  <text class="tiny" x="260" y="532">每个小块代表一段已写入的 Key/Value；Decode 每生成 token 都会追加缓存。</text>
+
+  <rect class="panel" x="776" y="232" width="348" height="372"/>
+  <text class="label" x="806" y="270">优化手段改变哪一项</text>
+
+  <rect class="chip" x="806" y="300" width="288" height="54"/>
+  <text class="label" x="826" y="324">限制与压缩上下文</text>
+  <text class="text" x="826" y="344">降低 sequence_length</text>
+
+  <rect class="chip" x="806" y="374" width="288" height="54"/>
+  <text class="label" x="826" y="398">连续批处理与限流</text>
+  <text class="text" x="826" y="418">控制 active batch_size</text>
+
+  <rect class="chip" x="806" y="448" width="288" height="54"/>
+  <text class="label" x="826" y="472">Paged KV / 淘汰 / offload</text>
+  <text class="text" x="826" y="492">减少碎片并提升利用率</text>
+
+  <rect class="chip" x="806" y="522" width="288" height="54"/>
+  <text class="label" x="826" y="546">KV Cache 量化</text>
+  <text class="text" x="826" y="566">降低 bytes_per_element</text>
+
+  <rect class="bar" x="112" y="638" width="450" height="18"/>
+  <rect class="bar-fill" x="112" y="638" width="322" height="18"/>
+  <text class="tiny" x="580" y="653">显存压力：模型权重 + KV Cache + 激活 + 运行时开销</text>
+</svg>

@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">图 5-2：质量、成本、延迟三角与治理边界</title>
+  <desc id="desc">模型选型需要在质量、成本、延迟之间权衡，并受数据边界、版本治理和回滚能力约束。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#475569"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .bg { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.4; rx: 8; filter: url(#shadow); }
+      .triangle { fill: #ecfeff; stroke: #0891b2; stroke-width: 3; }
+      .core { fill: #ffffff; stroke: #0f766e; stroke-width: 2; rx: 8; }
+      .chip-blue { fill: #eff6ff; stroke: #93c5fd; rx: 8; }
+      .chip-amber { fill: #fffbeb; stroke: #fbbf24; rx: 8; }
+      .chip-rose { fill: #fff1f2; stroke: #fda4af; rx: 8; }
+      .chip-green { fill: #f0fdf4; stroke: #86efac; rx: 8; }
+      .title { font: 700 32px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 16px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #475569; }
+      .vertex { font: 700 26px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0f172a; text-anchor: middle; }
+      .label { font: 700 17px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #1e293b; }
+      .text { font: 400 14px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #475569; }
+      .tiny { font: 400 12px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #64748b; }
+      .line { stroke: #475569; stroke-width: 1.8; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1200" height="720"/>
+  <text class="title" x="60" y="58">模型选型的三角关系必须显式化</text>
+  <text class="subtitle" x="60" y="88">最高质量、最低成本、最低延迟无法同时最大化；平台用任务分级路由把取舍固化为策略。</text>
+
+  <rect class="frame" x="76" y="130" width="1048" height="512"/>
+  <path class="triangle" d="M600 170 L252 562 L948 562 Z"/>
+
+  <circle cx="600" cy="170" r="48" fill="#dbeafe" stroke="#60a5fa" stroke-width="2"/>
+  <text class="vertex" x="600" y="179">质量</text>
+  <text class="tiny" x="600" y="224" text-anchor="middle">正确率 / 事实性 / 安全性</text>
+
+  <circle cx="252" cy="562" r="48" fill="#ffedd5" stroke="#fb923c" stroke-width="2"/>
+  <text class="vertex" x="252" y="571">成本</text>
+  <text class="tiny" x="252" y="617" text-anchor="middle">token / GPU / 重试</text>
+
+  <circle cx="948" cy="562" r="48" fill="#dcfce7" stroke="#4ade80" stroke-width="2"/>
+  <text class="vertex" x="948" y="571">延迟</text>
+  <text class="tiny" x="948" y="617" text-anchor="middle">TTFT / TPOT / P95</text>
+
+  <rect class="core" x="475" y="346" width="250" height="88"/>
+  <text class="label" x="600" y="382" text-anchor="middle">任务分级路由</text>
+  <text class="text" x="600" y="407" text-anchor="middle">按 risk、SLO、data_class</text>
+  <text class="text" x="600" y="428" text-anchor="middle">选择模型与回退路径</text>
+
+  <rect class="chip-rose" x="118" y="202" width="264" height="82"/>
+  <text class="label" x="142" y="234">高风险任务</text>
+  <text class="text" x="142" y="258">强模型 + 证据引用 + HITL</text>
+
+  <rect class="chip-amber" x="126" y="374" width="252" height="82"/>
+  <text class="label" x="150" y="406">高频低风险任务</text>
+  <text class="text" x="150" y="430">轻量模型 + 缓存 + 批处理</text>
+
+  <rect class="chip-green" x="818" y="374" width="254" height="82"/>
+  <text class="label" x="842" y="406">交互式助手</text>
+  <text class="text" x="842" y="430">流式输出 + TTFT 优先</text>
+
+  <rect class="chip-blue" x="810" y="202" width="270" height="82"/>
+  <text class="label" x="834" y="234">复杂推理与兜底</text>
+  <text class="text" x="834" y="258">升级到强模型或多模型仲裁</text>
+
+  <path class="line" d="M384 246 C438 264 484 308 525 348"/>
+  <path class="line" d="M380 416 C430 406 454 400 475 396"/>
+  <path class="line" d="M818 416 C770 404 746 398 725 393"/>
+  <path class="line" d="M810 246 C760 268 718 306 675 348"/>
+
+  <text class="label" x="120" y="665">外层治理边界：</text>
+  <text class="text" x="252" y="665">数据边界、模型版本 pinning、灰度发布、成本预算、监控告警、回归评测与快速回滚</text>
+</svg>
