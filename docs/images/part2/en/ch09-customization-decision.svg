@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Figure 9-1: Choosing a capability customization path</title>
+  <desc id="desc">Choose Prompt, RAG, SFT/LoRA, or DPO/KTO based on the root cause; fine-tuning is not the default answer for every model error.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#334155"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .bg { fill: #f8fafc; }
+      .hub { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.3; rx: 8; filter: url(#shadow); }
+      .prompt { fill: #eff6ff; stroke: #93c5fd; rx: 8; }
+      .rag { fill: #ecfdf5; stroke: #86efac; rx: 8; }
+      .sft { fill: #fff7ed; stroke: #fdba74; rx: 8; }
+      .align { fill: #f5f3ff; stroke: #c4b5fd; rx: 8; }
+      .warn { fill: #fff1f2; stroke: #fda4af; rx: 8; }
+      .title { font: 700 32px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 16px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #475569; }
+      .label { font: 700 17px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #1e293b; }
+      .text { font: 400 14px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #475569; }
+      .tiny { font: 400 12px "Inter", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #64748b; }
+      .line { stroke: #334155; stroke-width: 2; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1200" height="720"/>
+  <text class="title" x="60" y="58">Triage the failure before choosing a customization path</text>
+  <text class="subtitle" x="60" y="88">Missing knowledge, formats, task habits, or preference boundaries each call for different engineering moves.</text>
+
+  <rect class="hub" x="444" y="158" width="312" height="124"/>
+  <text class="label" x="600" y="198" text-anchor="middle">Production failure samples</text>
+  <text class="text" x="600" y="224" text-anchor="middle">wrong answers, human rewrites, feedback</text>
+  <text class="text" x="600" y="246" text-anchor="middle">diagnose root cause before training</text>
+
+  <rect class="prompt" x="88" y="346" width="242" height="116"/>
+  <text class="label" x="112" y="382">Prompt / Schema</text>
+  <text class="text" x="112" y="407">Symptoms: unstable format</text>
+  <text class="text" x="112" y="430">Start: templates, schema</text>
+
+  <rect class="rag" x="360" y="346" width="242" height="116"/>
+  <text class="label" x="384" y="382">RAG / tool lookup</text>
+  <text class="text" x="384" y="407">Symptoms: stale knowledge</text>
+  <text class="text" x="384" y="430">Start: KB, retrieval, ACLs</text>
+
+  <rect class="sft" x="630" y="346" width="242" height="116"/>
+  <text class="label" x="654" y="382">SFT / LoRA / QLoRA</text>
+  <text class="text" x="654" y="407">Symptoms: task distribution gap</text>
+  <text class="text" x="654" y="430">Start: samples, eval gates</text>
+
+  <rect class="align" x="900" y="346" width="242" height="116"/>
+  <text class="label" x="924" y="382">DPO / KTO / alignment</text>
+  <text class="text" x="924" y="407">Symptoms: style or risk mismatch</text>
+  <text class="text" x="924" y="430">Start: prefs, safety evals</text>
+
+  <path class="line" d="M520 282 C392 300 288 322 220 346"/>
+  <path class="line" d="M570 282 C528 308 504 324 486 346"/>
+  <path class="line" d="M630 282 C678 310 710 326 740 346"/>
+  <path class="line" d="M690 282 C824 300 944 322 1012 346"/>
+
+  <rect class="warn" x="256" y="548" width="688" height="82"/>
+  <text class="label" x="284" y="580">Practice principle</text>
+  <text class="text" x="284" y="604">Dynamic, sensitive, or citation-required facts should use RAG or tools first;</text>
+  <text class="text" x="284" y="624">fine-tuning mainly learns task patterns, domain language, and output habits.</text>
+</svg>

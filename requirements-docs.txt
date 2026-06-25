@@ -1,0 +1,5 @@
+mkdocs-material==9.7.6
+mkdocs-glightbox==0.4.0
+pymdown-extensions==10.11.2
+Pygments<2.20
+pytest>=8,<9

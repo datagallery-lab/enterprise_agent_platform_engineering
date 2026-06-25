@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="520" viewBox="0 0 1320 520" role="img">
+  <defs><marker id="blue-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9 Z" fill="#1f5f8b"/></marker><marker id="red-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9 Z" fill="#b33939"/></marker><style>.bg{fill:#fff}.external{fill:#f3f4f5;stroke:#8f989f;stroke-width:1.4}.component{fill:#f8fbfd;stroke:#1f5f8b;stroke-width:1.7}.control{fill:#fff8f8;stroke:#b33939;stroke-width:1.5}.flow{stroke:#1f5f8b;stroke-width:2.1;fill:none;marker-end:url(#blue-arrow)}.control-flow{stroke:#b33939;stroke-width:1.9;fill:none;marker-end:url(#red-arrow);stroke-dasharray:7 5}.label{font-family:"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",Arial,sans-serif;font-size:18px;font-weight:700;fill:#202a33}.sub{font-family:"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",Arial,sans-serif;font-size:14px;fill:#52606d}.tag{font-family:"SFMono-Regular",Consolas,monospace;font-size:12px;font-weight:700;fill:#1f5f8b}.tag-red{font-family:"SFMono-Regular",Consolas,monospace;font-size:12px;font-weight:700;fill:#b33939}</style></defs>
+  <rect class="bg" width="1320" height="520"/>
+  <g transform="translate(70 92)"><rect class="external" width="190" height="116" rx="3"/><text class="tag" x="18" y="27">01</text><text class="label" x="18" y="58">Business assets</text><text class="sub" x="18" y="84">Docs / systems / metrics</text></g>
+  <path class="flow" d="M240 150 H314"/>
+  <g transform="translate(332 92)"><rect class="component" width="184" height="116" rx="3"/><text class="tag" x="18" y="27">02</text><text class="label" x="18" y="58">Ontology model</text><text class="sub" x="18" y="82">Entities / relations</text><text class="sub" x="18" y="102">Constraints</text></g>
+  <path class="flow" d="M516 150 H580"/>
+  <g transform="translate(598 92)"><rect class="component" width="184" height="116" rx="3"/><text class="tag" x="18" y="27">03</text><text class="label" x="18" y="58">Extract + link</text><text class="sub" x="18" y="82">Facts / evidence</text><text class="sub" x="18" y="102">Confidence</text></g>
+  <path class="flow" d="M782 150 H846"/>
+  <g transform="translate(864 92)"><rect class="component" width="174" height="116" rx="3"/><text class="tag" x="18" y="27">04</text><text class="label" x="18" y="58">Knowledge graph</text><text class="sub" x="18" y="84">Nodes / edges / paths</text></g>
+  <path class="flow" d="M1038 150 H1112"/>
+  <g transform="translate(1130 92)"><rect class="component" width="174" height="116" rx="3"/><text class="tag" x="18" y="27">05</text><text class="label" x="18" y="58">GraphRAG</text><text class="sub" x="18" y="82">Graph paths</text><text class="sub" x="18" y="102">Text evidence</text></g>
+  <g transform="translate(350 350)"><rect class="control" width="286" height="72" rx="3"/><text class="tag-red" x="18" y="27">GOV</text><text class="sub" x="80" y="27">Ontology + fact review</text><text class="sub" x="80" y="50">Entity merge / invalidation</text></g>
+  <g transform="translate(740 350)"><rect class="control" width="270" height="72" rx="3"/><text class="tag-red" x="18" y="27">ACL</text><text class="sub" x="80" y="27">Node and edge ACL</text><text class="sub" x="80" y="50">Traceable evidence sources</text></g>
+  <path class="control-flow" d="M485 350 C490 270 530 220 598 184"/>
+  <path class="control-flow" d="M875 350 C890 276 930 230 1000 208"/>
+</svg>

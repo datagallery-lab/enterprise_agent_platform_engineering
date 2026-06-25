@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="560" viewBox="0 0 1440 560" role="img">
+  <defs>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M1 1 L9 5 L1 9 Z" fill="#1f5f8b"/>
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M1 1 L9 5 L1 9 Z" fill="#b33939"/>
+    </marker>
+    <style>
+      .bg { fill: #ffffff; }
+      .axis { stroke: #d7d7d7; stroke-width: 1; }
+      .outer { fill: none; stroke: #b9c3ca; stroke-width: 1.4; }
+      .external { fill: #f3f4f5; stroke: #8f989f; stroke-width: 1.4; }
+      .component { fill: #f8fbfd; stroke: #1f5f8b; stroke-width: 1.7; }
+      .control { fill: #fff8f8; stroke: #b33939; stroke-width: 1.5; }
+      .note { fill: #ffffff; stroke: #c8cdd1; stroke-width: 1; }
+      .flow { stroke: #1f5f8b; stroke-width: 2.2; fill: none; marker-end: url(#arrow-blue); }
+      .flow-soft { stroke: #7a9bb4; stroke-width: 1.7; fill: none; marker-end: url(#arrow-blue); }
+      .control-flow { stroke: #b33939; stroke-width: 2; fill: none; marker-end: url(#arrow-red); stroke-dasharray: 7 5; }
+      .lane-title { font-family: "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif; font-size: 16px; font-weight: 700; fill: #45525c; }
+      .box-title { font-family: "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif; font-size: 20px; font-weight: 700; fill: #202a33; }
+      .box-sub { font-family: "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif; font-size: 15px; fill: #53616b; }
+      .small { font-family: "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif; font-size: 13px; fill: #66727a; }
+      .tag { font-family: "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif; font-size: 13px; font-weight: 700; fill: #1f5f8b; }
+      .tag-red { font-family: "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif; font-size: 13px; font-weight: 700; fill: #b33939; }
+      .mono { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 12px; fill: #52606d; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1440" height="560"/>
+
+  <line class="axis" x1="60" y1="72" x2="1380" y2="72"/>
+  <line class="axis" x1="60" y1="360" x2="1380" y2="360"/>
+  <text class="lane-title" x="72" y="62">业务输入</text>
+  <text class="lane-title" x="72" y="350">平台处理链路</text>
+  <text class="lane-title" x="72" y="460">治理闭环</text>
+
+  <rect class="outer" x="60" y="86" width="1320" height="240" rx="4"/>
+  <rect class="outer" x="60" y="374" width="1320" height="116" rx="4"/>
+
+  <g transform="translate(98 122)">
+    <rect class="external" x="0" y="0" width="176" height="142" rx="3"/>
+    <text class="tag" x="18" y="27">01</text>
+    <text class="box-title" x="18" y="58">企业内容</text>
+    <text class="box-sub" x="18" y="88">文档 / 工单 / 合同</text>
+    <text class="box-sub" x="18" y="112">数据表 / 图片 / 截图</text>
+  </g>
+
+  <path class="flow" d="M292 193 H365"/>
+
+  <g transform="translate(384 122)">
+    <rect class="component" x="0" y="0" width="188" height="142" rx="3"/>
+    <text class="tag" x="18" y="27">02</text>
+    <text class="box-title" x="18" y="58">解析与治理</text>
+    <text class="box-sub" x="18" y="88">切分 / 清洗 / 脱敏</text>
+    <text class="box-sub" x="18" y="112">ACL / 元数据 / chunk id</text>
+  </g>
+
+  <path class="flow" d="M592 193 H671"/>
+
+  <g transform="translate(690 106)">
+    <rect class="component" x="0" y="0" width="210" height="174" rx="3"/>
+    <text class="tag" x="18" y="27">03</text>
+    <text class="box-title" x="18" y="58">Embedding Service</text>
+    <text class="box-sub" x="18" y="88">模型版本 / 维度 / batch</text>
+    <text class="box-sub" x="18" y="112">归一化 / 缓存 / 降级</text>
+    <line class="axis" x1="18" y1="132" x2="192" y2="132"/>
+    <text class="mono" x="18" y="154">vector = f(text, model_v)</text>
+  </g>
+
+  <path class="flow" d="M920 193 H951"/>
+
+  <g transform="translate(970 122)">
+    <rect class="component" x="0" y="0" width="174" height="142" rx="3"/>
+    <text class="tag" x="18" y="27">04</text>
+    <text class="box-title" x="18" y="58">向量索引</text>
+    <text class="box-sub" x="18" y="88">metric / index type</text>
+    <text class="box-sub" x="18" y="112">namespace / filter</text>
+  </g>
+
+  <path class="flow" d="M1164 193 H1205"/>
+
+  <g transform="translate(1224 102)">
+    <rect class="component" x="0" y="0" width="166" height="182" rx="3"/>
+    <text class="tag" x="18" y="27">05</text>
+    <text class="box-title" x="18" y="58">检索消费方</text>
+    <text class="box-sub" x="18" y="88">RAG</text>
+    <text class="box-sub" x="18" y="112">DataAgent</text>
+    <text class="box-sub" x="18" y="136">推荐 / 去重</text>
+    <text class="box-sub" x="18" y="160">合规检索</text>
+  </g>
+
+  <g transform="translate(174 398)">
+    <rect class="control" x="0" y="0" width="248" height="72" rx="3"/>
+    <text class="tag-red" x="18" y="27">A</text>
+    <text class="box-title" x="46" y="29">质量评估</text>
+    <text class="box-sub" x="18" y="54">recall@k / MRR / nDCG</text>
+  </g>
+
+  <g transform="translate(512 398)">
+    <rect class="control" x="0" y="0" width="248" height="72" rx="3"/>
+    <text class="tag-red" x="18" y="27">B</text>
+    <text class="box-title" x="46" y="29">权限审计</text>
+    <text class="box-sub" x="18" y="54">tenant / ACL / evidence log</text>
+  </g>
+
+  <g transform="translate(850 398)">
+    <rect class="control" x="0" y="0" width="248" height="72" rx="3"/>
+    <text class="tag-red" x="18" y="27">C</text>
+    <text class="box-title" x="46" y="29">版本回滚</text>
+    <text class="box-sub" x="18" y="54">model_v / index_v / rollback</text>
+  </g>
+
+  <g transform="translate(1188 398)">
+    <rect class="control" x="0" y="0" width="212" height="72" rx="3"/>
+    <text class="tag-red" x="18" y="27">D</text>
+    <text class="box-title" x="46" y="29">成本观测</text>
+    <text class="box-sub" x="18" y="54">latency / QPS / cache hit</text>
+  </g>
+
+  <path class="control-flow" d="M298 398 C330 340 470 310 690 280"/>
+  <path class="control-flow" d="M636 398 C650 340 704 314 782 280"/>
+  <path class="control-flow" d="M974 398 C1000 338 1030 304 1057 264"/>
+  <path class="control-flow" d="M1294 398 C1320 333 1330 293 1307 284"/>
+
+  <g transform="translate(60 516)">
+    <rect class="note" x="0" y="0" width="426" height="28" rx="3"/>
+    <text class="small" x="14" y="19">图例：蓝=平台组件与主数据流；灰=外部业务输入；红=控制流。</text>
+  </g>
+
+  <g transform="translate(530 500)">
+    <rect class="note" x="0" y="0" width="640" height="46" rx="3"/>
+    <text class="small" x="18" y="18">平台结论：embedding 是语义候选生成层。</text>
+    <text class="small" x="18" y="36">业务正确性仍由权限、证据、重排、评估和人工复核共同约束。</text>
+  </g>
+</svg>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="430" viewBox="0 0 980 430" role="img" aria-label="Enterprise Agent attack surface map">
+  <defs>
+    <marker id="redArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#d14b4b"/></marker>
+    <marker id="blueArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#2563eb"/></marker>
+    <style>
+      .bg{fill:#fff}.comp{fill:#eef5ff;stroke:#2563eb;stroke-width:1.5}.ext{fill:#f4f4f5;stroke:#9ca3af;stroke-width:1.3}.risk{fill:#fff1f2;stroke:#d14b4b;stroke-width:1.4}.flow{fill:none;stroke:#d14b4b;stroke-width:2;marker-end:url(#redArrow)}.data{fill:none;stroke:#2563eb;stroke-width:2;marker-end:url(#blueArrow)}.txt{font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#111827}.sub{font:12px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#4b5563}
+    </style>
+  </defs>
+  <rect class="bg" width="980" height="430"/>
+  <rect class="ext" x="44" y="70" width="150" height="62" rx="6"/><text class="txt" x="119" y="97" text-anchor="middle">用户输入</text><text class="sub" x="119" y="119" text-anchor="middle">对话 / 附件 / URL</text>
+  <rect class="ext" x="44" y="190" width="150" height="62" rx="6"/><text class="txt" x="119" y="217" text-anchor="middle">外部内容</text><text class="sub" x="119" y="239" text-anchor="middle">文档 / 网页 / 邮件</text>
+  <rect class="comp" x="268" y="70" width="150" height="62" rx="6"/><text class="txt" x="343" y="97" text-anchor="middle">Input Gateway</text><text class="sub" x="343" y="119" text-anchor="middle">身份与分类</text>
+  <rect class="comp" x="268" y="190" width="150" height="62" rx="6"/><text class="txt" x="343" y="217" text-anchor="middle">RAG Context</text><text class="sub" x="343" y="239" text-anchor="middle">来源与信任等级</text>
+  <rect class="comp" x="494" y="130" width="150" height="62" rx="6"/><text class="txt" x="569" y="157" text-anchor="middle">Agent Runtime</text><text class="sub" x="569" y="179" text-anchor="middle">计划与状态机</text>
+  <rect class="comp" x="494" y="280" width="150" height="62" rx="6"/><text class="txt" x="569" y="307" text-anchor="middle">Policy Engine</text><text class="sub" x="569" y="329" text-anchor="middle">权限 / 风险 / 审批</text>
+  <rect class="ext" x="724" y="70" width="160" height="62" rx="6"/><text class="txt" x="804" y="97" text-anchor="middle">LLM Gateway</text><text class="sub" x="804" y="119" text-anchor="middle">模型与路由</text>
+  <rect class="ext" x="724" y="190" width="160" height="62" rx="6"/><text class="txt" x="804" y="217" text-anchor="middle">企业工具</text><text class="sub" x="804" y="239" text-anchor="middle">SQL / CRM / 工单</text>
+  <rect class="ext" x="724" y="310" width="160" height="62" rx="6"/><text class="txt" x="804" y="337" text-anchor="middle">审计与观测</text><text class="sub" x="804" y="359" text-anchor="middle">trace / 告警 / 回放</text>
+  <rect class="risk" x="68" y="318" width="102" height="40" rx="20"/><text class="sub" x="119" y="343" text-anchor="middle">注入 / 泄漏</text>
+  <path class="flow" d="M194 101H268"/><path class="flow" d="M194 221H268"/><path class="flow" d="M418 101 C454 101 458 145 494 151"/><path class="flow" d="M418 221 C456 221 456 177 494 171"/><path class="flow" d="M644 151 C680 146 690 101 724 101"/><path class="flow" d="M644 170 C680 176 690 221 724 221"/><path class="flow" d="M569 192V280"/><path class="data" d="M644 311H724"/><path class="data" d="M804 252V310"/>
+</svg>
