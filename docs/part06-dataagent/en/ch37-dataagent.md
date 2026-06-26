@@ -1,21 +1,8 @@
 # Chapter 37 DataAgent Benchmarking and Ecosystem
 
 ---
-## Chapter Summary
 
 This chapter benchmarks DataAgent-related products and open-source ecosystems, explaining the respective boundaries best suited for BI Copilot, Notebook Agent, semantic layer tools, and analytics workbenches. The product forms in this field are highly differentiated: some excel at data querying, some specialize in notebook collaboration, and some are essentially semantic layers. Directly comparing "which is better" is meaningless; what matters is which segment of the DataAgent workflow they cover. This chapter aligns mainstream open-source solutions like DB-GPT and ChatBI with commercial products across capability dimensions, helping teams decide whether to build in-house, purchase, or combine solutions.
-## Key Terms
-
-DataAgent benchmarking, BI Copilot, Notebook Agent, semantic layer tools, open-source solutions, capability comparison
-## Learning Objectives
-
-- Understand why the DataAgent ecosystem is differentiated and which stage of the pipeline each product excels in.
-- Distinguish the boundaries between BI Copilot, Notebook Agent, semantic layer tools, and analysis workbenches.
-- Compare open-source solutions like DB-GPT and ChatBI with commercial products from a capabilities perspective.
-- Assess, based on team needs, whether to build a DataAgent in-house, purchase one, or adopt a hybrid approach.
-
----
-## Opening Scenario
 
 The first five chapters of Part VI respectively define **Product Boundaries** (Chapter 32), **Semantic Layer** (Chapter 33), **NL2SQL** (Chapter 34), **Python Analysis** (Chapter 35), and **Expression and Output Evaluation** (Chapter 36). If readers have followed the complete Run pipeline in [Chapter 32 §4 East China Decline Case](ch32-dataagent.md), they will naturally come to the final question: **With numerous DataAgent / Text-to-SQL products in the industry, should multi-business scenarios build their own, purchase, or adopt a hybrid approach?**
 
@@ -23,10 +10,9 @@ The answer is: **No single product can replace the combination of the Part V pla
 
 This chapter sequentially presents: why the ecosystem is fragmented (§1); open source vs. commercial classifications (§2); comparison of mainstream open source (§3); differences between ChatBI, BI Copilot, and DataAgent (§4); build vs. buy vs. hybrid (§5); evaluation and continuous improvement (§6); enterprise selection checklist and **Part VI summary** (§7).
 
----
 ## 37.1 Why the DataAgent Ecosystem Diverges
 
-Why isn’t there a “standard DataAgent product” that can be directly purchased and deployed?
+Why isn't there a "standard DataAgent product" that can be directly purchased and deployed?
 
 The fundamental reason is that **DataAgent must simultaneously meet four distinct types of demand**: conversational entry, Text-to-SQL technology, enterprise deployment compliance, and organizational-level data governance. Most products on the market start from only **one of these axes**, and supplement the other capabilities through integrations or external add-ons. The four differentiation axes are as follows:
 
@@ -39,13 +25,13 @@ The fundamental reason is that **DataAgent must simultaneously meet four distinc
 | **Deployment** | SaaS Copilot | Lacks privatization and multi-tenancy |
 | **Organization** | Data Middle Platform project | Lacks Agent Runtime and Run six states |
 
-Take retail operations analysis as an example: when the operations director says, “Last week’s East China GMV decline top SKUs,” it requires at least **Question Frame parsing** (Chapter 32), **Metric binding and disambiguation** (Chapter 33), **read-only SQL execution** (Chapter 34), **category contribution Python scripts** (Chapter 35), and **chart/report approval** (Chapter 36), plus end-to-end **Run auditing and evaluation** (Chapters 37 and 39). Purchasing a “conversational data query” SaaS typically only covers entry and NL2SQL demo; **semantic layer definitions, sandbox analysis, and HITL publication** still need to be built or integrated by the enterprise.
+Take retail operations analysis as an example: when the operations director says, "Last week's East China GMV decline top SKUs," it requires at least **Question Frame parsing** (Chapter 32), **Metric binding and disambiguation** (Chapter 33), **read-only SQL execution** (Chapter 34), **category contribution Python scripts** (Chapter 35), and **chart/report approval** (Chapter 36), plus end-to-end **Run auditing and evaluation** (Chapters 37 and 39). Purchasing a "conversational data query" SaaS typically only covers entry and NL2SQL demo; **semantic layer definitions, sandbox analysis, and HITL publication** still need to be built or integrated by the enterprise.
 
 Therefore, product comparison cannot start from a feature list. A more reliable approach is to first list the business workflow: who asks, which metric definitions to use, can follow-up queries be made, is approval required, who receives the report, and who fixes samples after failures. Only after these constraints are clear can Vanna, WrenAI, DB-GPT, Defog, or BI Copilot be positioned appropriately. Otherwise, teams easily buy a demo-strong NL2SQL tool only to find it lacks metric versions, has no `tenant_id` injection, and provides no report-level evidence when deployed.
 
 A survey of LLM/Agent-as-Data-Analyst capabilities classifies Agent abilities as multidimensional combinations including **semantic awareness, toolchain orchestration, and autonomous pipelines** (Tang et al. 2025). Few single products cover all these at once. Common enterprise deployment looks like: **Part V platform (Chapters 22-30) + semantic layer (Chapter 33) + specialized tools (Chapters 34-36)**, unified by a Registry audit, rather than expecting one ChatBI to do everything.
 
-Public benchmarks are also encouraging this shift in understanding. **Spider 2.0** (Lei et al. 2024) and **BIRD-INTERACT** (Huo et al. 2026) move evaluation from “single-sentence SQL translation” toward **enterprise workflows, multi-round clarifications, and interactive error correction**. This aligns with the full chain of **diagnosis + comparison + reporting** defined in Chapter 32 ([§1](ch32-dataagent.md)). Products still stuck on “turning natural language into a single SELECT statement” will inevitably struggle with multi-step analysis Runs like the East China decline example.
+Public benchmarks are also encouraging this shift in understanding. **Spider 2.0** (Lei et al. 2024) and **BIRD-INTERACT** (Huo et al. 2026) move evaluation from "single-sentence SQL translation" toward **enterprise workflows, multi-round clarifications, and interactive error correction**. This aligns with the full chain of **diagnosis + comparison + reporting** defined in Chapter 32 ([§1](ch32-dataagent.md)). Products still stuck on "turning natural language into a single SELECT statement" will inevitably struggle with multi-step analysis Runs like the East China decline example.
 
 ### 37.1.1 Product Selection and Integration Risks
 
@@ -61,7 +47,7 @@ The East China case shows ambiguity between `gmv_tax_excluded` and `gmv_ops` alr
 ---
 ## 37.2 Open-Source Frameworks and Commercial Products
 
-The tools listed in the table below — **Vanna, WrenAI, DB-GPT**, and others — are **GitHub open-source projects or commercial Copilot products**, not terms coined by this book. Before reading the table, note the **one-line positioning** of each entry.
+The tools listed in the table below - **Vanna, WrenAI, DB-GPT**, and others - are **GitHub open-source projects or commercial Copilot products**, not terms coined by this book. Before reading the table, note the **one-line positioning** of each entry.
 
 *Table 37-2: One-line positioning and typical use cases for open-source frameworks and commercial products. Source: compiled by the authors.*
 
@@ -76,7 +62,7 @@ The tools listed in the table below — **Vanna, WrenAI, DB-GPT**, and others �
 
 ### 37.2.1 Ecosystem Map
 
-Mapped along two axes — **library vs. platform** and **NL2SQL vs. full-pipeline** — the mainstream solutions can be roughly positioned as follows:
+Mapped along two axes - **library vs. platform** and **NL2SQL vs. full-pipeline** - the mainstream solutions can be roughly positioned as follows:
 
 *Table 37-3: Positioning of each product along the "library/platform" and "NL2SQL/full-pipeline" axes. Source: compiled by the authors.*
 
@@ -118,7 +104,7 @@ Section 2 explained what each open source project **is**. This section answers: 
 | Python Sandbox (Chapter 35) | ✓ | Weak | Weak | **Strong** | Medium | `tools/python_sandbox/` |
 | Reports / Charts (Chapter 36) | Partial | Weak | Medium | **Strong** | Medium | `tools/chart_renderer/` · `agents/data_agent/templates/` |
 | HITL / Multi-Tenancy | Weak | Weak | Medium | Medium | Weak | ✓ Part V Run chain · `core/policy/` |
-| Enterprise Eval (Chapters 36–39) | Partial | Weak | Medium | Medium | Experimental | `core/eval/` · Chapter 39 |
+| Enterprise Eval (Chapters 36-39) | Partial | Weak | Medium | Medium | Experimental | `core/eval/` · Chapter 39 |
 
 !!! note "mini-platform Implementation Status"
     Part V modules in the table (`core/runtime/`, `core/registry/`, etc.) and `mini-platform/projects/multi-agent-workflow/` **already exist in the repo**.
@@ -132,9 +118,9 @@ Section 2 explained what each open source project **is**. This section answers: 
 
 **WrenAI** (Canner 2024) emphasizes the **semantic layer + conversational BI (GenBI, i.e., natural language driven charts/analytics)**, closely aligned with the route of Chapter 33. The `sales_ops` view and metric versioning strategy can be directly analogized. WrenAI still requires enterprise `core/runtime/` and Chapter 30 HITL integration; multi-Agent governance should not run parallel to Part V dual tracks.
 
-**DB-GPT** (eosphoros-ai 2024) provides **Agent application shells and data plugins**. If the enterprise already has the platform from Chapters 22 to 30, a safer approach is: **register NL2SQL training or plugin logic as Tools via the Registry**, rather than introducing a second Runtime (consistent with the framework conclusions in [Chapter 31](../../part05-agent-capabilities/ch/ch31.md)).
+**DB-GPT** (eosphoros-ai 2024) provides **Agent application shells and data plugins**. If the enterprise already has the platform from Chapters 22 to 30, a safer approach is: **register NL2SQL training or plugin logic as Tools via the Registry**, rather than introducing a second Runtime (consistent with the framework conclusions in [Chapter 31](../../part05-agent-capabilities/en/ch31.md)).
 
-**Defog** (Defog.ai 2024) focuses on **Text-to-Python and automated reporting**, overlapping strongly with the Chapter 35–36 `python_sandbox` + `chart_renderer` combination. The East China business decline analysis scenario’s **category contribution step** corresponds to Defog’s strengths; data retrieval should still route through the read-only `sql_executor` chain.
+**Defog** (Defog.ai 2024) focuses on **Text-to-Python and automated reporting**, overlapping strongly with the Chapter 35-36 `python_sandbox` + `chart_renderer` combination. The East China business decline analysis scenario's **category contribution step** corresponds to Defog's strengths; data retrieval should still route through the read-only `sql_executor` chain.
 
 **Sherlock** is a **research-oriented deep analysis Agent** prototype, valuable for complex reasoning chain design, but **mostly lacks enterprise-grade Runtime, row-level permissions, and Eval pipelines**. It is not recommended to fully replace the Part V platform; its Planner multi-step reasoning strategy can be referenced, but engineering implementation should return to `core/planner/`.
 
@@ -154,7 +140,7 @@ These three product types have similar names but distinct responsibility boundar
 |----------------------|----------------------|------------------------------------|------------------------------------------------|
 | Positioning          | Conversational querying | Embedded BI assistant               | Platform-hosted data task agent                 |
 | Semantic Layer       | Uncertain            | Depends on BI datasets              | **Mandatory** Chapter 33 · `infra/semantic_layer/` |
-| Multi-step Analysis  | Weak                 | Medium                            | Planner chain Chapters 34–36 · `sql_executor` → `python_sandbox` → `chart_renderer` |
+| Multi-step Analysis  | Weak                 | Medium                            | Planner chain Chapters 34-36 · `sql_executor` -> `python_sandbox` -> `chart_renderer` |
 | Approval             | Usually unsupported  | Usually unsupported                | HITL Chapter 30 · Report-level `waiting_human` |
 | Integration with ERP/Agent Orchestration | Weak     | Weak                              | Handoff Chapter 28 · `agents/data_agent/`       |
 | Evaluation           | Vendor-dependent     | Vendor-dependent                   | Spider 2.0 / BIRD-INTERACT + business gold standard set · `core/eval/` |
@@ -177,9 +163,9 @@ These three product types have similar names but distinct responsibility boundar
 | **Hybrid: Platform Self-Development + Components** | Have Part V team ⭐ | Requires architectural discipline, forbids dual Runtime |
 | **Fully Self-Developed** | Strong compliance, long-term ROI, deep customization | Slow initial delivery |
 
-These conclusions align with the framework in [Chapter 31](../../part05-agent-capabilities/ch/ch31.md): **Runtime / Registry / Obs should be self-developed or unified within Part V**; **NL2SQL can connect to Vanna training pipeline**, packaged as backend capabilities under `tools/sql_executor/`; **Semantic layer can use Cube or Wren engine**, unified by `infra/semantic_layer/client.py` exposing `resolve_metric()` and `compile_query()` interfaces. External components are **called via Registry's HTTP proxy** (unified audit, unified tracing), not by business code directly calling third-party SDKs.
+These conclusions align with the framework in [Chapter 31](../../part05-agent-capabilities/en/ch31.md): **Runtime / Registry / Obs should be self-developed or unified within Part V**; **NL2SQL can connect to Vanna training pipeline**, packaged as backend capabilities under `tools/sql_executor/`; **Semantic layer can use Cube or Wren engine**, unified by `infra/semantic_layer/client.py` exposing `resolve_metric()` and `compile_query()` interfaces. External components are **called via Registry's HTTP proxy** (unified audit, unified tracing), not by business code directly calling third-party SDKs.
 
-This scenario is suitable for a **hybrid approach**: Part V and DataAgent applications (`agents/data_agent/`) are self-developed; semantic layer is based on Cube-style YAML hosted under `infra/semantic_layer/models/`; NL2SQL can leverage Vanna’s question-SQL retrieval enhanced `sql_executor` generation phase, but **execution and Policy must not be outsourced**.
+This scenario is suitable for a **hybrid approach**: Part V and DataAgent applications (`agents/data_agent/`) are self-developed; semantic layer is based on Cube-style YAML hosted under `infra/semantic_layer/models/`; NL2SQL can leverage Vanna's question-SQL retrieval enhanced `sql_executor` generation phase, but **execution and Policy must not be outsourced**.
 
 Organizational roles should also be reflected in the selection plan. Platform team is responsible for Runtime, Registry, Trace, Policy, and Eval pipelines; Data team handles semantic layer, metric versioning, sample sets, and lineage; Business teams handle gold-standard question formulation, report acceptance, and feedback adoption. Procuring components may reduce implementation cost in some sections but cannot replace these responsibilities. Without clear ownership, system errors become a back-and-forth blame game between "model issues", "data issues", and "vendor issues."
 
@@ -226,16 +212,20 @@ The business gold standard dataset should include East China decline **variant q
 | Approval pass rate | Report / HITL quality | Chapter 30 · `agents/data_agent/templates/` |
 | Run cost | Capacity and model selection | Chapter 41 |
 
-**Continuous improvement loop**: Failed eval samples → semantic layer / Glossary revision → Prompt / Tool version bump → regression (Liu et al. 2025). Similar to the "framework benchmarking iteration" in Chapter 31, DataAgent iteration focuses mainly on business samples, with public benchmarks as secondary. Spider 2.0 high scores but missing East China case definition footnotes still count as a release blocker.
+**Continuous improvement loop**: Failed eval samples -> semantic layer / Glossary revision -> Prompt / Tool version bump -> regression (Liu et al. 2025). Similar to the "framework benchmarking iteration" in Chapter 31, DataAgent iteration focuses mainly on business samples, with public benchmarks as secondary. Spider 2.0 high scores but missing East China case definition footnotes still count as a release blocker.
 
 Failed samples must enter a clear queue. For definition binding issues, prioritize fixing Glossary, Metric aliases, or View permissions; for SQL structural errors, revisit schema linking, historical Question-SQL pairs, or `sql_executor` validation; for missing chart fields, fix `chart_renderer` spec validation; for report wording exaggerations or missing EvidenceRef, revise templates and output evaluation. This approach is slower than generally "optimizing prompts," but each change has clear ownership and explains why the next version is better.
 
-[Chapter 39](../../part07-observability-eval/ch/ch39-dataagent-eval-benchmark.md) and **Chapter 50** provide **platform-level** evaluation and policy automation; Part VI emphasizes: **business samples must not rely only on public benchmarks as substitutes**.
+[Chapter 39](../../part07-observability-eval/en/ch39-dataagent-eval-benchmark.md) and **Chapter 50** provide **platform-level** evaluation and policy automation; Part VI emphasizes: **business samples must not rely only on public benchmarks as substitutes**.
 
 ---
-## 37.7 Enterprise Selection Checklist and Part VI Summary
+## 37.7 Enterprise selection ultimately lands on responsibility boundaries
 
-### 37.7.1 Selection Checklist (CTO / Data Leader)
+### 37.7.1 Selection conclusions must identify the accountable owner
+
+The final selection decision should not stop at "which product has which feature." It must name who owns Runtime, Registry, semantic definitions, SQL execution, Python analysis, report approval, evaluation samples, and incident repair. A vendor tool can cover some functions, but it cannot own enterprise accountability for data definitions, permission boundaries, audit evidence, or business acceptance.
+
+For CTOs and data leaders, the following checklist is therefore a responsibility checklist as much as a capability checklist.
 
 **Capabilities and Architecture**
 
@@ -261,26 +251,30 @@ Failed samples must enter a clear queue. For definition binding issues, prioriti
 
 Below repeats the exact phrase from [Chapter 32 §4](ch32-dataagent.md) by the operations director: "Sales in East China last week declined significantly vs. the prior week. What are the main SKUs? Does it relate to category structure?"
 
-*Table 37-11: The “East China Decline” case across Part VI six chapters’ steps and modules. Source: compiled from this book.*
+*Table 37-11: The "East China Decline" case across Part VI six chapters' steps and modules. Source: compiled from this book.*
 
 | Chapter | What this step does (in plain language) | Mini-platform Module |
 | --- | --- | --- |
 | **Chapter 32** | Parse original phrase into a Question Frame: diagnosis task, East China, last week vs prior week, by SKU | `agents/data_agent/` |
 | **Chapter 33** | Bind "GMV" to `gmv_ops@2025Q1`, expand "East China" as `EAST`, output compilable Linked Schema | `infra/semantic_layer/` · `linker.py` |
 | **Chapter 34** | Compile Semantic SQL, add `tenant_id` on server side, read-only execute, take top SKU wide table | `tools/sql_executor/` |
-| **Chapter 35** | Read SQL result file, calculate each category’s contribution to decline gap | `tools/python_sandbox/` |
+| **Chapter 35** | Read SQL result file, calculate each category's contribution to decline gap | `tools/python_sandbox/` |
 | **Chapter 36** | Draw SKU contribution bar chart, draft business meeting report, get approval and publish | `chart_renderer/` · `templates/` |
 | **Chapter 37** | Use business gold standard set plus open-source benchmarks for Eval, drive glossary/prompt improvements | `core/eval/` |
 
-All six chapters connect one **single Run** (e.g. `run-8f3a`): Chapters 32–33 complete understanding and Linking before Planner starts; Chapters 34–36 sequentially call Tools inside Planner loop; Chapter 37 defines **post-launch Eval to prove improvement over last quarter**, and constraints on introducing components like Vanna / Wren in the next version.
+All six chapters connect one **single Run** (e.g. `run-8f3a`): Chapters 32-33 complete understanding and Linking before Planner starts; Chapters 34-36 sequentially call Tools inside Planner loop; Chapter 37 defines **post-launch Eval to prove improvement over last quarter**, and constraints on introducing components like Vanna / Wren in the next version.
 
-### 37.7.3 Part VI Modules and Chapter Cross-reference
+## 37.8 Platform responsibility in ecosystem benchmarking
+
+External tools should enter the platform through explicit contracts. A product may supply NL2SQL training, semantic modeling, chart drafting, or Python analysis, but production execution still needs tenant injection, read-only control, Trace, policy enforcement, evaluation, and HITL where required. If an integration bypasses these controls, the enterprise gains a demo capability while weakening the platform.
+
+The platform team should convert each ecosystem comparison into a responsibility map: which component is reused, which interface wraps it, which data leaves the trust boundary, which evidence is recorded, and which owner handles failures. This keeps benchmarking connected to implementation rather than turning it into a feature matrix.
 
 *Table 37-12: Code paths, responsibilities, and main chapters for Part VI modules. Source: compiled from this book.*
 
 | Module Path | Responsibility | Main Chapters |
 | --- | --- | --- |
-| `agents/data_agent/` | AgentSpec, Question Frame, Linker | Chapters 32–33 |
+| `agents/data_agent/` | AgentSpec, Question Frame, Linker | Chapters 32-33 |
 | `infra/semantic_layer/` | Metrics, Views, Definition Parsing, `trusted_context()` | Chapter 33 |
 | `tools/sql_executor/` | Read-only SQL, validation, execution | Chapter 34 |
 | `tools/python_sandbox/` | Analysis sandbox, contribution calculation | Chapter 35 |
@@ -289,13 +283,17 @@ All six chapters connect one **single Run** (e.g. `run-8f3a`): Chapters 32–33 
 | `core/policy/` | Row-level permissions, data masking (baseline at execution side in `sql_executor`) | Chapters 34 + 50 |
 | `core/eval/` | Output quality evaluation pipeline | Chapters 36 + 39 |
 
-**Recommended Reading Order**: Chapter 32 (Product Boundary) → Chapter 33 (Semantic Layer) → Chapter 34 (NL2SQL) → Chapter 35 (Python) → Chapter 36 (Expression and Eval) → Chapter 37 (this chapter). Run / Registry / HITL foundational components are in Part V ([Chapters 22–30](../../part05-agent-capabilities/ch/ch22-agent-runtime.md)).
+**Recommended Reading Order**: Chapter 32 (Product Boundary) -> Chapter 33 (Semantic Layer) -> Chapter 34 (NL2SQL) -> Chapter 35 (Python) -> Chapter 36 (Expression and Eval) -> Chapter 37 (this chapter). Run / Registry / HITL foundational components are in Part V ([Chapters 22-30](../../part05-agent-capabilities/en/ch22-agent-runtime.md)).
 
-### 37.7.4 Part VI Six-Chapter Capability System (Summary)
+## 37.9 Continuous evaluation after selection
 
-The progression of Part VI’s six chapters: **Chapter 32 → Chapter 33 → Chapter 34 → Chapter 35 → Chapter 36 → Chapter 37**. First define product boundaries and Question Frame, then semantic layer and NL2SQL, followed by Python analysis and expression-layer Eval, and finally ecosystem selection. Execution and approval from Chapter 34 to 36 rely on Part V’s Runtime, Registry, and HITL (see recommended reading order above).
+Selection is only the first gate. After a component enters the DataAgent chain, the platform should evaluate it through business gold standard questions, public benchmark subsets, online feedback, definition complaints, approval pass rates, and cost traces. Improvement must be measurable at the Run level, also inside a vendor console.
 
-*Table 37-13: One-sentence summary of core capabilities in Part VI’s six chapters. Source: compiled from this book.*
+Failed samples should flow back to the responsible layer. Definition errors update the semantic layer and glossary; SQL errors update schema linking and validation; Python analysis failures update sandbox templates; report wording and missing evidence update output evaluation. Continuous evaluation protects the platform from assuming that a purchased or open-source component remains correct as data, metrics, and business language evolve.
+
+The progression of Part VI's six chapters: **Chapter 32 -> Chapter 33 -> Chapter 34 -> Chapter 35 -> Chapter 36 -> Chapter 37**. First define product boundaries and Question Frame, then semantic layer and NL2SQL, followed by Python analysis and expression-layer Eval, and finally ecosystem selection. Execution and approval from Chapter 34 to 36 rely on Part V's Runtime, Registry, and HITL (see recommended reading order above).
+
+*Table 37-13: One-sentence summary of core capabilities in Part VI's six chapters. Source: compiled from this book.*
 
 | Chapter | One Sentence Summary |
 | --- | --- |
@@ -306,7 +304,19 @@ The progression of Part VI’s six chapters: **Chapter 32 → Chapter 33 → Cha
 | **36** | Insights, charts, reports, and output evaluation |
 | **37** | Ecosystem benchmarking, selection, and continuous improvement |
 
-**Next Steps**: Part VII [Chapter 39](../../part07-observability-eval/ch/ch39-dataagent-eval-benchmark.md) builds the **evaluation pipeline** (`core/eval/`); Part IX [Chapter 48](../../part09-frontend-multimodal/ch/ch48-generative-ui.md) enhances **Generative UI**, continuing Chapter 36’s front-end rendering for charts and reports.
+**Next Steps**: Part VII [Chapter 39](../../part07-observability-eval/en/ch39-dataagent-eval-benchmark.md) builds the **evaluation pipeline** (`core/eval/`); Part IX [Chapter 48](../../part09-frontend-multimodal/en/ch48-generative-ui.md) enhances **Generative UI**, continuing Chapter 36's front-end rendering for charts and reports.
+
+## 37.10 Composition route for ecosystem capabilities
+
+The practical route is usually composition. Enterprises keep the platform spine, then selectively introduce ecosystem components where they provide leverage: Vanna-like question-SQL retrieval can support NL2SQL generation, WrenAI or Cube-style semantic modeling can inform metric services, Defog-like analysis patterns can inspire Python report templates, and BI Copilot can coexist with governed dashboards. The composition must still pass through Registry, Policy, Trace, and Eval.
+
+Composition also requires exit paths. If a component becomes too costly, fails compliance review, or cannot support business samples, the platform should know how to replace it without rewriting the whole DataAgent chain. Stable internal contracts are the reason this is possible.
+
+## 37.11 Review method for benchmarking conclusions
+
+Benchmarking conclusions should be reviewed like architecture decisions. Each conclusion needs evidence: tested data scope, sample set, security boundary, latency and cost results, integration assumptions, failure cases, and the owner responsible after launch. A conclusion based only on demos, public claims, or a single benchmark score should not drive production selection.
+
+Reviewers should also check whether the comparison language is grounded. The goal is not to declare a winner across unlike products, but to determine which capability enters which part of the platform, under which contract, and with which rollback path. That makes ecosystem benchmarking useful for engineering decisions rather than procurement slides.
 
 ---
 ## Chapter Recap
@@ -314,17 +324,17 @@ The progression of Part VI’s six chapters: **Chapter 32 → Chapter 33 → Cha
 1. The DataAgent ecosystem **differentiates along four dimensions: entry point, technical approach, deployment form, and organizational governance**; it is rare for a single product to cover the entire chain in Part VI. For example, the East China business decline analysis scenario requires collaboration across six chapters.
 2. **Vanna / WrenAI / DB-GPT / Defog / Sherlock** each have their strengths. Enterprises should adopt a **hybrid integration** approach (components registered in the Registry) rather than duplicating Part V platforms or importing two runtimes as a whole package.
 3. **ChatBI is an early subset of DataAgent**; BI Copilot and DataAgent coexist and should be harmonized through the `infra/semantic_layer/`.
-4. Selection must consider **architecture (Part V), semantic layer, evaluation, and HITL**, not just NL2SQL demos. The procurement baseline requires tenant injection, read-only execution, and auditability via `metric_id@version`.
-5. Part VI’s six chapters plus the Part V platform form the **complete DataAgent mainline map** in this book. Section 7’s walkthrough table gradually maps the East China decline case to the `mini-platform/` module paths.
+4. Selection must consider **architecture (Part V), semantic layer, evaluation, and HITL**, more than NL2SQL demos. The procurement baseline requires tenant injection, read-only execution, and auditability via `metric_id@version`.
+5. Part VI's six chapters plus the Part V platform form the **complete DataAgent mainline map** in this book. Section 7's walkthrough table gradually maps the East China decline case to the `mini-platform/` module paths.
 
 - [ ] Has the §7 selection checklist been completed?
 - [ ] Does the proof of concept cover **multi-round clarifications + Python analysis + report approval** (full East China decline chain)?
 - [ ] Is the responsibility for **12-month evaluation and semantic layer governance** clearly assigned?
 - [ ] Are the introduced open-source components mapped to the Registry Tool, with no second runtime introduced?
 
-- [Chapter 32](ch32-dataagent.md) to [Chapter 36](ch36.md) — Entire Part VI
-- [Chapter 31 Framework Benchmark](../../part05-agent-capabilities/ch/ch31.md) · [Chapter 39 Evaluation](../../part07-observability-eval/ch/ch39-dataagent-eval-benchmark.md)
-- [Chapter 53 Organizational Evolution](../../part10-security-org/ch/ch53.md)
+- [Chapter 32](ch32-dataagent.md) to [Chapter 36](ch36.md) - Entire Part VI
+- [Chapter 31 Framework Benchmark](../../part05-agent-capabilities/en/ch31.md) · [Chapter 39 Evaluation](../../part07-observability-eval/en/ch39-dataagent-eval-benchmark.md)
+- [Chapter 53 Organizational Evolution](../../part10-security-org/en/ch53.md)
 
 ---
 ## References

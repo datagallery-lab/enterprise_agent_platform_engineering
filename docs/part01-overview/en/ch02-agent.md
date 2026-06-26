@@ -1,268 +1,183 @@
-# Chapter 2 Boundaries of Enterprise-grade Agent Platforms
+# Chapter 2 Boundaries Of Enterprise Agent Platforms
 
 ---
-## Chapter Summary
 
-When an enterprise develops a second or third Agent, the real challenges begin: pricing, business analysis, work orders, and tickets may each function independently, but no one can clearly answer questions like “Which Agents are allowed to access customer data? Which models are the most expensive and error-prone? If errors occur, can they be fully replayed?” This chapter distinguishes the three-layer boundaries of Agent applications, Agent frameworks, and Agent platforms, explaining why the five common concerns of models, data, tools, processes, and governance must be consolidated at the platform level. It provides a method to decide “which capabilities should be unified and which should remain under business control.” A platform is not just a bigger application or a fancy dashboard; it is a foundational infrastructure and organizational mechanism that enables multiple Agents to operate long-term under the same rules.
-## Key Terms
+## Scenario Introduction
 
-Platform boundary, application and framework, common capability accumulation, unified governance, platform access, reverse boundary
-## Learning Objectives
+The first Agent is often driven by a business team: pick a scenario, connect a few tools, and build a loop that can be demonstrated. After the second and third Agents appear, the problem becomes a platform problem. A quotation Agent, business-analysis Agent, and ticket Agent may all call models, read customer data, and write business systems, while lacking unified identity, permissions, audit, and cost vocabulary. The value of a platform is not to build a larger Agent. It is to bring shared capabilities back onto one governance line. Figure 2-1 shows this boundary: business Agents can differ, while model, data, tool, process, and governance capabilities need a unified contract.
 
-- Distinguish the problems addressed by Agent applications, Agent frameworks, and Agent platforms respectively.
-- Identify the five common types of issues—models, data, tools, workflows, and governance—that should be consolidated at the platform level.
-- Determine whether a capability should be centralized within the platform or left for individual business applications to decide.
-- Explain the platform’s reverse boundaries to prevent it from becoming a new business bottleneck.
+In the first year of Agent adoption, many enterprises feel that progress is fast. The manufacturing division uses a quotation Agent to run contract lookup and quote drafting. The retail division uses a business-analysis Agent to prepare weekly meeting materials. The customer service center uses a ticket Agent to summarize and route cases. The finance shared service center uses an invoice Agent to recognize invoices and draft vouchers. Each project can show value, and business owners can describe time saved. In the second year, the problem moves from point value to shared responsibility. Security asks which Agents can read customer detail and which can only read aggregates. Finance asks which department pays for model calls and whether ad hoc analysis and formal reports use the same metric definitions. The platform team asks whether a wrong tool call can be replayed by `run_id`, including input, model version, tool parameters, and approval state. Business teams ask a simpler question: why do different Agents define "revenue" differently?
 
----
-## Opening Scenario
+These questions are hard to blame on one poorly written application. Once multiple applications run at the same time, system problems surface. The first Agent can survive on project-team memory. The second may still rely on a few core engineers remembering conventions. With a dozen Agents connected, verbal rules fail. Who registered a tool, who approved permission, where logs are written, who is on call after failure, and which scenes are affected by a model upgrade all need stable shared mechanisms. This is where the platform appears. It does not take away all business logic, and it does not make product decisions for business teams. It captures capabilities that repeat, affect permissions or cost, and determine audit and recovery, so every business Agent runs on the same baseline. Business teams can move at different speeds, but model access, tool contracts, run state, trace fields, evaluation samples, and approval policies need to stay consistent.
 
-![Figure 2-1: Boundaries of a Multi-Agent Shared Platform](../../images/part1/en/ch02-01.png)
+![Figure 2-1: Boundaries of a multi-Agent shared platform](../../images/part1/en/ch02-01.png)
 
-*Figure 2-1: Boundaries of a multi-agent shared platform. Source: drawn by the author. Alt text: The upper layer consists of business agents for different tasks such as quotation, business analysis, work orders, and tickets. The lower layer contains five shared capabilities: models, data, tools, processes, and governance. Arrows indicate that all business agents access these capabilities through the unified platform layer.*
+*Figure 2-1: Boundaries of a multi-Agent shared platform. Source: original diagram by the authors. Alt text: The upper layer contains business Agents for quotation, business analysis, ticketing, and invoices. The lower layer contains five shared capabilities: models, data, tools, process, and governance. Arrows show all business Agents accessing these capabilities through a unified platform layer.*
 
-Business agents can each focus on different tasks, but model, data, tool, process, and governance capabilities must be consolidated into a unified platform layer.
+Business Agents can face different tasks, but model, data, tool, process, and governance capabilities must settle into a unified platform layer. Readers should avoid one misunderstanding in this chapter: platform boundary is not an organization chart or a procurement list. It is a method for deciding which responsibilities must be unified. Later chapters introduce model gateways, Tool Registry, Runtime, Trace, Eval, and Guardrails. These components form a platform only when they carry unified responsibility. If they remain local implementations inside separate projects, they are still application-level capabilities.
 
----
-## 2.1 Why Enterprises Need a Platform Instead of Isolated Agents
+This chapter separates three layers. Agent applications solve concrete business tasks. Agent frameworks help engineers orchestrate one Agent. Agent platforms let multiple Agents share foundation capabilities under common constraints. This distinction matters. Enterprises may let application teams choose different frameworks and let business domains keep their own strategies. Once model entry, tool registration, permission approval, run records, and evaluation replay are involved, a unified contract is required. Otherwise, "platform" is only a name, and the enterprise is still running pilots that do not recognize one another.
 
-Chapter 1 discussed the challenges faced when a single Agent evolves from merely “answering” to actually “executing.” Chapter 2 raises the perspective one level higher: what happens if a multi-business enterprise does not just build one quoting assistant, but successively develops a quoting Agent, a business analysis Agent, a ticketing Agent, and an invoice Agent?
+Platforms also need reverse boundaries. A platform that is too thin degenerates into a model proxy. A platform that is too thick swallows business rules, so every discount rule, ticket priority, or report template change waits for platform scheduling. A reasonable platform constrains only what must be unified and leaves extension points where business change is fast and experimentation is frequent. This chapter defines platform boundaries so later component design has a standard for judgment.
 
-Intuitively, this should be a good thing. It indicates the enterprise has found multiple AI implementation entry points, with each team producing its own results. The reality, however, is often the opposite.
+## 2.1 Platform Capabilities And Isolated Agents
 
-In the first year, a multi-business enterprise ran four pilot projects:
+When a single Agent moves from answering to executing, the main issues are task boundary, tool invocation, and responsibility ownership. Raise the perspective one layer. If a multi-business enterprise first builds a quotation assistant and later adds a business-analysis Agent, ticket Agent, and invoice Agent, new tensions appear quickly. Intuitively this should be good news: the enterprise has found multiple AI landing points, and each team is producing results. In practice, the opposite often happens.
 
-- Quoting Agent for the manufacturing division, responsible for reading contracts, checking inventory, and generating draft quotes.
-- Business analysis Agent for the retail division, responsible for querying data, detecting anomalies, and writing review reports.
-- Ticketing Agent for the customer service center, responsible for summarizing complaints and recommending handling actions.
-- Invoice Agent for the finance shared services center, responsible for identifying invoices, matching orders, and generating draft vouchers.
+A multi-business enterprise may run four pilots in its first year. The manufacturing quotation Agent reads contracts, checks inventory, and drafts quotes. The retail business-analysis Agent asks data questions, finds anomalies, and writes review material. The customer-service ticket Agent summarizes complaints and suggests handling actions. The finance shared-service invoice Agent recognizes invoices, matches orders, and drafts vouchers. All four prove that the individual scene is feasible. Difficulty begins when the group wants to govern them under one framework.
 
-All four pilots proved “feasible in isolation.” The real difficulty surfaced when the group wanted to govern these capabilities under a unified framework.
+Platform owners soon face a chain of questions: which Agents may access customer identity data; which tools create business side effects; which model is most used, most expensive, or most error-prone; which Agents must go through approval and which may execute automatically; whether the system can replay the full decision process after a failure. Without unified answers, the enterprise has not entered the platform stage. It only has disconnected intelligent projects. After point Agents are built, the governance question concentrates into one problem: how to keep a group of Agents running for a long time under the same rules.
 
-Platform managers quickly faced a string of questions: Which Agents can access customer identity information? Which tools generate real business side effects? Which models are used most, cost the most, or are most error-prone? Which Agents require approval and which can execute automatically? If a task fails, is it possible to fully replay its decision process?
+## 2.2 Applications, Frameworks, Platforms: Three Boundaries And Platformization Risks
 
-Without uniform answers to these questions, the enterprise is not truly at the platform stage—but merely holding a set of disconnected intelligent projects.
+The most common conceptual error in the Agent field is mixing applications, frameworks, and platforms. They are related, but they do not live at the same layer.
 
-This is the core position of this chapter: **The true challenge for enterprises is never just “can we build an Agent,” but rather “can we make a group of Agents run long-term under the same set of rules.”**
-## 2.2 Applications, Frameworks, Platforms: Three Layers of Boundaries and Platformization Risks
+*Table 2-1: Problems solved by Agent applications, frameworks, and platforms. Source: compiled by the authors.*
 
-A frequent conceptual mistake in the agent field is to mix up applications, frameworks, and platforms. While related, they do not operate on the same level.
-
-*Table 2-1: Problems addressed by the three layers of Agent applications, frameworks, and platforms. Source: Compiled by this book.*
-
-| Level | What problem it solves | Typical examples |
+| Layer | Problem It Solves | Typical Form |
 |---|---|---|
-| **Agent Application** | How to accomplish a specific business task | Quotation Agent, DataAgent, Ticketing Agent |
-| **Agent Framework** | How a single Agent orchestrates state, calls tools, organizes memory | LangGraph, AutoGen, CrewAI, proprietary orchestration frameworks |
-| **Agent Platform** | How multiple Agents share capabilities and are governed in a unified way | Model gateway, tool registry, runtime, trace, evaluation, policies |
+| Agent application | How a specific business task is completed | Quotation Agent, DataAgent, ticket Agent |
+| Agent framework | How one Agent orchestrates state, calls tools, and organizes memory | LangGraph, AutoGen, CrewAI, proprietary orchestration framework |
+| Agent platform | How multiple Agents share capabilities and receive unified governance | Model gateway, Tool Registry, Runtime, Trace, Eval, Policy |
 
-Frameworks focus on **“how to write a single Agent”**; platforms focus on **“how to enable many Agents to exist long-term in an enterprise without conflicts, repeated reinvention, or losing governance.”**
+Frameworks focus on how to build one Agent. Platforms focus on how many Agents can exist in an enterprise for a long time without conflicting, rebuilding the same foundation, or losing governance. An enterprise can hold two principles at the same time: application teams may choose the framework that fits their work, and all Agents must follow a unified platform contract. There is no contradiction. The platform does not replace the framework; it absorbs enterprise complexity above the framework.
 
-It is entirely possible for a company to hold the two statements simultaneously:
+Low-code tools, Agent Studios, and visual workflow editors should also be evaluated inside this three-layer structure. They may be good at building an Agent application quickly, but that does not automatically mean they solve platform-level problems. A product or internal system enters the platform layer only if it can answer three categories of questions: how model calls from multiple Agents are managed uniformly; how tool capabilities are defined, risk-graded, and versioned uniformly; and how permissions, approvals, trace, and evaluation are integrated uniformly. If these issues remain handled project by project, the system is still a collection of applications rather than a platform.
 
-1. “Our application teams are free to choose the framework that fits best.”
-2. “All Agents must follow a unified platform contract.”
+## 2.3 Five Common Problems Managed By The Platform: Models, Data, Tools, Process, And Governance
 
-There is no contradiction here. A platform does not replace a framework; it addresses the complexity above frameworks within the enterprise.
+An enterprise Agent platform may look like a set of components, but it actually manages five common problem categories. Model issues decide which model to call, how to route, how to rate limit, and how to aggregate cost. Data issues decide which data can be read, which definitions are used, which identity accesses them, and how masking works. Tool issues decide which capabilities exist, who can call them, whether parameters are valid, and whether actions create side effects. Process issues decide what can execute automatically, what must wait for humans, and how long tasks recover after failure. Governance issues decide how to evaluate, record, replay, audit, and improve continuously.
 
-Low-code tools, Agent Studios, and visual workflow editors should also be viewed within this three-layer structure. They may solve the problem of “building an Agent application quickly” well, but that does not automatically mean they solve the platform-level issues.
+Understanding a platform as a unified solution to five recurring problem categories is closer to enterprise reality than viewing it as a collection of modules. Enterprises usually do not start with an architecture diagram and then discover problems. Repeated problems usually appear first, and the platform is forced into existence later.
 
-Therefore, to judge whether something is truly a platform, do not judge based on whether it has a console or drag-and-drop capabilities. Instead, ask whether it answers questions like:
+Why did the first four pilots in a multi-business enterprise quickly hit platform questions? Because their business domains differ while the five categories are almost the same: they all call models, read data or documents, invoke tools, judge risk, and require explanation and postmortem after failure. Many enterprises will remember earlier data platforms, technology platforms, or capability platforms. The analogy is useful but must be handled carefully. Data platforms focus on data asset aggregation, governance, and usage. Application platforms focus on engineering efficiency and service reuse. Agent platforms focus on model-centered task execution chains. They reuse assets from data and application platforms, but they carry a different responsibility: model decision, tool side effect, human approval, task replay, and version evaluation.
 
-- How is model invocation of multiple Agents managed uniformly?
-- How are tool capabilities of multiple Agents defined, tiered, and versioned uniformly?
-- How are the permissions, approvals, tracing, and evaluation of multiple Agents uniformly integrated?
+![Figure 2-2: Five common problem categories in platform management](../../images/part1/en/ch02-02.png)
 
-If these remain **“handled independently by each project,”** it cannot yet be considered a platform.
-## 2.3 Five Common Problem Categories in Platform Management: Models, Data, Tools, Processes, Governance
+*Figure 2-2: Five common problem categories in platform management. Source: original diagram by the authors. Alt text: Five parallel blocks labeled models, data, tools, process, and governance. Each lists recurring issues such as model routing and cost, tool permission and side effects, governance approval and replay. The diagram shows these issues recurring across business Agents and being handled by the platform.*
 
-An enterprise-grade Agent platform may appear as a collection of components, but in reality, it manages five common categories of problems.
+Figure 2-2 gathers these concerns into model, data, tool, process, and governance capabilities. Together they decide whether enterprise Agents can move from point pilots to long-running production.
 
-*Table 2-2: The five common problem categories—Models, Data, Tools, Processes, Governance—and the questions the platform must answer. Source: compiled by this book.*
+## 2.4 Platform Boundaries: Unified Capabilities And Business Autonomy
 
-| Common Problem Category | Questions the Platform Must Answer |
+Once the platform is understood as the unified answer to common problems, the next practical question is which capabilities should belong to the platform and which should stay in applications. There is no universal rule. A reliable starting point is four questions:
+
+1. Will this capability be reused across multiple Agents?
+2. Will it affect permission, cost, audit, or evaluation?
+3. Does it depend on rules specific to one business domain?
+4. Would platformizing it significantly reduce future integration cost?
+
+These questions are not a formal checklist; they are the entry point for assigning platform responsibility. Table 2-2 uses common capabilities to show which ones should move to the platform and which ones should remain closer to the business.
+
+*Table 2-2: Platform ownership or business ownership for common capabilities. Source: compiled by the authors.*
+
+| Capability | Better Ownership | Reason |
+|---|---|---|
+| Model invocation entry | Platform | Every Agent repeats it; it affects cost and rate limiting |
+| Tool registration and risk grading | Platform | It directly affects side-effect control and audit |
+| Unified approval channel | Platform | High-risk actions should not be implemented separately by each application |
+| Manufacturing quotation discount rule | Application | Strong business-domain logic |
+| Customer-service ticket-priority strategy | Application | Highly dependent on departmental operation |
+| Unified trace fields and `run_id` convention | Platform | Cross-Agent replay is impossible without it |
+| Semantic-layer foundation | Mainly platform | Metrics and definitions need consistency |
+| Business interpretation details in the semantic layer | Platform and application together | Platform defines the frame; applications add domain knowledge |
+
+Platform boundary has no fixed answer such as bigger is better or thinner is more modern. A thin platform becomes only a model gateway. A thick platform absorbs business logic. Mature platforms strongly constrain what must be unified and provide slots where difference should remain. Rate of change is an often underestimated dimension. If a capability changes quickly, depends on business feedback, and needs frequent experimentation, premature platformization slows business innovation. If a capability changes more slowly and must be reused consistently, earlier platformization usually helps.
+
+### 2.4.1 Triggers For Platformization
+
+Not every enterprise needs a platform team after building two Agents. A more pragmatic judgment is whether three signals have appeared.
+
+*Table 2-3: Signals that a capability should move into the platform. Source: compiled by the authors.*
+
+| Signal | Meaning |
 |---|---|
-| **Model Issues** | Which model to invoke, how to route, how to throttle, how to aggregate costs |
-| **Data Issues** | Which data to access, according to which standards, under what identity, how to desensitize |
-| **Tool Issues** | What capabilities exist, who can invoke them, are parameters valid, will they cause side effects |
-| **Process Issues** | What can be automated, what requires human intervention, how to resume long-running tasks |
-| **Governance Issues** | How to evaluate, record, replay, audit, and continuously improve |
+| Duplicate construction | Different teams repeatedly wrap models, tools, RAG, approvals, and logs |
+| Governance break | The enterprise cannot answer permission, cost, trace, and evaluation questions uniformly |
+| Integration friction | Every new Agent rebuilds foundation infrastructure |
 
-Understanding the platform as a “unified solution to five common problem categories” is closer to enterprise reality than viewing it as “a collection of eight modules.” This is because enterprises do not develop from architecture diagrams first, but from problems first.
+When these three signals appear together, platformization has shifted from optional improvement to basic condition. Allowing each team to keep building alone will damage delivery efficiency later. Many enterprises see a pattern: the first two pilots move smoothly, and the third suddenly slows down. The reason is direct. The first two projects can still proceed separately. From the third project onward, infrastructure and governance costs concentrate. Budget review asks who owns model bills. Security asks who can access which data. Business teams ask why the same question returns different conclusions from different Agents. Platforms are forced out by this pressure.
 
-Why did the first four pilots in a multi-line enterprise quickly encounter platform issues? Because although their business domains differed, these five categories of problems were almost identical: all had to invoke models, all had to read data or documents, all had to call tools, all had to assess risks, and all needed explanations and postmortems after failures.
+## 2.5 Platform Adoption: Collaboration, Admission, And Governance Committee
 
-Many enterprises might link this to past experiences with data platforms, technology platforms, or capability platforms. This association is understandable but requires caution. Data platforms focus on the aggregation, governance, and usage of data assets; application platforms focus on development efficiency and service reuse; whereas Agent platforms focus on model-centric task execution chains. Agent platforms borrow assets from data and application platforms but themselves tackle a distinct set of issues: model decision-making, tool side effects, human approval, task replay, and version evaluation.
+Platform discussions in enterprises must cover responsibility boundaries as well as technical boundaries. Once a platform exists, many decision rights formerly scattered across project teams are redistributed. Model selection enters platform strategy while applications express requirements and constraints. Tool access enters a unified contract before business teams add domain detail. High-risk actions are defined by platform and security together, not by verbal agreement inside one business team. Trace needs unified run semantics and fields instead of separate logs. Version quality needs shared evaluation vocabulary maintained by platform and business, not demonstration impressions.
 
-![Figure 2-2: Five Common Problem Categories in Platform Management](../../images/part1/en/ch02-02.png)
+This redistribution points to a practical reality: a platform is not a public service center that everyone naturally likes. It reallocates standard-setting rights, admission rights, and part of release control. Platform building is therefore both technical engineering and organizational negotiation. Platform teams encounter organizational resistance as well as technical resistance. Business teams worry that the platform slows onboarding, limits flexibility, and pulls fast experimentation into a unified process. Security and governance teams worry that the platform concentrates risk, grants systems too much decision power, and creates new audit black boxes. A mature platform team must answer both sides: keep onboarding efficient and keep the boundary controlled.
 
-*Figure 2-2: The five common problem categories in platform management. Source: drawn by the author. Alt text: Five parallel blocks labeled Models, Data, Tools, Processes, Governance, each listing corresponding common issues (e.g., model routing and cost, tool permissions and side effects, governance approvals and replay), illustrating how these issues repeatedly appear across multiple business agents and should be uniformly handled by the platform.*
+### 2.5.1 Platform Admission Process For New Agents
 
-Models, data, tools, processes, and governance collectively determine whether an enterprise-level Agent can progress from isolated pilots to sustained operation.
-## 2.4 How to Define Platform Boundaries: What to Standardize and What to Leave to the Business Layer
+Once a platform exists, it must support reuse from existing projects and define how new business teams join. An executable minimum admission process includes five steps.
 
-Once you accept the idea that a platform exists to unify the solution of common problems, the next practical question arises: Which capabilities should the platform handle, and which should remain at the application level?
+*Table 2-4: Questions answered by each step in Agent admission review. Source: compiled by the authors.*
 
-There is no one-size-fits-all rule for this, but there is a practical sequence of judgments. Start by asking four questions:
-
-1. Will this capability be used repeatedly across multiple Agents?
-2. Will it affect permissions, costs, auditing, or evaluation?
-3. Does it depend on specific rules of a particular business domain?
-4. Does platformizing it significantly reduce the cost of subsequent integration?
-
-Based on these four questions, many boundaries become clear.
-
-*Table 2-3: Common capabilities better suited for the platform or the business layer, and reasons. Source: Compiled by this book.*
-
-| Capability | Preferably Platform-Owned | Reason |
-|---|---|---|
-| Model invocation entry point | Platform | Used repeatedly by all Agents; involves cost and rate limiting |
-| Tool registration and risk classification | Platform | Directly impacts side-effect control and auditing |
-| Unified approval channel | Platform | High-risk actions should not have separate implementations per application |
-| Quotation and discount rules for manufacturing | Application | Strongly tied to specific business domain logic |
-| Customer service ticket prioritization strategy | Application | Highly dependent on specific departmental business |
-| Unified trace fields and run_id conventions | Platform | Without this, cross-Agent replay is impossible |
-| Semantic layer foundation | Mainly Platform | Metrics and definitions need unity |
-| Business interpretation details within semantic layer | Shared by Platform and Application | Platform defines the framework; applications provide domain-specific knowledge |
-
-Platform boundaries are not about "the bigger the platform, the better" nor "the thinner the platform, the more modern." If the platform is too thin, it degenerates into just a model gateway; if too thick, it swallows business logic. Mature platforms typically impose strong constraints only where unification is essential, and provide extension points where differences should be allowed.
-
-There is one often underestimated dimension in this judgment: the rate of change. If a capability changes rapidly, involves frequent trial and error, and depends heavily on specific business feedback, premature platformization can slow down business innovation. Conversely, if a capability evolves slowly but needs stable and consistent reuse, the earlier it is platformized, the better.
-
-### 2.4.1 When Is Platformization Truly Needed?
-
-Not every company must form a platform team just because it builds two Agents. A more pragmatic approach is to look for the presence of the following three signals in the organization.
-
-*Table 2-4: Signals indicating that capabilities should be absorbed by the platform, and their meanings. Source: Compiled by this book.*
-
-| Signal | What It Indicates |
+| Step | Question |
 |---|---|
-| **Duplicate Development** | Different teams repeatedly wrap models, tools, RAG, approvals, logs |
-| **Governance Breakdowns** | The enterprise cannot uniformly address issues of permissions, costs, tracing, and evaluation |
-| **Integration Friction** | Each new Agent requires rebuilding foundational infrastructure from scratch |
+| Task definition | What exactly is this Agent responsible for, and what is outside its scope? |
+| Tool review | Which tools will it call, which are read-only, and which have side effects? |
+| Risk grading | Which actions may execute automatically, and which require confirmation or approval? |
+| Evaluation preparation | How do we know it is better than, or at least no worse than, the previous approach after launch? |
+| Platform admission | Does it enter unified Runtime, Gateway, Trace, and Policy? |
 
-Once all three signals appear simultaneously, platformization is no longer a luxury but a necessity—delaying it will drag down the efficiency of subsequent deployments.
+These five steps may look like extra gates, but they reduce downstream cost. The admission process prevents each new Agent from creating technical debt, rather than making business teams wait in line. It also works as a translation layer in enterprise communication. "I want to build an intelligent assistant" becomes questions the platform can handle: task boundary, tool list, risk level, acceptance method, and unified execution chain. From task definition to production monitoring, a new Agent must pass shared gates such as tool review, risk grading, evaluation preparation, and runtime integration.
 
-Many organizations have an illusion: the first two pilots proceed smoothly, but starting with the third, progress abruptly slows. The reason is straightforward: the first two projects can move forward by "each doing their own thing," but from the third onward, infrastructure and governance costs concentrate and explode. Budget approvals start asking who is responsible for model bills, security teams query who can access what data, and business teams question why different Agents give different answers to the same question. The platform is born out of this mounting pressure.
-## 2.5 How Platforms Are Adopted by Organizations: Collaboration Mechanisms, Admission Processes, and Governance Committees
+![Figure 2-3: Platform admission and governance mechanism](../../images/part1/en/ch02-03.png)
 
-When discussing platforms within enterprises, the conversation cannot be limited to technical boundaries alone; responsibility boundaries must also be addressed. Once a platform exists, many decision-making powers originally scattered across individual teams will be redistributed.
+*Figure 2-3: Platform admission and governance mechanism. Source: original diagram by the authors. Alt text: A left-to-right admission flow shows business Agents taking different paths by risk level. Low-risk Agents use standard admission, medium-risk Agents are reviewed by platform and security, and high-risk Agents enter the governance committee. All paths then enter unified launch and ongoing governance.*
 
-*Table 2-5: Typical changes in decision makers from pilot phase to platform phase. Source: Compiled by this book.*
+### 2.5.2 Boundary Of The Platform Governance Committee
 
-| Decision Issue          | Typically Decided by in Pilot Phase | More Suitable Decider in Platform Phase        |
-|------------------------|------------------------------------|-----------------------------------------------|
-| Which model to use      | Project team decides itself         | Platform sets unified strategy; applications propose requirements |
-| Which tools to invoke   | Project team wraps by themselves    | Platform defines contracts; business teams supplement details      |
-| Which actions require approval | Business team agrees verbally   | Platform and security jointly define rules                      |
-| How to record trace    | Each project writes its own logs    | Platform standardizes fields and run semantics                    |
-| How to judge version quality | Subjective demos                 | Platform and business jointly maintain evaluation criteria        |
+When an enterprise has only one or two Agent pilots, many decisions can be handled through temporary project-team negotiation. When a multi-business enterprise simultaneously advances business analysis, quotation, customer-service quality inspection, finance invoices, and knowledge assistants, temporary negotiation fails quickly. A light but formal governance mechanism is then needed. It may be called a platform governance committee or an AI platform review board; the name is less important than the responsibilities.
 
-This table illustrates a practical reality: a platform is not a “public service center that everyone likes.” It reallocates the rights to set standards, control admission, and partly manage releases. Therefore, platform building is often both a technical engineering and an organizational negotiation process.
+The mechanism should handle three stable decision classes. Admission decisions determine which Agents may enter production and which remain pilots, with platform, business, product, and security participating. Risk decisions determine which actions require approval and which actions are forbidden from automatic execution, with platform, security, legal, and internal-control teams involved. Roadmap decisions determine which capabilities sink into the platform and which remain in applications, requiring platform, architecture, data, and business judgment.
 
-The platform team most often encounters not just technical resistance but two types of organizational resistance. Business teams worry that the platform slows down onboarding, limits agility, and drags rapid experimentation into a unified process; security and governance teams worry that the platform concentrates and amplifies risks, grants excessive decision power to the system, and creates new audit black boxes. A mature platform team must answer both sides: prove “I won’t slow you down,” and prove “I can control the boundary.”
+The value of the governance committee is stable decision vocabulary. Without it, one department's Agent may automatically send customer emails while another cannot send internal notifications; one scenario may require strict Trace while another records nothing; one team may connect a high-risk tool while another repeats the same review. These inconsistencies quickly erode platform credibility. Governance must not become heavy approval. It should focus on cross-scenario, cross-department, responsibility-boundary issues. It should not intervene in every prompt, page, or business phrase. The governance committee reviews enterprise Agent boundaries; it is not a product review board or a code review board.
 
-### 2.5.1 Minimal Admission Process for New Agents Joining the Platform
+## 2.6 Long-Term Operation: Reverse Boundaries, Cost, Catalog, And Maturity
 
-Once a platform is established, it must not only provide reuse for existing projects but also face a practical question: how do new business teams join?
+When defining platform boundaries, many teams only write what the platform should provide. That is not enough. A mature platform also states what it should not do. Otherwise the platform keeps expanding, slows the business, and takes responsibility it should not carry. The platform should not define business goals for business teams. Whether a business-analysis Agent serves weekly meetings, monthly meetings, or special reviews, and whether a quotation Agent serves key accounts or channel sales, should be defined by business and product. The platform can provide task templates and review methods, but it cannot decide what matters most.
 
-A truly executable minimal admission process includes at least five steps.
+The platform should not absorb every business rule. Discount strategy, customer-service quality details, finance reimbursement rules, and legal clause preferences have strong business-domain attributes. The platform can require them to enter through governable contracts, but it should not write all of them into the platform core. The platform should also avoid forcing all scenes into one rhythm. Low-risk exploration needs speed; high-risk production needs stability. The platform should provide graded paths rather than one process for every project. It should connect to existing data, identity, approval, and service-governance platforms instead of replacing them with a parallel system. Finally, governance should not eliminate experimentation. Early Agent scenes need trial and error. The platform must control production boundaries while leaving room for sandbox, pilot, and low-risk exploration.
 
-*Table 2-6: Questions to answer at each step of the Agent admission review. Source: Compiled by this book.*
+*Table 2-5: What the platform should not do, consequences of crossing the boundary, and better boundaries. Source: compiled by the authors.*
 
-| Step           | Questions to Answer                                  |
-|----------------|-----------------------------------------------------|
-| **Task Definition** | What exactly is this Agent responsible for, and what is it not responsible for? |
-| **Tool Review**     | Which tools will it call, which are read-only, and which have side effects? |
-| **Risk Classification** | Which actions can be executed automatically, and which require confirmation or approval? |
-| **Evaluation Preparation** | How to determine that when deployed, it is better than or at least not worse than the old method? |
-| **Platform Admission**   | Should it be incorporated into unified Runtime, Gateway, Trace, Policy? |
-
-These five steps may seem like raising barriers but in fact reduce downstream costs. The reason for the admission process is not to make business teams queue, but to prevent each new Agent from creating a new set of technical debt.
-
-From an enterprise communication perspective, these five steps also serve as a translation layer. They translate the business side’s “I want to build an intelligent assistant” into questions the platform team can handle: what are the task boundaries, what is the tool list, what is the risk level, how to verify acceptance, and whether it uses the unified execution chain.
-
-![Figure 2-3: Platform Admission and Governance Mechanism](../../images/part1/en/ch02-03.png)
-
-*Figure 2-3: Platform admission and governance mechanism. Source: Illustration by this book. Alt text: A left-to-right admission flow, where business Agents follow different paths based on risk classification — low risk goes through standard admission, medium risk jointly reviewed by platform and security, high risk enters governance committee. On the right, these paths feed into unified deployment and ongoing governance.*
-
-From task definition through production monitoring, new Agents must clear shared gates including tool review, risk classification, evaluation preparation, and operational integration.
-
-### 2.5.2 Boundaries of the Platform Governance Committee
-
-When an enterprise has only one or two Agent pilots, many decisions can be made by temporary coordination within project teams. But when a multi-line enterprise simultaneously pushes multiple scenarios—business analysis, quoting, customer service quality inspection, financial invoices, knowledge assistants, etc.—temporary coordination soon breaks down.
-
-At this stage, a lightweight but formal governance mechanism is needed. It may be called the platform governance committee or AI platform review board; the name is less important than the fact it must answer three categories of questions.
-
-*Table 2-7: Typical questions and participants for admission, risk, and roadmap governance decisions. Source: Compiled by this book.*
-
-| Decision Type | Typical Questions                                         | Participants                     |
-|---------------|----------------------------------------------------------|---------------------------------|
-| Admission Decisions | Which Agents can enter production, which remain pilots? | Platform, Business, Product, Security |
-| Risk Decisions      | Which actions require approval, which are prohibited from auto-execution? | Platform, Security, Legal, Internal Control |
-| Roadmap Decisions   | Which capabilities are built into the platform, which remain in applications? | Platform, Architecture, Data, Business |
-
-The primary value of the governance committee is to stabilize decision consistency. Otherwise, one department’s Agent may be allowed to send customer emails automatically while another department’s can’t even send internal notifications; one scenario’s trace requirements are stringent while another tracks nothing at all; one team can onboard high-risk tools while another must redo reviews. Such inconsistencies rapidly erode platform trust.
-
-Governance must not become a heavy approval bottleneck. It should focus on issues crossing scenarios, departments, and responsibility boundaries—not intervene in each prompt, page, or business copy. The governance committee is not a product review board or code review board but a boundary review board for enterprise Agents.
-## 2.6 How to Sustain Platform Operation Long-Term: Reverse Boundaries, Costs, Catalogs, and Maturity
-
-When defining platform boundaries, many teams only write about what the platform *should* provide. That is not enough. A mature platform must also clearly state what it *should not* do. Otherwise, the platform keeps expanding unchecked, eventually slowing down the business and taking on responsibilities it should not bear.
-
-First, the platform should not define business goals for the business teams. Whether the operational analytics Agent serves weekly meetings, monthly reviews, or special retrospectives, or whether the quoting Agent serves key account sales or channel sales—these goals must be determined by the business and product teams. The platform can provide task templates and assessment methods but cannot decide what matters most for the business.
-
-Second, the platform should not absorb all business rules. Discount strategies, customer service quality inspection details, financial reimbursement policies, and legal clause preferences all have strong business domain attributes. The platform can require these rules to be integrated in a governable manner but should not bake all of them into the platform core.
-
-Third, the platform should not force all scenarios into a single unified rhythm. Low-risk exploratory scenarios require speed; high-risk production scenarios require stability. The platform should provide tiered pathways rather than managing every project with the same process.
-
-Fourth, the platform should not replace existing enterprise platforms. Data platforms, identity platforms, approval platforms, and service governance platforms still have their own responsibilities. The Agent platform should connect to and augment them, not build an entirely parallel system.
-
-Fifth, the platform should not stifle innovation under the guise of governance. Early Agent scenarios will inevitably involve trial and error. The platform must enforce production boundaries but should leave space for sandboxes, pilots, and low-risk exploration.
-
-*Table 2-8: What the platform should not do, consequences of crossing boundaries, and more reasonable boundaries. Source: compiled for this book.*
-
-| What the Platform Should Not Do | What Happens If It Does | More Reasonable Boundary |
+| What The Platform Should Not Do | Consequence If It Does | Better Boundary |
 |---|---|---|
-| Define business goals on behalf of the business | Platform turns into a business product team, role confusion | Platform provides methods; business defines goals |
-| Absorb all rules | Platform releases get dragged down by business changes | Platform governs contracts; applications govern domain rules |
-| Use same process for all scenarios | Low-risk projects get slowed; high-risk projects go unmanaged | Manage by risk tier |
-| Replace existing platforms | Duplicated architecture, fragmented governance | Consume capabilities of existing platforms |
-| Eliminate space for trial and error | Business bypasses platform | Establish sandbox and access layers |
+| Define business goals for business teams | The platform becomes a business product team and responsibility is misplaced | Platform provides methods; business defines goals |
+| Absorb all rules | Platform releases are dragged down by business changes | Platform governs contracts; applications govern domain rules |
+| Use one process for all scenes | Low-risk projects slow down while high-risk projects remain uncontrolled | Manage by risk level |
+| Replace existing platforms | Architecture is duplicated and governance fragments | Consume existing platform capabilities |
+| Eliminate experimentation | Business bypasses the platform | Build sandbox and admission layers |
 
-A platform does not mature by taking on more responsibility, but by clearly knowing what it *should* and *should not* be responsible for.
+Platform maturity does not depend on the number of components. It depends on whether the platform can state what it owns and what it does not own. A platform with unclear boundaries can simultaneously duplicate foundation capabilities and push business change into the shared layer.
 
-### 2.6.1 Platform Operation: The Real Beginning Starts After Launch
+### 2.6.1 Platform Operation Begins After Launch
 
-Many enterprises view platform construction as "delivering a set of capabilities." But the Agent platform is not a one-time deliverable; it is a long-term operational system.
+Many enterprises understand platform construction as delivering a set of capabilities. An Agent platform is closer to a long-term operating system than a one-time deliverable. The reason is direct: the operating environment keeps changing. Model versions change, business rules change, tool interfaces change, data definitions change, and user behavior changes. An Agent that performs steadily today may degrade three months later because of promotion-rule updates, metric-definition changes, or model upgrades. Without platform operation, the system slowly becomes unreliable.
 
-The reason is simple: the Agent’s operating environment is constantly changing. Model versions change, business rules change, tool interfaces change, data definitions change, and user behaviors change. An Agent that performs steadily today may degrade three months later due to promotion rule updates, metric definition changes, or model upgrades. Without platform operation, the system slowly becomes unreliable.
+Platform operation includes at least five kinds of work. Scenario operation tracks which Agents are used and which requirements should merge or retire. Quality operation updates evaluation samples, records failure cases, and classifies user feedback. Cost operation watches model calls, task cost, department budget, and benefit. Risk operation periodically reviews high-risk tools, approval strategies, and sensitive-data access. Ecosystem operation maintains documents, templates, training, examples, and support.
 
-Platform operation includes at least five types of work. Scenario operation continuously tracks which Agents are used, which requirements should be merged or retired; quality operation updates evaluation samples, records failure cases, and categorizes user feedback; cost operation monitors model calls, task costs, department budgets, and benefit relationships; risk operation reviews high-risk tools, approval policies, and sensitive data access regularly; ecosystem operation maintains documentation, templates, training materials, samples, and support mechanisms.
+For a multi-business enterprise that built four Agents in the first year and twenty in the second, platform operation becomes more important than platform construction. The question changes from whether the capability exists to whether so many capabilities remain trustworthy, controllable, and worth keeping. Operation also changes the team's daily work. Early project teams focus on making one scene work. Operation focuses on which scenes deserve continued investment, which should be downgraded, which tools should be retired, and which prompts and evaluation samples need updates. A quotation Agent that has not produced useful drafts for half a year should not keep platform quota only because it launched. A business-analysis Agent repeatedly corrected for the same metric explanation should feed that correction back into the semantic layer and templates.
 
-For a multi-business-line company that delivered four Agents in the first year and twenty in the second, platform operation becomes even more important than platform construction. From that stage onward, the company faces not "whether we have the capability" but "whether so many capabilities remain trustworthy, controllable, and worth retaining."
+This is why the platform catalog matters. The enterprise needs to know which Agents exist, which business processes they serve, which tools they call, what risk level they carry, who operates them, and when they were last evaluated. Without a catalog, the platform team can only react to incidents. With a catalog, it can proactively find duplicate construction, low usage, high cost, and high-risk scenes. The catalog is not a display shelf for Agents. It gives each Agent traceable ownership and lifecycle. It should connect to admission, monitoring, and cost views. When an Agent connects a high-risk tool, its catalog risk level should change. When its failure rate rises for a long period, the catalog should prompt the owner to review. When a department repeatedly builds similar capability, the platform team can use that evidence to promote reuse. Without these operating actions, the catalog becomes a static list.
 
-### 2.6.2 How Vendors and External Products Integrate with the Platform
+### 2.6.2 Conditions For Integrating Vendors And External Products
 
-Most enterprises will not develop all Agent capabilities entirely in-house. A multi-business-line company may purchase knowledge base products, customer service quality inspection products, model gateway products, or industry solutions. The question is not whether they can purchase but whether purchased products can be incorporated into a unified platform boundary.
+Most enterprises will not build every Agent capability themselves. A multi-business enterprise may buy knowledge-base products, customer-service quality products, model-gateway products, or industry solutions. The key question is not whether a product can be purchased, but whether it can enter the unified platform boundary.
 
-When integrating external products into the Agent platform, at least six aspects must be considered: whether unified identity and access control are supported; whether tool and data access boundaries are respected; whether key operational records can be traced or exported; whether evaluation mechanisms can incorporate them; whether they can be included in cost views; and whether the enterprise can control key configurations and governance policies.
+External products should be evaluated on at least six conditions: whether they support unified identity and permissions; whether tool and data access boundaries are clear; whether key run records can be traced or exported; whether they can enter the evaluation mechanism; whether they can enter the cost view; and whether the enterprise controls key configuration and governance policy. This is the meaning of a hybrid route. Whether bought or built, the capability must enter the same platform contract. Vendor products can become part of the platform ecosystem, but they should not become governance islands.
 
-This is the true meaning of a "hybrid approach." It’s not simply buying some parts and building some parts, but ensuring all—bought or built—adhere to the same platform contracts. Vendor products can become part of the platform ecosystem but must not become governance islands.
-## 2.7 Chapter Closure: The Platform Ultimately Serves AI-Native Business Systems
+## 2.8 Practical Judgment Of Platform Boundaries
 
-What this chapter truly aims to deliver is a framework for platform judgment.
+Enterprise Agent platform boundaries cannot be drawn only by organization chart. A more reliable test is whether a capability needs cross-business reuse, carries risk, requires unified evidence, or affects cost and stability. Model routing, tool registration, run state, permission policy, Trace, evaluation, and release gates meet these conditions and should enter the platform layer. Business process, domain rules, acceptance samples, and operating goals should remain business-team responsibilities.
 
-First, the real challenge for enterprises is not "building a single Agent," but "managing a group of Agents."
+A platform that is too thin leaves every Agent to rebuild the same foundation. Business teams connect models, wrap tools, store logs, and build approval logic by themselves. This looks fast in the short term, but it creates long-term debt in permission, cost, and incident review. A platform that is too thick has the opposite problem. If the platform team tries to own all business logic, delivery slows and business differences disappear. The right boundary is for the platform to hold non-negotiable engineering responsibility while leaving configurable and extensible space for business teams.
 
-Second, applications, frameworks, and platforms are three fundamentally different issues; mixing them together in discussion will distort subsequent construction goals.
+The later chapter structure supports this judgment. The model layer handles capability and cost. The data layer handles trusted context. The Agent capability layer handles runs and actions. The DataAgent mainline connects these capabilities into tasks. Observability and security govern production operation. Readers can use this chapter as a boundary checklist: when a new capability appears, ask whether it belongs to the platform, the business application, or the external ecosystem.
 
-Third, the platform manages five common categories of issues: models, data, tools, processes, and governance. The platform boundary is defined by the boundary where these common issues accumulate.
+## Chapter Recap
 
-Fourth, the platform should be neither so thin that it is only a model gateway, nor so thick that it swallows business logic. A truly mature platform enforces strong constraints where unification is needed and leaves room for variation where differences are allowed.
+The enterprise challenge is managing a group of Agents, not building one Agent in isolation. Applications, frameworks, and platforms are three layers; mixing them quickly distorts the construction goal. A platform manages five common problem categories: models, data, tools, process, and governance. It should not be so thin that it becomes a model gateway, or so thick that it absorbs business logic. The right boundary constrains what must be unified and leaves room where business differences matter. In the multi-Agent stage, standards, admission, responsibility, and operations become front-stage issues. The next chapter discusses the difference between AI-native business systems and adding AI features to old systems.
 
-Fifth, platformization is not a technical obsession but an inevitable organizational challenge enterprises must face in the multi-Agent stage.
-
-The next chapter will elevate the perspective further: Since the platform ultimately serves a new category of business system, what is the fundamental difference between an "AI-native business system" and "adding AI features within legacy systems"?
 ## References
 
 NIST. (2023). [*Artificial Intelligence Risk Management Framework (AI RMF 1.0)*](https://www.nist.gov/itl/ai-risk-management-framework).

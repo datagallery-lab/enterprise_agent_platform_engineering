@@ -2,40 +2,25 @@
 
 ---
 
-## Chapter Summary
+Manual deployment fails less because it is slow than because it is hard to reproduce. Teams often cannot answer who changed what, when the change took effect, or whether the running environment still matches the desired state. GitOps and IaC put infrastructure, model services, gateway policy, and edge inference nodes into a declarative change process so environment drift, promotion, and rollback can be audited. Git records the desired state. ArgoCD, Terraform, Helm, and related tools perform delivery. Store and factory edge nodes should be governed by the same model.
 
-This chapter discusses GitOps, Infrastructure as Code (IaC), and edge inference, illustrating how declarative configuration, environment drift control, infrastructure versioning, and edge deployment are integrated into production workflows. The biggest problem with manual deployment is not speed, but lack of reproducibility: who changed what, when it was changed, and whether the current state matches the desired state are all unknown. This chapter explains how declarative configuration brings infrastructure into version control; how GitOps tools turn the “difference between actual and desired state in Git” into detectable and auto-remediable issues; and how edge inference can be managed uniformly under the GitOps framework.
+A common incident starts with a temporary `kubectl edit` during production troubleshooting. The operator fixes the immediate symptom, forgets to revert the change, and a few days later staging and production no longer agree on gateway policy, canary percentage, tenant whitelist, or backend model. The release passed in staging but behaved differently in production, and the postmortem found no PR for the actual change. GitOps and IaC are meant to solve this reproducibility problem. Every promotion, rollback, and drift signal should leave evidence instead of relying on a person's memory.
 
-## Key Terms
-
-GitOps, IaC, Declarative Configuration, Environment Drift, Terraform, Edge Inference
-
-## Learning Objectives
-
-- Explain the core problems solved by declarative configuration compared to manual deployment.
-- Design a GitOps process to bring model services and agent platform configuration under version control.
-- Use IaC tools like Terraform to manage infrastructure for reproducibility and auditability.
-- Describe edge inference deployment and drift control strategies within the GitOps framework.
-
----
-
-## Opening Scenario
-
-Successful local demos are only the starting point of deployment. Once entering shared environments, moving from manual deployment to declarative delivery, IaC toolchains, and engineering best practices simultaneously affects resource isolation, service stability, release cadence, and incident recovery.
+Agent platforms make the problem more visible because the changing objects include model services, gateways, permissions, GPU node pools, and edge deployments. Once these states drift, debugging becomes expensive. Terraform manages cloud resources and cluster foundations, Helm manages application and model-service configuration, and ArgoCD synchronizes the desired state in Git into the cluster. Edge inference adds another constraint: stores, factories, and private networks may be intermittently connected, so model weights, cache, configuration, and logs need an explicit synchronization strategy. If edge nodes are maintained manually, version differences persist for months and the platform cannot explain why users in different locations see different behavior.
 
 ---
 
 ## 46.1 From Manual Deployment to Declarative Delivery: Evolution Path of Agent Platform Infrastructure
 
-Chapters 43–45 delivered compute, model services, and the gateway respectively; Chapter 46 answers: **how to deliver these components collectively in a versioned, promotable way to dev/staging/prod environments, and how to incorporate store/factory edge locations into the same governance model.** Without GitOps, Canary traffic percentages from Chapter 44, tenant whitelists from Chapter 45, and node pool labels from Chapter 43 will drift independently across the three environments—passing staging tests but exhibiting inconsistent production behavior is the most common “environment lie.”
+Chapters 43-45 delivered compute, model services, and the gateway respectively. Chapter 46 explains how to deliver these components collectively in a versioned, promotable way to dev, staging, and prod environments, and how to incorporate store and factory edge locations into the same governance model. Without GitOps, Canary traffic percentages from Chapter 44, tenant whitelists from Chapter 45, and node pool labels from Chapter 43 will drift independently across the three environments. Passing staging tests while production behaves differently is the most common environment lie.
 
-An enterprise agent platform usually evolves through three stages: first, engineers SSH into GPU machines to start vLLM; second, Kubernetes + Helm with manual `kubectl apply`; third, Git repository declares desired state, with Argo CD automatically syncing to clusters. In one production incident, an operator manually edited LiteLLM’s ConfigMap via `kubectl edit` in prod to troubleshoot latency and forgot to revert the change, causing model overload and widespread 502 errors. Worse, **there was no PR, no ArgoCD sync record, no Terraform state change**—post-mortem could not answer “who changed what and when.” The risk of manual deployment is not just slowness but **lack of auditability, rollback, and reproducibility.**
+An enterprise agent platform usually evolves through three stages: first, engineers SSH into GPU machines to start vLLM; second, Kubernetes plus Helm with manual `kubectl apply`; third, the Git repository declares desired state, and Argo CD synchronizes it to clusters. In one production incident, an operator manually edited LiteLLM's ConfigMap through `kubectl edit` in prod to troubleshoot latency and forgot to revert the change, causing model overload and widespread 502 errors. Worse, there was no PR, no ArgoCD sync record, and no Terraform state change. The postmortem could not answer who changed what and when. The risk of manual deployment is lack of auditability, rollback, and reproducibility.
 
 ![Figure 46-1: GitOps transforms deployment from "manual machine operations" to "merging PRs"](../../images/part8/en/ch46-01.png)
 
-*Figure 46-1: GitOps transforms deployment from “SSH on machines” with no record on the left, into declarative config changes reviewed via PR and auto-synced by CI on the right. Source: this book. Alt text: Left “manual deployment” involves direct SSH config edits without trace; right “GitOps” uses PR-based declarative config changes validated by CI and auto-synced, showing deployment shifting from manual work to code review.*
+*Figure 46-1: GitOps transforms deployment from "SSH on machines" with no record on the left into declarative config changes reviewed via PR and auto-synced by CI on the right. Source: this book. Alt text: Left "manual deployment" involves direct SSH config edits without trace; right "GitOps" uses PR-based declarative config changes validated by CI and auto-synced, showing deployment shifting from manual work to code review.*
 
-In Figure 46-1’s third stage, the only valid path to “change production” is to merge to protected branches + manual prod sync—not a question of `kubectl` permission, but whether **organizational memory is externalized to Git history.**
+In Figure 46-1's third stage, the only valid path to changing production is to merge to protected branches and perform manual prod sync. The production control question now covers both `kubectl` permission and whether operational memory is externalized into Git history.
 
 ### 46.1.1 Core GitOps Mechanisms: Declarative Configuration, Git as Single Source of Truth, Auto Sync, and Drift Detection
 
@@ -46,16 +31,9 @@ GitOps four principles:
 3. **Automatic Synchronization:** ArgoCD/Flux reconcile desired vs actual states.
 4. **Drift Detection:** Manual `kubectl edit` marks resources OutOfSync and can auto-fix optionally.
 
-The reconcile loop is the heartbeat of GitOps: ArgoCD compares Git commits to cluster objects every 3 minutes (default), and if diffs exist, performs a Sync or sends alerts. The prod `llm-gateway-prod` Application disables automated sync but **continues diff monitoring**—OutOfSync itself signals someone bypassing Git.
+The reconcile loop is the heartbeat of GitOps: ArgoCD compares Git commits to cluster objects every 3 minutes by default, and if diffs exist, it performs a Sync or sends alerts. The prod `llm-gateway-prod` Application disables automated sync but continues diff monitoring. OutOfSync itself signals that someone bypassed Git.
 
-*Table 46-1: Definitions and distinctions of GitOps core concepts like declarative config, Git as source of truth, and auto sync. Source: this book.*
-
-| Concept | Definition | Distinction From Nearby Concepts |
-|---|---|---|
-| GitOps | Use Git to drive deployment and changes | Unlike CI, which only builds images |
-| IaC (Infrastructure as Code) | Describe infrastructure with code | Includes Terraform, Helm, etc. |
-| Promotion | Config promotion from dev → staging → prod | Different from image tag promotion |
-| Drift | Actual cluster state ≠ Git declared state | Different from Canary traffic ratios |
+Several terms need to be separated before the delivery flow becomes readable. GitOps uses Git to drive deployment and change, and it focuses on continuous alignment between desired cluster state and actual state. It is different from CI, which mainly builds and verifies artifacts. IaC describes infrastructure in code and covers multiple layers, including Terraform, Helm, and Kustomize. Promotion means advancing configuration from dev to staging and then to prod, not simply copying an image tag. Drift means that the actual cluster state no longer matches the state declared in Git; this is different from a Canary traffic ratio, which is still part of an intentional release strategy.
 
 Git repo structure (indicative, matching component names in Chapters 44/45):
 
@@ -73,76 +51,66 @@ agent-platform-gitops/
 └── argocd/apps/         # Application definitions
 ```
 
-The `helm/model-serving/values-prod.yaml` sets `canaryTrafficPercent` and OSS URI for `llm-general-32b`; `helm/llm-gateway/values-prod.yaml` sets tenant quotas and backend lists—**the same PR can atomically change “model + routing,”** avoiding the window where Chapter 44 has Canary 20% but Chapter 45 still points to old Service.
+The `helm/model-serving/values-prod.yaml` sets `canaryTrafficPercent` and OSS URI for `llm-general-32b`; `helm/llm-gateway/values-prod.yaml` sets tenant quotas and backend lists. The same PR can atomically change model and routing, avoiding the window where Chapter 44 has Canary at 20% but Chapter 45 still points to the old Service.
 
-### 46.1.2 Misjudgment Risks in GitOps Adoption
+### 46.1.2 Engineering Boundaries for GitOps Delivery
 
-**Misconception 1: GitOps means “put YAML in Git”**
+#### Reducing GitOps to Putting YAML in Git
 
-Without auto reconcile, PR gates, or secret separation, it’s just storing YAML as backup. True GitOps requires ArgoCD + branch strategies + promotion workflow + External Secrets. In one rollout, YAML was committed but deployment was done with manual `kubectl apply`; long-term drift between Git and cluster caused ArgoCD to delete manually created Ingress on first sync—showing **you must baseline align before enabling self-heal.**
+Without automatic reconciliation, PR gates, or secret separation, YAML in Git is only a backup copy. A real GitOps process needs ArgoCD, branch strategy, promotion workflow, and External Secrets. In one rollout, YAML was committed but deployment still happened through manual `kubectl apply`. Long-term drift between Git and the cluster caused ArgoCD to delete a manually created Ingress during its first sync. Baseline alignment has to happen before self-heal is enabled.
 
-**Misconception 2: Terraform vs Helm is an either/or choice**
+#### Treating Terraform and Helm as an Either-Or Choice
 
-Terraform excels at cloud resources (GPU node pools, networks, IAM); Helm excels at packaging Kubernetes apps. Use both: Terraform manages `gpu-inference` node pools and model OSS buckets; Helm deploys KServe and LiteLLM. Hardcoding Deployment templates in Terraform is less maintainable than Helm; creating VPC in Helm reduces state and module reuse—**layer by management object, not by tool religion.**
+Terraform excels at cloud resources such as GPU node pools, networks, and IAM. Helm excels at packaging Kubernetes applications. Use both: Terraform manages `gpu-inference` node pools and model OSS buckets; Helm deploys KServe and LiteLLM. Hardcoding Deployment templates in Terraform is less maintainable than Helm, while creating VPCs in Helm weakens state management and module reuse. The boundary should follow the managed object, not a team's tool preference.
 
-**Misconception 3: Edge inference can be operated independently of GitOps**
+#### Operating Edge Inference Outside GitOps
 
-Hundreds of stores manually upgrading llama.cpp inevitably fragment versions—models quantized differently per region, inconsistent response quality for sales scripts, and headquarters unable to reproduce complaints. Edge should be a GitOps `overlay` with different sync policies (see 46.6): central Git publishes manifest, stores OTA Agent reconciles, unified philosophy with cloud ArgoCD.
+When hundreds of stores manually upgrade llama.cpp, version fragmentation is unavoidable. Different regions may run different quantized models, sales scripts may produce inconsistent answers, and headquarters cannot reproduce complaints. Edge should be modeled as a GitOps `overlay` with a different synchronization policy: central Git publishes the manifest, the store OTA Agent reconciles it, and the governance principle stays aligned with cloud-side ArgoCD.
 
-**Misconception 4: Promotion equals pushing image tags staging → prod**
+#### Reducing Promotion to Image Tag Movement
 
-Agent platform promotion mainly means promoting Helm values and Terraform variables—like updating OSS URIs, Canary percentages, LiteLLM tenant quotas. Only promoting gateway image digest without promoting model-serving values causes an implicit drift of “new gateway with old model URI.” PR templates should list affected Applications.
+Agent platform promotion is mainly promotion of Helm values and Terraform variables: OSS URIs, Canary percentages, and LiteLLM tenant quotas change together. Promoting only the gateway image digest while leaving model-serving values behind creates implicit drift: a new gateway points to an old model URI. PR templates should list every affected Application.
 
 ---
 
 ## 46.2 IaC Toolchain: Terraform Resource Orchestration, Helm Chart Packaging, and ArgoCD Continuous Delivery
 
-The delivery stack in Part VIII has four collaboration layers: **Terraform manages cloud, Helm manages apps, Kustomize manages environment differences, ArgoCD manages sync.** Each layer has clear SSOT boundaries, avoiding a “mega-repo script” approach.
+The delivery stack in Part VIII has four collaboration layers: **Terraform manages cloud, Helm manages apps, Kustomize manages environment differences, ArgoCD manages sync.** Each layer has clear SSOT boundaries, avoiding a "mega-repo script" approach. The layers connect through explicit interfaces, not memory. Terraform outputs node-pool names, labels, OSS buckets, and IAM roles for Helm values. Helm renders Service and InferenceService names that the gateway Chart references. Kustomize overlays express only environment differences, not new business meaning. ArgoCD synchronizes a selected revision into the target cluster; it does not replace CI semantic checks.
 
-*Table 46-2: Responsibilities and managed objects of IaC tools like Terraform and Helm Chart. Source: this book.*
+IaC also has to encode who may change which object. GPU node pools, model buckets, and IAM policies normally require platform owner and security review. Model URIs, Canary percentages, and gateway tenant policy require platform and business owner review. Observability and alerting changes require SRE review. GitOps does not create governance by itself; PR reviewers, CODEOWNERS, branch protection, and ArgoCD RBAC turn governance into daily practice.
+
+For an Agent platform, declarative configuration also serves as documentation. A reader should be able to inspect `values-prod.yaml` and understand which model services, tenants, fallbacks, and edge overlays exist in production. If the configuration is only a pile of variable names with no naming convention or comments, the GitOps repository becomes another black box. This chapter cares about reviewable, comparable, and rollback-capable operating assumptions, rather than the slogan that everything must be YAML.
+
+*Table 46-1: Responsibilities and managed objects of IaC tools like Terraform and Helm Chart. Source: this book.*
 
 | Tool | Responsibility | Managed Objects | Typical Use |
 |---|---|---|---|
 | Terraform | CRUD cloud resources | VPC, node pools, OSS, IAM | GPU node pools, model buckets |
 | Helm | Kubernetes app templating | Deployment, Service, CRD values | LiteLLM, KServe |
 | Kustomize | Patch environment differences | overlay patches | dev/staging/prod replica counts |
-| ArgoCD | Git → Cluster sync | Application, AppProject | Per-environment Applications |
+| ArgoCD | Git -> Cluster sync | Application, AppProject | Per-environment Applications |
 
-Terraform state records OSS bucket ARNs and node pool IDs; Helm values reference IAM Roles via External Secrets—**clear division between cloud and app.** On-call seeing InferenceService OSS 403 looks first at Terraform IAM module, not restarting Pods.
+Terraform state records OSS bucket ARNs and node pool IDs; Helm values reference IAM Roles via External Secrets. The division between cloud and application is explicit. When on-call sees an InferenceService OSS 403, the first check is the Terraform IAM module, not a Pod restart.
 
 ![Figure 46-2: Terraform manages cloud, Helm manages apps, ArgoCD reconciles Git and cluster](../../images/part8/en/ch46-02.png)
 
-*Figure 46-2: Terraform manages cloud infra resources, Helm Charts manage Kubernetes app configs, ArgoCD continuously compares Git and actual cluster state and auto fixes. Three collaborate to cover the full cloud-to-app declarative delivery. Source: this book. Alt text: Three-layer separation—Terraform manages cloud infrastructure resources; Helm Chart manages Kubernetes app configuration; ArgoCD continuously compares Git and actual cluster state and auto remediates, covering all declarative delivery from cloud to app.*
+*Figure 46-2: Terraform manages cloud infra resources, Helm Charts manage Kubernetes app configs, ArgoCD continuously compares Git and actual cluster state and auto fixes. Three collaborate to cover the full cloud-to-app declarative delivery. Source: this book. Alt text: Three-layer separation: Terraform manages cloud infrastructure resources; Helm Chart manages Kubernetes app configuration; ArgoCD continuously compares Git and actual cluster state and auto remediates, covering all declarative delivery from cloud to app.*
 
-Figure 46-2 shows four-layer collaboration: Terraform declares cloud resources, Helm packages Kubernetes apps, Kustomize expresses environment overlays, ArgoCD reconciles Git commits to clusters—PR merge triggers legal changes into prod.
+Figure 46-2 shows four-layer collaboration: Terraform declares cloud resources, Helm packages Kubernetes apps, Kustomize expresses environment overlays, and ArgoCD reconciles Git commits to clusters. A PR merge is the legitimate trigger for production change.
 
-**Tradeoff 1: ArgoCD vs Flux**
+#### ArgoCD and Flux
 
-*Table 46-3: IaC toolchain choices between Terraform resource orchestration and Helm Chart approaches. Source: this book.*
+Multiple business units and platform SREs need to view production diffs and sync history, and ArgoCD's UI lowers the communication cost around configuration changes. Flux fits teams that already work deeply in GitOps and do not need a visual interface. The decision should consider the organization as well as feature lists: when business owners, platform owners, and SREs all need to review a release diff, ArgoCD is often easier to operate; when all approvals and inspections already happen through CLI and automation, Flux can be a lighter option.
 
-| Option | Advantages | Costs | Applicable Scenarios | Recommendation |
-|---|---|---|---|---|
-| ArgoCD | Intuitive UI, mature AppProject | Higher resource use | Multi-team, need visual UI | Recommended for scale-up |
-| Flux | Lightweight, native GitOps Toolkit | Weak UI | CLI-only teams | Optional |
+#### Single-Repository and Multi-Repository GitOps
 
-Multiple business units and platform SREs need to view prod diffs and sync history—ArgoCD’s UI reduces communication cost of config changes. Flux suits teams deeply GitOps fluent without UI needs.
-
-**Tradeoff 2: Monorepo vs Multiple Repo GitOps**
-
-*Table 46-4: IaC toolchain choices between Terraform resource orchestration and Helm Chart approaches. Source: this book.*
-
-| Option | Advantages | Costs | Applicable Scenarios | Recommendation |
-|---|---|---|---|---|
-| Monorepo | Atomic changes, simpler promotion | Coarse permission | Centralized platform team | Early phase recommended |
-| Multi-repo | Team autonomy | Cross-repo version alignment hard | Large-scale multi-team | Long-term evolution |
-
-Chapters 44 Canary and 45 routing merged atomically in one PR are core monorepo benefits. Long term split into `terraform/` and `helm/` repos is feasible but promotion tags must align across repos—for example, `prod-v1.2.0` pins both model and gateway chart versions.
+The ability to merge Chapter 44 Canary changes and Chapter 45 routing changes atomically in one PR is the main benefit of a monorepo in the early phase. Splitting `terraform/` and `helm/` into separate repositories can make sense later, but promotion tags must align across repositories. For example, `prod-v1.2.0` should pin both the model-serving and gateway chart versions. Repository splitting is not maturity by itself. Without a shared release manifest, model service, gateway, and observability configuration will promote independently and drift again in production.
 
 ### 46.2.1 Platform Delivery Layers: Network, Storage, GPU Node Pools, Model Services, Gateway, and App Stack
 
-Delivery order should be bottom-up, consistent with Chapters 43–45—upper Application depends on lower resource IDs and Secrets; skipping layers via direct cluster edits causes ArgoCD PreSync hook failures or worse “silent misconfigurations.”
+Delivery order should be bottom-up, consistent with Chapters 43-45. Upper Applications depend on lower resource IDs and Secrets; skipping layers through direct cluster edits causes ArgoCD PreSync hook failures or harder-to-detect silent misconfiguration.
 
-*Table 46-5: Components and delivery methods of platform layers: network, storage, GPU node pools, etc. Source: this book.*
+*Table 46-2: Components and delivery methods of platform layers: network, storage, GPU node pools, etc. Source: this book.*
 
 | Layer | Components | Delivery Method | Dependencies |
 |---|---|---|---|
@@ -154,81 +122,81 @@ Delivery order should be bottom-up, consistent with Chapters 43–45—upper App
 | L5 Platform Apps | Agent Runtime, DataAgent | Helm/Kustomize | L4 |
 | L6 Observability | OTel, Langfuse | Helm | L5 |
 
-Direct cluster changes that skip PRs break upper-layer assumptions. Typical errors: manually scaling GPU node pool max_size not reflected in Terraform causes Cluster Autoscaler/FinOps tag drift; manually changing LiteLLM backend not updated in Helm leads ArgoCD to overwrite changes on next sync, causing “ghost failures.”
+Direct cluster changes that skip PRs break upper-layer assumptions. Typical errors include manually scaling GPU node pool `max_size` without updating Terraform, which causes Cluster Autoscaler and FinOps tag drift, or manually changing a LiteLLM backend without updating Helm, which lets ArgoCD overwrite the change on the next sync and creates intermittent failures that look mysterious during incident review.
 
-Helm release order of L3 and L4 controlled by ArgoCD Application dependencies or sync waves: first `model-serving-prod`, then after Ready `llm-gateway-prod`—avoiding gateways pointing to nonexistent InferenceServices.
+Helm release order of L3 and L4 is controlled by ArgoCD Application dependencies or sync waves: first `model-serving-prod`, then `llm-gateway-prod` after the model service is Ready. This prevents gateways from pointing to nonexistent InferenceServices.
 
 ### 46.2.2 Environment Management: Config Differences, Secret Management, and Promotion Process for Dev, Staging, Prod
 
-Three-environment differences are not just “replica count halved”—model weights, external API policies, and sync gating differ, must be explicitly stated in `values-*.yaml` and Kustomize overlays, not just verbally agreed.
+Three-environment differences are more than halved replica counts. Model weights, external API policies, and sync gates differ, and these differences must be stated explicitly in `values-*.yaml` and Kustomize overlays instead of being handled by verbal agreement.
 
-*Table 46-6: Comparison of config differences and secret management for dev, staging, prod environments. Source: this book.*
+*Table 46-3: Comparison of config differences and secret management for dev, staging, prod environments. Source: this book.*
 
 | Dimension | dev | staging | prod |
 |---|---|---|---|
-| GPU nodes | 1–2 shared GPUs | Small cluster same as prod | Full node pool |
+| GPU nodes | 1-2 shared GPUs | Small cluster same as prod | Full node pool |
 | Models | 7B quantized | Same weights as prod | 32B+ production weights |
 | Replicas | 1 | 2 | ≥4 |
 | External APIs | Allowed | Allowed (quota-limited) | Finance disabled |
 | Sync strategy | Automatic | Automatic | **Manual approval** |
 
-Secrets management: **Never store plaintext keys in Git;** use External Secrets Operator (ESO) to inject from Vault/KMS. LiteLLM `master_key`, cloud API keys, OSS creds all secret-referenced—PR only shows `secretRef: vault/path/openai-key`, never plaintext. Finance tenant cloud keys do not exist at Vault path level, forming double insurance alongside Chapter 45 tenant whitelists.
+Secrets management has a hard baseline: never store plaintext keys in Git. Use External Secrets Operator (ESO) to inject from Vault/KMS. LiteLLM `master_key`, cloud API keys, and OSS credentials all use Secret references. A PR shows only `secretRef: vault/path/openai-key`, never plaintext. Finance tenant cloud keys do not exist at the Vault path level, adding a second control alongside the Chapter 45 tenant whitelist.
 
-Promotion process: dev auto sync → staging auto sync + integration tests (including Chapter 39 offline gate trigger) → prod Platform Owner approval + ArgoCD manual sync. Config diffs must be auditable: ArgoCD `app diff` matches PR diff. After staging passes, tag `prod-v1.2.0` created; prod Application’s `targetRevision` points to tag, not floating `main`—**prod cannot track moving head.**
+Promotion process: dev auto sync -> staging auto sync plus integration tests (including the Chapter 39 offline gate) -> prod Platform Owner approval plus ArgoCD manual sync. Config diffs must be auditable: ArgoCD `app diff` should match the PR diff. After staging passes, create tag `prod-v1.2.0`; the prod Application's `targetRevision` points to that tag rather than a floating `main`. Production cannot track a moving head.
 
 ![Figure 46-3: Production promotion requires manual gating, cannot rely on automatic sync as in dev](../../images/part8/en/ch46-03.png)
 
-*Figure 46-3: Production promotion must have manual gate, different from dev’s automatic sync. Source: this book. Alt text: dev and staging allow automatic sync, but prod has a manual approval gate indicated at the entry, with arrows showing sync only triggers after approval, reflecting differentiated release cadence.*
+*Figure 46-3: Production promotion must have manual gate, different from dev's automatic sync. Source: this book. Alt text: dev and staging allow automatic sync, but prod has a manual approval gate indicated at the entry, with arrows showing sync only triggers after approval, reflecting differentiated release cadence.*
 
-Figure 46-3 emphasizes prod’s sync strategy difference: dev/staging auto sync allowed, prod requires manual approval + manual sync. Promotion windows before business peak: upstream `llm-general-32b.minReplicas` promoted with tag after staging load tests; prod manual sync scheduled in low traffic, avoiding config changes overlapping traffic spikes.
+Figure 46-3 emphasizes the difference in production sync strategy: dev and staging may auto sync, while prod requires manual approval and manual sync. Promotion windows before a business peak should be scheduled early. For example, `llm-general-32b.minReplicas` is promoted with a tag after staging load tests, and prod manual sync happens during a low-traffic window rather than a few hours before the peak.
 
 ### 46.2.3 Edge Inference Scenarios: Store Terminals, Factory Edge Nodes, Offline/Low Network, and Hybrid Cloud Topologies
 
-A retail enterprise platform team must serve hundreds of stores with offline shopping assistants; manufacturing factories have isolated networks requiring ms-level response for QC agent; logistics handheld devices need waybill queries on mobile networks. All cloud gateway and 32B models (Chapters 45 and 44) alone are impractical—weak network RTT and disconnections will shatter user experience. **Edge inference is a deployment location extension, not a separate architecture:** control plane remains central GitOps; edge uses special `overlay` + OTA reconcile policies.
+A retail enterprise platform team may need to serve hundreds of stores with offline shopping assistants; manufacturing factories may run isolated networks that require millisecond-level responses for QC Agents; logistics handheld devices still need waybill queries over mobile networks. Sending everything to the Chapter 45 cloud gateway and Chapter 44 32B models is impractical because weak network RTT and disconnections break the experience. **Edge inference is a deployment location extension, not a separate architecture:** the control plane remains central GitOps, while edge uses special `overlay` and OTA reconcile policies.
 
 Edge scenario characteristics:
 
-*Table 46-7: Constraints, model sizes, and sync strategies of edge inference scenarios like stores and factories. Source: this book.*
+*Table 46-4: Constraints, model sizes, and sync strategies of edge inference scenarios like stores and factories. Source: this book.*
 
 | Scenario | Constraints | Model Size | Sync Strategy |
 |---|---|---|---|
-| Store Sales Assistant | Weak network, privacy | 3B–7B quantized | Nightly batch OTA |
+| Store Sales Assistant | Weak network, privacy | 3B-7B quantized | Nightly batch OTA |
 | Factory QC | Isolated network, low latency | 7B vision-language | Triggered by work orders |
 | Logistics Handheld | Mobile network | 3B text model | Region CDN delivery |
 
-Stores run llama.cpp 7B Q4 to handle high-frequency Q&A on size, inventory, return policies; complex complaints or cross-SKU reasoning **fallback** to central Chapter 45 gateway with `llm-general-32b`—fallback path requires circuit breaker, preferring local downgrade “please contact support” over hanging on central link indefinitely.
+Stores can run llama.cpp 7B Q4 for high-frequency Q&A about size, inventory, and return policies. Complex complaints or cross-SKU reasoning fall back to the central Chapter 45 gateway with `llm-general-32b`. That fallback path needs a circuit breaker; under weak networks, a local degraded response such as "please contact support" is better than waiting indefinitely on the central link.
 
 ![Figure 46-4: Edge nodes are GitOps special overlays, not islands outside governance](../../images/part8/en/ch46-04.png)
 
-*Figure 46-4: Edge nodes are GitOps special overlays, not governance-isolated islands. Source: this book. Alt text: Cloud Git repo applies overlays to cover edge node special configs (lightweight models, offline cache); edge nodes remain within GitOps sync framework rather than manually maintained islands.*
+*Figure 46-4: Edge nodes are GitOps special overlays, not governance-isolated islands. Source: this book. Alt text: Cloud Git repo applies overlays to cover edge node special configs such as lightweight models and offline cache; edge nodes remain within the GitOps sync framework rather than becoming manually maintained islands.*
 
-Figure 46-4 illustrates hybrid topology of central GitOps with three edge node types (store, factory, logistics): edge runs llama.cpp/ONNX/MLC small models; control plane OTA sync from central manifest; not separate governance islands. Factory QC ONNX models exported from central training pipeline share version schema with cloud KServe models—facilitates complaint reconciliation of “edge 7B vision vs cloud 32B review” as same release train.
+Figure 46-4 illustrates a hybrid topology with central GitOps and three edge node types: store, factory, and logistics. Edge nodes run llama.cpp, ONNX, or MLC small models; the control plane still synchronizes OTA from a central manifest. They are not separate governance islands. Factory QC ONNX models exported from the central training pipeline share the same version schema as cloud KServe models, which makes it possible to reconcile complaints about "edge 7B vision versus cloud 32B review" against the same release train.
 
 #### Edge vs Cloud Request Routing Decisions (Illustrative)
 
-*Table 46-8: Reasoning basis for handling requests at edge or fallback to center. Source: this book.*
+*Table 46-5: Reasoning basis for handling requests at edge or fallback to center. Source: this book.*
 
 | Request Type | Edge Handling | Fallback Conditions to Center |
 |---|---|---|
 | Store FAQ, size/inventory | llama.cpp 7B | Low confidence / user demands human |
 | Factory visual defect pre-judgment | ONNX small model | Borderline samples / require 32B review |
 | Logistics handheld waybill query | MLC 3B | Complex claims / multi-turn dialogs |
-| Enterprise-wide DataAgent NL2SQL | Never edge fallback | Always via Chapter 45 → `llm-code-7b` |
+| Enterprise-wide DataAgent NL2SQL | Never edge fallback | Always via Chapter 45 -> `llm-code-7b` |
 
-Fallback requests carry `edge_store_id` and `edge_model_version` headers; central gateway observability distinguishes “edge origin” vs “pure cloud”—FinOps cost allocation separates retail store compute from central GPU.
+Fallback requests carry `edge_store_id` and `edge_model_version` headers. Central gateway observability distinguishes "edge origin" from "pure cloud" so FinOps can allocate retail store compute separately from central GPU.
 
 ### 46.2.4 Edge Inference Engines Comparison: ONNX Runtime, llama.cpp, MLC, and Cloud Model Coordination
 
-*Table 46-9: Comparison of edge inference engines like ONNX Runtime and llama.cpp: advantages, costs, suitability, cloud synergy. Source: this book.*
+*Table 46-6: Comparison of edge inference engines like ONNX Runtime and llama.cpp: advantages, costs, suitability, cloud synergy. Source: this book.*
 
 | Engine | Advantages | Costs | Suitable For | Cloud Coordination |
 |---|---|---|---|---|
-| llama.cpp | Lightweight CPU/GPU, mature quantization | Limited large model performance | Stores ≤ 7B | Complex queries fallback gateway |
-| ONNX Runtime | Cross-framework, inference optimizations | Conversion pipeline | Vision QC small models | Central training → ONNX distribution |
+| llama.cpp | Lightweight CPU/GPU, mature quantization | Limited large model performance | Stores <= 7B | Complex queries fallback gateway |
+| ONNX Runtime | Cross-framework, inference optimizations | Conversion pipeline | Vision QC small models | Central training -> ONNX distribution |
 | MLC LLM | Mobile-side, NPU acceleration | Ecosystem young | Handheld devices | Works with cloud models |
 | Cloud KServe | Most powerful models | Network reliance | Non-edge scenarios | Edge fallback to upstream |
 
-Hybrid approach: edge services 80% high-frequency simple requests; timeout or low-confidence requests **fallback** to Chapter 45 gateway with 32B cloud model—network-layer circuit breakers required to prevent weak network dragging down center. Logistics handheld runs MLC on NPU with 3B model; fallback sends only structured JSON, saving bandwidth.
+In a hybrid approach, edge services handle roughly 80% of high-frequency simple requests. Timeout or low-confidence cases fall back to the Chapter 45 gateway with a 32B cloud model. Network-layer circuit breakers are required so weak links do not drag down the central service. Logistics handheld devices can run a 3B model with MLC on NPU, and fallback sends only structured JSON to save bandwidth.
 
 ### 46.2.5 Failure Modes: Config Drift, Sync Conflicts, Rollback Failures, Edge OTA Interruptions, and Version Fragmentation
 
@@ -240,7 +208,7 @@ Sync conflicts are also common when multiple Charts share resources. One Chart m
 
 Edge OTA risks differ from cloud rollback risks. In the cloud, a failed deployment can roll back to an older Revision. At the edge, failure may happen under weak networks, power loss, or small disks. If a partially downloaded model file is loaded directly, the symptom may not be startup failure. It may be low-quality answers or random crashes. Edge updates therefore need a staging directory, checksum verification, atomic switching, and retained old versions. Central inventory must also see the current version of every store; otherwise version fragmentation will surface during complaint review.
 
-*Table 46-10: Responsibilities, inputs/outputs, and failure modes of GitOps components. Source: this book.*
+*Table 46-7: Responsibilities, inputs/outputs, and failure modes of GitOps components. Source: this book.*
 
 | Component | Responsibility | Input | Output | Failure Mode |
 |---|---|---|---|---|
@@ -249,7 +217,7 @@ Edge OTA risks differ from cloud rollback risks. In the cloud, a failed deployme
 | External Secrets | Secret injection | Vault | K8s Secret | Rotation window failures |
 | Edge OTA Agent | Edge model updates | Artifact manifest | Local model version | Network interruption partial update |
 
-*Table 46-11: Detection and recovery of failure modes like config drift, sync conflicts, edge OTA interruptions. Source: this book.*
+*Table 46-8: Detection and recovery of failure modes like config drift, sync conflicts, edge OTA interruptions. Source: this book.*
 
 | Failure Mode | Trigger Condition | Impact | Detection Method | Recovery Strategy |
 |---|---|---|---|---|
@@ -259,11 +227,11 @@ Edge OTA risks differ from cloud rollback risks. In the cloud, a failed deployme
 | Edge OTA interruption | Network download interruption | Corrupt edge model | Checksum validation | Atomic replace after full download |
 | Version fragmentation | Stores upgrade individually | Inconsistent experience | Edge version reporting | Enforce minimum version + batch OTA |
 
-Drift is GitOps’ “immune response”: OutOfSync is not noise, but a signal of bypassing PRs. Enabling self-heal in prod is controversial—large enterprises default to **no auto heal in prod, only alert then manual confirm + sync** to avoid masking ongoing legitimate emergency changes (which still require retrospective PRs).
+Drift is GitOps' immune response. OutOfSync is not noise; it signals that someone bypassed PRs. Enabling self-heal in prod is controversial. Large enterprises often default to **no auto heal in prod, only alert then manual confirm plus sync** to avoid masking legitimate emergency changes, which still require retrospective PRs.
 
-#### Naming Conventions for Components in Chapters 43–45 in Git
+#### Naming Conventions for Components in Chapters 43-45 in Git
 
-*Table 46-12: Naming conventions and key values fields for chapters 43–45 components in Git. Source: this book.*
+*Table 46-9: Naming conventions and key values fields for Chapters 43-45 components in Git. Source: this book.*
 
 | Git Path | Chapter | Key Values Fields |
 |---|---|---|
@@ -272,15 +240,15 @@ Drift is GitOps’ “immune response”: OutOfSync is not noise, but a signal o
 | `helm/llm-gateway/values-prod.yaml` | Chapter 45 | model_list, tenantPolicy |
 | `argocd/apps/prod/*.yaml` | Chapter 46 | targetRevision tag |
 
-Naming mismatches (e.g., gateway writes `general-32b` vs KServe named `llm-general-32b`) cause implicit “syncable but not callable” faults during promotion—PR templates should cross-check service names vs Chapter 45 contract.
+Naming mismatches (e.g., gateway writes `general-32b` while KServe names the service `llm-general-32b`) cause implicit "syncable but not callable" faults during promotion. PR templates should cross-check service names against the Chapter 45 contract.
 
 ---
 
-## 46.3 Engineering Implementation: Complete Delivery Pipeline Example with Terraform + Helm + ArgoCD
+## 46.3 Terraform, Helm, and ArgoCD Delivery Pipeline
 
-Complete pipeline: **Terraform plan/apply node pools and OSS** → **Helm CI template validation** → **ArgoCD Application points to tag** → **staging integration tests** → **prod Manual Sync.** Engineers forbidden from local `kubectl apply -f` directly to prod—dev cluster excepted but must write back to Git with same-named overlay.
+Complete pipeline: **Terraform plan/apply node pools and OSS** -> **Helm CI template validation** -> **ArgoCD Application points to tag** -> **staging integration tests** -> **prod Manual Sync.** Engineers are forbidden from running local `kubectl apply -f` directly against prod. A dev cluster can be an exception, but the same-named overlay must be written back to Git.
 
-**Terraform GPU Node Pool (snippet)**
+#### Terraform GPU Node Pool (Snippet)
 
 Consistent with Chapter 43 `gpu-inference` labels and taints for Chapter 44 InferenceService node affinity.
 
@@ -308,7 +276,7 @@ resource "cloud_kubernetes_node_pool" "gpu_inference" {
 
 Terraform Cloud or OSS backend stores state; `terraform plan` shows diffs in PR bot comments; after merge CI applies staging; prod apply requires two-person approval.
 
-**ArgoCD Application (snippet)**
+#### ArgoCD Application (Snippet)
 
 ```yaml
 # Example: Production LiteLLM gateway Application
@@ -335,9 +303,9 @@ spec:
       - CreateNamespace=true
 ```
 
-`model-serving-prod` Application has similar structure; `values-prod.yaml` includes `llm-general-32b`’s `canaryTrafficPercent` and OSS URI—both Applications promote with the same tag.
+`model-serving-prod` Application has similar structure; `values-prod.yaml` includes `llm-general-32b`'s `canaryTrafficPercent` and OSS URI. Both Applications promote with the same tag.
 
-**Kustomize prod overlay (snippet)**
+#### Kustomize Prod Overlay (Snippet)
 
 ```yaml
 # Example: Increase gateway replicas in prod environment
@@ -351,7 +319,7 @@ spec:
 
 Business peak window overlay patches `replicas: 8` and HPA max, promoted through separate PR merge with tag, not via `kubectl scale`.
 
-**Edge llama.cpp systemd unit (illustrative)**
+#### Edge llama.cpp systemd Unit (Illustrative)
 
 ```ini
 # Example: Store edge inference service
@@ -361,9 +329,9 @@ Restart=on-failure
 Environment=UPSTREAM_GATEWAY=https://llm-gateway.prod.example.com
 ```
 
-Edge OTA: central Git publishes `manifest.json` (model_version, sha256, url); store OTA Agent downloads at night to `.staging`, verifies checksum then atomically renames to `/var/models/active`—same philosophy as ArgoCD reconcile: **align desired state before switching traffic.**
+Edge OTA follows the same philosophy as ArgoCD reconcile: align desired state before switching traffic. Central Git publishes `manifest.json` with `model_version`, `sha256`, and `url`; the store OTA Agent downloads it at night to `.staging`, verifies the checksum, and atomically renames it to `/var/models/active`.
 
-**Verification commands**
+#### Verification Commands
 
 ```bash
 terraform plan -out=tfplan          # Preview cloud resource changes
@@ -375,7 +343,7 @@ CI gates: if `helm template` fails, PR cannot merge; if `argocd app diff` non-em
 
 #### model-serving Helm and KServe values file (snippet)
 
-Chapter 44’s InferenceService managed by GitOps, not raw `kubectl`:
+Chapter 44's InferenceService is managed by GitOps, not raw `kubectl`:
 
 ```yaml
 # Example snippet from helm/model-serving/values-prod.yaml
@@ -406,23 +374,23 @@ kustomize/overlays/edge-retail-store/
 └── ota-manifest-ref.yaml   # Points to central manifest tag
 ```
 
-Edge does not run ArgoCD Server, but OTA Agent pulls manifest tags matching cloud `prod-v*` source—version fragmentation can be located via central inventory.
+Edge does not run ArgoCD Server, but the OTA Agent pulls manifest tags matching the cloud `prod-v*` source. Version fragmentation can be located through central inventory.
 
-### 46.3.1 Release Gates and Incident Recovery
+### 46.3.1 Configuration Drift and Partial Edge Updates: First Checks
 
-**Failure Mode 1: Enabling automated sync in ArgoCD prod leads to unintended direct production changes without approval**
+#### ArgoCD Prod Automated Sync Releases Unapproved Changes
 
 - Symptom: Engineer merges to main, prod gateway config changes within 5 minutes, fallback disables during peak.
-- Root cause: Application copied dev’s `automated: {}` to prod; main branch used alongside prod tags.
+- Root cause: Application copied dev's `automated: {}` to prod; main branch used alongside prod tags.
 - Fix: Prod must have `automated: null` + manual sync; branch protection + mandatory reviewers; prod tracks only tags.
 
-**Failure Mode 2: Missing Terraform state locking causes concurrent apply chaos on node pools**
+#### Missing Terraform State Locking Corrupts Node Pool Changes
 
 - Symptom: GPU node pool max_size overwritten, Cluster Autoscaler misbehaves; Chapter 44 HPA scales pods but no nodes available.
 - Root cause: Local state file without remote backend; two engineers apply different HCL simultaneously.
 - Fix: Use Terraform Cloud or OSS backend + locking; forbid local prod apply; audit state changes.
 
-**Failure Mode 3: Edge OTA partial-download without sha256 checksum causes corrupt store model files**
+#### Edge OTA Without sha256 Validation Corrupts Store Model Files
 
 - Symptom: Some store sales Agents output errors, file sizes 200MB short.
 - Root cause: Incomplete downloads on flaky networks; OTA Agent did not rename atomically.
@@ -450,7 +418,7 @@ The key judgment for readers is this: any object that can change Agent behavior,
 
 #### Triple Audit Field Alignment
 
-*Table 46-13: Key fields alignment for Trace, audit logs, GitOps change records. Source: this book.*
+*Table 46-10: Key fields alignment for Trace, audit logs, GitOps change records. Source: this book.*
 
 | System | Mandatory Fields | Use |
 |---|---|---|
@@ -458,24 +426,27 @@ The key judgment for readers is this: any object that can change Agent behavior,
 | ArgoCD Sync | revision, initiator, diff | When changes reached cluster |
 | Terraform apply | workspace, run_id, resource | Cloud resource changes |
 
-All three systems use consistent `tenant`/`environment` tags matching Chapter 45, facilitating finance compliance audits to trace any PR that relaxes cloud backend permissions—should be none; if any found, process has failed.
+All three systems use consistent `tenant` and `environment` tags matching Chapter 45. This lets finance compliance audits trace any PR that relaxes cloud backend permissions. Under the intended process there should be no such PR; if one exists, the process has already failed.
 
----
+## 46.7 GitOps as the Release Evidence Chain
+
+GitOps is useful because it turns production changes into an evidence chain. A model-service scale-out, gateway policy adjustment, secret rotation, or edge model rollout should be traceable from Git PR to ArgoCD Sync, then to cluster objects and runtime metrics. When an incident occurs, the team can determine who changed what, when it entered production, and which tenants were affected.
+
+IaC and application configuration should remain layered. Node pools, networks, object storage, and IAM fit Terraform. KServe, LiteLLM, Runtime, and observability components fit Helm or Kustomize. Tenant policies and model routing can live in controlled values files. Putting everything into one script may be fast in the short term, but it weakens rollback and audit. Layering is not for directory aesthetics; it clarifies ownership and rollback granularity.
+
+Edge inference especially needs GitOps discipline. Stores, factories, and handheld devices often run under unstable networks, and model versions may be distributed across multiple batches. OTA needs an artifact manifest, checksum, rollout batch, and rollback path. Otherwise the central platform may report a release as complete while edge sites still run old or partially updated models.
+
+Drift handling needs rules. Production cannot avoid every emergency change, but any manual repair must be written back to Git or restored through a PR. Long-lived OutOfSync state weakens Git as the source of truth. The compute, serving, and gateway capabilities from Chapters 43-45 enter production through the release evidence chain in this chapter. The acceptance standard is concrete: drift is visible, rollback is executable, and the release can be reproduced.
+
+GitOps should also connect to evaluation gates. Before PRs for model services, gateway routing, and Guardrails policy can be merged, the corresponding evaluations should run. If evaluation fails, the configuration should not enter production sync. In that sense, Git records change and also becomes a quality-control entry point.
 
 ## Chapter Recap
 
 1. GitOps shifts agent platform delivery from manual operations to PR-driven declarative reconciliation; Git is SSOT, ArgoCD is executor.
-2. Terraform manages cloud, Helm manages apps, Kustomize manages environment differences, ArgoCD manages synchronization—four layers with distinct responsibilities, not interchangeable.
+2. Terraform manages cloud, Helm manages apps, Kustomize manages environment differences, and ArgoCD manages synchronization. These four layers have distinct responsibilities and are not interchangeable.
 3. Prod promotion requires manual gates; secrets never enter Git but go through External Secrets.
 4. Edge inference is special GitOps overlay, requiring OTA, checksums, version inventory, not a governance blind spot.
 5. Failure modes cluster around drift, sync policy misconfiguration, missing state locks, and partial OTA updates. CI, audit, and runbooks must cover them together.
-
-## Further Reading
-
-- [Chapter 43: GPU Scheduling and Kubernetes](ch43-gpu-kubernetes.md)
-- [Chapter 44: Model Deployment](ch44.md)
-- [Chapter 45: LLM Gateway and Multi-Tenancy](ch45-llm.md)
-- [Chapter 47: Dialog UI](../../part09-frontend-multimodal/ch/ch47-ui.md)
 
 ## References
 

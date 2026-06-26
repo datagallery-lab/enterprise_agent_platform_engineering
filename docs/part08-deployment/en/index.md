@@ -1,25 +1,19 @@
 # Part VIII Deployment and Infrastructure
 
-> Part Owner: Xuhong | Status: v0.6 Draft
-> These four chapters form a complete chain **Scheduling → Service → Gateway → Delivery**.
+Part VIII moves from platform design to production operation. The chapters in this part discuss how model services, GPU clusters, gateways, GitOps, IaC, and edge inference become controlled infrastructure instead of scattered deployment scripts.
 
-## Chapters in This Section
+## Goals of this part
 
-| Chapter | Title                      | Core Responsibility     |
-|---------|----------------------------|------------------------|
-| [Chapter 43](ch43-gpu-kubernetes.md) | GPU Scheduling and Kubernetes | Where does compute power come from |
-| [Chapter 44](ch44.md)                 | Model Deployment             | How the model runs            |
-| [Chapter 45](ch45-llm.md)             | LLM Gateway and Multi-Tenancy | How requests enter            |
-| [Chapter 46](ch46-gitops-iac.md)      | GitOps, IaC, and Edge Inference | How the whole set is delivered |
+After reading this part, readers should understand how enterprise Agent platforms reserve GPU resources, expose model services, govern multi-tenant access, and release infrastructure changes with rollback evidence. The focus is production control: isolation, quota, runtime evidence, repeatable rollout, and incident recovery.
 
-## Reading Recommendations
+## Chapters in this part
 
-- **Architects:** Read from Chapter 43 through Chapter 46 in sequence for a comprehensive understanding of concepts and architecture.
-- **AI Application Developers:** Focus on engineering examples in Chapters 44 and 45.
-- **CTOs / Platform Leads:** Review the conceptual and architectural sections of each chapter with attention to ROI, compliance boundaries, and 3-year evolution.
+Chapter 43 discusses GPU scheduling and Kubernetes isolation. Chapter 44 explains model deployment and runtime verification. Chapter 45 treats the LLM gateway as a policy and evidence surface. Chapter 46 connects GitOps, IaC, edge inference, and rollback rehearsal.
 
-## Relationship to the Whole Book
+## Reading advice
 
-- Upstream: Part II Inference Engine (Chapters 6–7) provides the basis for runtime selection.
-- Downstream: Part IX Frontend (Chapter 47) relies on stable APIs from gateways and model services.
-- Cross-cutting: Part VII Cost/SLO (Chapters 41–42), Part X Security Isolation (Chapter 50).
+Read this part after Parts II and V if the main question is model serving and Agent runtime integration. Read it after Part VII if the main concern is how deployment evidence connects to Trace, SLO, and cost governance.
+
+## Relationship to the whole book
+
+Deployment is where platform promises become operational constraints. A model route, tool call, approval state, or report result is only credible when the underlying infrastructure can isolate tenants, record evidence, recover from failure, and make change history auditable.
