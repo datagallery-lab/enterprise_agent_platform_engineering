@@ -1,32 +1,26 @@
 # Chapter 3 AI-Native Business Systems: Agents Reshape Enterprise Software
 
 ---
-## Chapter Summary
+## Scenario introduction
 
-There is a fundamental divide between simply adding a chat box to an "old system" and building an AI-native system from the ground up. The former places an assistant alongside existing pages to improve local efficiency, while the latter centers around "tasks" rather than "pages," shifting user behavior from sequentially navigating functions to delegating goals to the system. This chapter first clarifies the essential difference between these two approaches, then explains that existing ERP, CRM, and BI systems will not disappear but will instead be modularized and restructured as tools. Next, it provides criteria for prioritizing which business processes are most suitable for AI-native transformation. Finally, using the example of business analysis evolving from manual data assembly to a task-oriented workbench, it illustrates why implementing AI-native capabilities simultaneously involves product, platform, and organizational challenges.
-## Key Terms
+An enterprise has already added AI functions to BI, CRM, ERP, and ticketing systems. Each system is easier to use than before: users can ask questions, summarize records, and receive anomaly hints. Yet before an operational review meeting, the owner still switches among systems, combines data manually, traces causes, and writes the meeting material. AI has been added to old pages, but the task is still stitched together by people. AI-native business systems change that division of labor. Users no longer start from a page. They hand a task to the system, such as preparing an operational analysis, handling a customer complaint, or generating quotation material. The Agent then orchestrates the underlying tools. Figure 3-1 contrasts legacy systems with added AI against systems organized around tasks.
 
-AI native, task-centered, page-centered, system tooling, product form, migration priority
-## Learning Objectives
+In the past few years, many enterprise systems have gained AI entry points. BI pages support natural language questions. CRM pages summarize customer status. ERP pages warn about inventory anomalies. Ticketing systems classify complaints. Knowledge bases support semantic search. Each function saves time and improves a local experience. In real work, however, users still decide which system to open first, which table to query next, which conclusion to put into a report, and which issue needs another person to confirm.
 
-- Be able to distinguish the essential differences between "AI Augmentation" (adding AI to existing systems) and "AI Native" (task-centered reconstruction) transformations.
-- Be able to explain why existing business systems are retained as tools rather than replaced in an AI Native architecture.
-- Be able to prioritize the migration to AI Native workflows in enterprise business based on value, feasibility, and risk.
-- Be able to identify the appropriate application scenarios for the three product forms: task assistants, embedded copilots, and agent workbenches.
+An operational review meeting is a typical example. On Friday afternoon, the operations owner prepares material for the following Monday. They inspect sales and gross margin in BI, check shortages in the inventory system, review complaints in the customer-service system, look up last month's campaign retrospective, and finally assemble data, charts, and explanations into slides. Every system has an AI assistant beside it, but those assistants only know their own page. The BI assistant does not know whether inventory is short. The ticketing assistant does not know the campaign rhythm. The knowledge-base assistant will not write the query result into meeting material. The human remains the orchestrator of the task chain.
 
----
-## Opening Scenario
+AI-native business systems change the organizing principle. The user moves from opening a page and completing an operation to stating a task and managing execution. After receiving "prepare operating analysis material for East China," the system needs to confirm the time range and metric definition, call BI, inventory, customer service, and knowledge tools, pause when it detects a conflict, and finally produce charts, conclusions, and to-dos with evidence. Legacy systems do not disappear. They become callable tools. Users also remain in the responsibility chain, but their attention shifts to goals, constraints, confirmation, and judgment.
 
 ![Figure 3-1: Comparison between Legacy Systems with Added AI and AI-Native Business Systems](../../images/part1/en/ch03-01.png)
 
-*Figure 3-1: Comparison between Legacy Systems with Added AI and AI-Native Business Systems. Source: drawn by the author. Alt text: On the left, the "Legacy System plus AI" has an assistant attached to the original page, and the user still operates features one by one; on the right, the "AI-Native" system is task-centered, where the user states a goal and the system orchestrates multiple legacy systems to accomplish it. The comparison highlights the shift of interaction entry points from pages to tasks.*
+*Figure 3-1: Comparison between Legacy Systems with Added AI and AI-Native Business Systems. Source: drawn by the author. Alt text: On the left, the "Legacy System plus AI" has an assistant attached to the original page, and the user still operates features one by one; on the right, the "AI-Native" system is task-centered, where the user states a goal and the system orchestrates multiple legacy systems to accomplish it. The comparison shows the shift of interaction entry points from pages to tasks.*
 
-Legacy systems add localized intelligence within existing modules, while AI-native business systems take business tasks as entry points and use agents to reorganize underlying system capabilities.
+Legacy systems add localized intelligence within existing modules, while AI-native business systems take business tasks as the entry point and use Agents to reorganize underlying capabilities. Readers should distinguish AI augmentation from AI native: the former makes a page smarter, while the latter gives the system more responsibility for organizing a task. The practical judgment is also important. Not every business should become AI native immediately. Priority usually comes from whether the task crosses systems, depends heavily on documents, requires repeated diagnosis, and can keep risk under confirmation and approval.
 
 ---
 ## 3.1 Why "Old Systems Plus AI" Is Not the Same as AI-Native
 
-A multi-business enterprise’s digital infrastructure is not outdated. The retail division has BI, the manufacturing division uses ERP, the customer service center operates a ticketing system, the financial shared service center manages a billing platform, and the headquarters maintains a knowledge base. Over the past few years, AI capabilities have been gradually added to these systems:
+A multi-business enterprise's digital infrastructure is not outdated. The retail division has BI, the manufacturing division uses ERP, the customer service center operates a ticketing system, the financial shared service center manages a billing platform, and the headquarters maintains a knowledge base. Over the past few years, AI capabilities have been gradually added to these systems:
 
 - BI supports natural language queries.
 - CRM can automatically summarize customer statuses.
@@ -36,16 +30,16 @@ A multi-business enterprise’s digital infrastructure is not outdated. The reta
 
 These capabilities represent genuine progress, but they have not fundamentally changed how business collaboration occurs.
 
-For example, before the group’s operational review meeting, the operations director still needs to repeat the same routine: open BI to check sales data, open the inventory system to identify shortages, open the customer service system to review complaints, open the knowledge base to revisit last month’s activity review, then compile all this information into a single report. Each system’s AI helps locally, but none take overall responsibility for the task of “preparing a usable operational review report for the meeting.”
+For example, before the group's operational review meeting, the operations director still needs to repeat the same routine: open BI to check sales data, open the inventory system to identify shortages, open the customer service system to review complaints, open the knowledge base to revisit last month's activity review, then compile all this information into a single report. Each system's AI helps locally, but none take overall responsibility for the task of "preparing a usable operational review report for the meeting."
 
-This precisely highlights the fundamental difference between AI-augmented and AI-native systems. AI-augmented systems add smarter capabilities within existing legacy systems; AI-native systems put “completing the task” itself at the center of the system design. The former improves local efficiency; the latter rewrites system roles and division of labor.
-## 3.2 From Page-Centered to Task-Centered: What Does AI Native Truly Change?
+This precisely shows the fundamental difference between AI-augmented and AI-native systems. AI-augmented systems add smarter capabilities within existing legacy systems; AI-native systems put "completing the task" itself at the center of the system design. The former improves local efficiency; the latter rewrites system roles and division of labor.
+## 3.2 From page-centered systems to task-centered systems
 
 Many teams, when they first hear "AI native," immediately think of changes to the interface: buttons replaced by conversations, forms replaced by chat windows. But if the understanding stays only at this superficial level, it is far too shallow.
 
 AI native business systems fundamentally change at least four aspects.
 
-*Table 3-1: From Entry to Interaction — Comparison Between Traditional Business Systems and AI Native Systems. Source: Compiled by the author.*
+*Table 3-1: From Entry to Interaction: Comparison Between Traditional Business Systems and AI Native Systems. Source: Compiled by the author.*
 
 | Change | Traditional Business System | AI Native Business System |
 |---|---|---|
@@ -54,7 +48,7 @@ AI native business systems fundamentally change at least four aspects.
 | **Responsibility** | Each system responsible only for its own module | Agent responsible for end-to-end task results |
 | **Collaboration** | Humans switch and piece together different systems | Systems switch between tools; humans provide constraints and validation |
 
-In the traditional model, the user's job is to "piece it together themselves"; in the AI native model, the user’s role shifts to "defining goals, supplementing constraints, and deciding whether to accept results." User mindset shifts from "operating systems" to "managing tasks."
+In the traditional model, the user's job is to "piece it together themselves"; in the AI native model, the user's role shifts to "defining goals, supplementing constraints, and deciding whether to accept results." User mindset shifts from "operating systems" to "managing tasks."
 
 There is also a deeper change often overlooked: in traditional systems, the page is the primary organizing principle of the system; in AI native systems, tasks begin to replace pages as the core organizing principle. Previously, enterprise software trained people to be "module users"; AI native systems train people to be "task initiators." These two kinds of training feed back into product design, data organization, and even departmental collaboration styles.
 
@@ -73,9 +67,9 @@ Enterprises have already gone through multiple rounds of system upgrades: digiti
 | **Intelligence** | Add prediction, recommendation, generation to local functions | Intelligent search, recommendations, summarization | Intelligence is local; end-to-end tasks still organized by humans |
 | **AI Native** | Enable dynamic organization of capabilities around task goals | Agent workbenches, task-based agents, generative UI | Requires platform, data, governance, and organizational support |
 
-This table illustrates that AI native does not negate previous stages. Without digitization, there are no data or systems to call on; without automation, there are no embedded process nodes; without intelligence accumulation, there are insufficient local capabilities. AI native builds on this foundation by elevating “tasks” to a new organizing center.
+This table illustrates that AI native does not negate previous stages. Without digitization, there are no data or systems to call on; without automation, there are no embedded process nodes; without intelligence accumulation, there are insufficient local capabilities. AI native builds on this foundation by elevating "tasks" to a new organizing center.
 
-If a multi-line enterprise does not have ERP, BI, CRM, ticketing systems, and knowledge bases, operational analysis agents have nothing to call on; without approval flows, quotation agents cannot safely access business processes. Therefore, AI native does not overthrow past informatization—it reorchestrates existing informatization assets.
+If a multi-line enterprise does not have ERP, BI, CRM, ticketing systems, and knowledge bases, operational analysis agents have nothing to call on; without approval flows, quotation agents cannot safely access business processes. Therefore, AI native does not overthrow past informatization. It reorchestrates existing informatization assets.
 ## 3.3 Legacy Systems Will Not Disappear but Will Be Toolified and Reorchestrated
 
 When discussing AI native systems, there is a common misconception: that all legacy systems will be replaced by a single conversational interface in the future. This judgment is overly simplistic.
@@ -92,7 +86,7 @@ ERP, CRM, BI, ticketing, and financial systems will not vanish just because Agen
 | Ticketing System | Users process tickets | Provide event streams, status changes, and disposition actions |
 | Knowledge Base | Users search materials | Provide referenceable policies, cases, and documentation |
 
-Therefore, the key to AI native systems is not to “eliminate legacy systems” but to gradually transform legacy systems from user-operated interfaces into tools that Agents can call within authorization scopes. If done well, user experience will be simplified; if done poorly, it will result in Agents bypassing systems, losing permission control, and producing untraceable outcomes.
+Therefore, the key to AI native systems is not to "eliminate legacy systems" but to gradually transform legacy systems from user-operated interfaces into tools that Agents can call within authorization scopes. If done well, user experience will be simplified; if done poorly, it will result in Agents bypassing systems, losing permission control, and producing untraceable outcomes.
 
 The emphasis in Chapter 2 on Tool Registry, Policy, and Trace reflects this principle. After legacy systems are toolified, the risk level of tools, call permissions, and outcome recording become essential platform management responsibilities.
 
@@ -104,21 +98,21 @@ Users trained on traditional systems have a mental model like this: Which page s
 
 AI native systems require a different set of skills: What exactly am I trying to accomplish? What constraints should I provide to the system? At what step is the task now? Are the results trustworthy, and do I need to confirm key points?
 
-This is not a minor change. Users are no longer primarily “system operators” but rather “task initiators” and “result adjudicators.” If enterprises do not help users with this mental shift, typical problems arise: a technically functional AI native system that fails to be adopted in practice.
+This is not a minor change. Users are no longer primarily "system operators" but rather "task initiators" and "result adjudicators." If enterprises do not help users with this mental shift, typical problems arise: a technically functional AI native system that fails to be adopted in practice.
 ## 3.4 Which Businesses Are First to Become AI-Native: Scenario Prioritization and Migration Order
 
 Not all business domains enter the AI-native stage simultaneously. In reality, the first to be transformed are often those tasks that are "cross-system, cross-knowledge sources, and cross-role," rather than highly structured, strong transactional, one-step operations.
 
 *Table 3-4: Types of Tasks Suited for Priority AI-Native Transformation with Examples from a Multi-Business-Line Enterprise. Source: Compiled in this book.*
 
-| Task Type                     | Why It’s Suitable for Priority Transformation     | Example from a Multi-Business-Line Enterprise       |
+| Task Type                     | Why It's Suitable for Priority Transformation     | Example from a Multi-Business-Line Enterprise       |
 |-------------------------------|--------------------------------------------------|-----------------------------------------------------|
 | **Cross-System Information Integration** | High cost of manual system switching and result stitching | Operational analysis, sales review, after-sales diagnosis |
 | **Document-Intensive Tasks**            | Rules and bases scattered across documents and knowledge bases | Compliance review, bid response, contract review    |
 | **Draft-Type Outputs**                  | Results can be generated first, then verified by humans | Quotation drafts, weekly operation reports, customer reply suggestions |
 | **Diagnostic Tasks**                    | Require stepwise narrowing-down, not single-point queries | Gross profit anomaly analysis, inventory exception root cause |
 
-In contrast, completely structured, one-time, strong transactional processes are usually not the first to be agent-automated. For example, actions like payment, contract signing, or master data deletion won’t suddenly become suited for automation just because of the phrase “AI-native.”
+In contrast, completely structured, one-time, strong transactional processes are usually not the first to be agent-automated. For example, actions like payment, contract signing, or master data deletion won't suddenly become suited for automation just because of the phrase "AI-native."
 
 If a multi-business-line enterprise can only focus on three to five AI-native scenarios in a year, it should not pick based solely on which department is most enthusiastic. A more reliable approach is to simultaneously consider business value, task structure, data readiness, and risk controllability.
 
@@ -136,7 +130,7 @@ This prioritization is not about absolute correctness but about ensuring decisio
 
 ### 3.4.1 How AI-Native Systems Build Trust
 
-Whether an AI-native system is adopted by the business ultimately depends on trust. This trust is not about “users thinking the model is smart”; it’s about whether users dare to entrust real tasks to the system.
+Whether an AI-native system is adopted by the business ultimately depends on trust. This trust is not about "users thinking the model is smart"; it's about whether users dare to entrust real tasks to the system.
 
 Enterprise user trust typically comes from five sources.
 
@@ -150,14 +144,14 @@ Enterprise user trust typically comes from five sources.
 | **Recoverability**        | Ability to retry, take over, rollback, or continue after failure |
 | **Sustainable Improvement** | User feedback is incorporated into evaluation and version iterations |
 
-If an agent’s output looks great but doesn’t provide evidence, business users at best consider it “inspirational.” If it provides evidence, status, and approval gateways, users start taking it seriously as a work system.
+If an agent's output looks great but doesn't provide evidence, business users at best consider it "inspirational." If it provides evidence, status, and approval gateways, users start taking it seriously as a work system.
 
-This also explains why an AI-native workbench cannot just be a chat box. Although chat boxes excel at expression, they are poor carriers of trust mechanisms. Task status, evidence zones, approval controls, and replay entry points—these features, which may seem less “intelligent,” are actually key to enterprise adoption.
+This also explains why an AI-native workbench needs more than a chat box. Although chat boxes are good for expression, they are weak carriers of trust mechanisms. Task status, evidence zones, approval controls, and replay entry points may look less "intelligent," but they decide whether enterprise users are willing to adopt the system.
 ## 3.5 AI-Native Product Forms: Task Assistants, Embedded Copilots, and Agent Workbenches
 
 The journey of a multi-business-line enterprise can be summarized in three broad phases.
 
-The first phase is **AI Augmentation**. Every system gains a degree of intelligence, but system boundaries and collaboration patterns remain fundamentally unchanged. BI is still BI; CRM is still CRM — they simply do a better job of understanding natural language and summarizing content.
+The first phase is **AI Augmentation**. Every system gains a degree of intelligence, but system boundaries and collaboration patterns remain fundamentally unchanged. BI is still BI; CRM is still CRM. They simply do a better job of understanding natural language and summarizing content.
 
 The second phase is **Agent Embedding**. Agents capable of handling cross-system tasks begin to appear. Rather than serving as isolated point solutions, these agents can orchestrate short task chains. Operational analysis agents, quotation agents, and customer-service quality-inspection agents typically belong to this phase.
 
@@ -167,11 +161,11 @@ Most enterprises will spend a prolonged period between the first and second phas
 
 ![Figure 3-2: Three-phase migration toward AI-native business systems](../../images/part1/en/ch03-02.svg)
 
-*Figure 3-2: Three-phase migration toward AI-native business systems. Source: original illustration by the authors. Alt text: Three phases shown left to right — Digitization (moving operations into systems), AI Augmentation (adding assistants to legacy systems), and AI Native (restructuring around tasks) — with arrows indicating that capabilities accumulate progressively rather than replacing what came before.*
+*Figure 3-2: Three-phase migration toward AI-native business systems. Source: original illustration by the authors. Alt text: Three phases shown left to right: Digitization (moving operations into systems), AI Augmentation (adding assistants to legacy systems), and AI Native (restructuring around tasks) with arrows indicating that capabilities accumulate progressively rather than replacing what came before.*
 
 Enterprises typically move from AI augmentation within legacy systems, through cross-system agent embedding, and ultimately arrive at a task-centric AI-native business system.
 
-### 3.5.1 An AI-Native System Is Not a Chat Box — It Is a Task Workbench
+### 3.5.1 AI-native systems as task workbenches
 
 When the topic of AI-native front ends comes up, the most common misconception is that swapping a search box for a chat box counts as AI-native. That is clearly insufficient.
 
@@ -187,11 +181,11 @@ A genuinely usable AI-native workbench must surface at least five categories of 
 | **Human Takeover Entry Point** | When the system is uncertain, the user must be able to intervene, edit, and resume |
 | **Approval and Confirmation Controls** | High-risk actions must not be hidden inside an ordinary message stream |
 
-This means an AI-native front end is typically a combination of conversation, task flow, structured results, and approval controls — not simply a larger input box.
+This means an AI-native front end is typically a combination of conversation, task flow, structured results, and approval controls, rather than simply a larger input box.
 
-Users do not merely type "generate an operational analysis report" and wait for the system to emit a wall of text. A better experience looks like this: the system first displays the task goal and scope, asking the user to confirm that this analysis will focus on East China, gross margin, and last week's data; it then shows which metrics it intends to query and which data sources it will reference; if it discovers mid-execution that a particular metric has two conflicting definitions, it pauses and asks the user to choose; finally, it delivers charts, conclusions, citations, and action items, and allows the user to submit the output to an approval workflow for meeting materials.
+Users do more than type "generate an operational analysis report" and wait for the system to emit a wall of text. A better experience looks like this: the system first displays the task goal and scope, asking the user to confirm that this analysis will focus on East China, gross margin, and last week's data; it then shows which metrics it intends to query and which data sources it will reference; if it discovers mid-execution that a particular metric has two conflicting definitions, it pauses and asks the user to choose; finally, it delivers charts, conclusions, citations, and action items, and allows the user to submit the output to an approval workflow for meeting materials.
 
-That is an AI-native workbench — not "a report stuffed into a chat box."
+That is an AI-native workbench, not a report stuffed into a chat box.
 
 ![Figure 3-3: Structure of an AI-native task workbench](../../images/part1/en/ch03-03.png)
 
@@ -204,17 +198,17 @@ Let's look at a complete case to understand how AI-native business systems funda
 
 A multi-line business enterprise holds its weekly business analysis meeting every Monday morning. Traditionally, starting Friday afternoon, the operations lead asks each region to submit data. The data team exports reports on sales, gross margin, inventory, promotions, and customer complaints. The operations specialist manually consolidates results from multiple systems into a PPT and then consults regional managers for explanations. By the Monday meeting, materials are usually ready, but they have three problems: first, inconsistent data definitions; second, root cause analysis often relies on manual experience; third, action items and follow-ups tend to get scattered across emails and chat groups.
 
-If AI is just used to enhance existing systems, each system becomes a little smarter. The BI tool can answer “What was the gross margin in East China last week?” The ticket system can summarize complaints. The knowledge base can retrieve promotional reviews. The user experience improves, but the operations lead still has to do manual stitching.
+If AI is just used to enhance existing systems, each system becomes a little smarter. The BI tool can answer "What was the gross margin in East China last week?" The ticket system can summarize complaints. The knowledge base can retrieve promotional reviews. The user experience improves, but the operations lead still has to do manual stitching.
 
-If the system enters an Agent embedding phase, a business analysis Agent can take over a whole task chain. The user states the objective: “Prepare the business analysis meeting materials for next Monday, focusing on East China’s abnormal gross margin.” The system first confirms analysis scope: time, region, metrics, meeting templates. It then queries sales, gross margin, promotions, inventory, complaints data, finds the margin decrease mainly comes from two categories, and further checks if it relates to promotional discounts, logistics costs, or out-of-stock substitution sales. If conflicting metric definitions exist, the system pauses for the user to select the preferred definition.
+If the system enters an Agent embedding phase, a business analysis Agent can take over a whole task chain. The user states the objective: "Prepare the business analysis meeting materials for next Monday, focusing on East China's abnormal gross margin." The system first confirms analysis scope: time, region, metrics, meeting templates. It then queries sales, gross margin, promotions, inventory, complaints data, finds the margin decrease mainly comes from two categories, and further checks if it relates to promotional discounts, logistics costs, or out-of-stock substitution sales. If conflicting metric definitions exist, the system pauses for the user to select the preferred definition.
 
-Ultimately, it doesn’t generate a chat response but a set of meeting materials: anomaly summary, charts, evidence references, possible causes, questions to confirm, and suggested actions. Users can edit conclusions or assign actions to regional managers.
+Ultimately, it doesn't generate a chat response but a set of meeting materials: anomaly summary, charts, evidence references, possible causes, questions to confirm, and suggested actions. Users can edit conclusions or assign actions to regional managers.
 
-If further developed into an AI-native business workbench, the change is more drastic. Business analysis is no longer just preparing materials weekly on demand but a continuously running task space. The system continuously monitors key metrics, generates tasks upon anomalies, accumulates evidence, and prompts responsible persons to add explanations. Before meetings, materials just aggregate this week’s task status, evidence, and decision recommendations. After meetings, action items continue to be tracked in the same workbench.
+If further developed into an AI-native business workbench, the change is more drastic. Business analysis is no longer just preparing materials weekly on demand but a continuously running task space. The system continuously monitors key metrics, generates tasks upon anomalies, accumulates evidence, and prompts responsible persons to add explanations. Before meetings, materials just aggregate this week's task status, evidence, and decision recommendations. After meetings, action items continue to be tracked in the same workbench.
 
 The differences across these three stages can be summarized as follows:
 
-*Table 3-8: Human-Machine Division of Labor at Each Stage of Business Analysis Meeting—From Traditional Mode to Task Workbench. Source: Compiled by this book.*
+*Table 3-8: Human-Machine Division of Labor at Each Stage of Business Analysis Meeting: From Traditional Mode to Task Workbench. Source: Compiled by this book.*
 
 | Stage                | What User Mainly Does                                   | What System Mainly Does                             | How Meeting Materials Are Formed                   |
 |----------------------|--------------------------------------------------------|----------------------------------------------------|----------------------------------------------------|
@@ -223,28 +217,28 @@ The differences across these three stages can be summarized as follows:
 | Agent Embedding      | Define analysis goals, confirm key nodes               | Cross-system root cause analysis, generate drafts  | Agent generates, human reviews                      |
 | AI-Native Workbench  | Manage ongoing tasks and action items                   | Continuous monitoring, attribution, evidence accumulation | Workbench auto-aggregates                           |
 
-This case shows that AI-native’s essence is not “automatically writing PPTs.” The real transformation is turning business analysis from one-time, ad hoc material preparation into continuous task management. The system does more than generate content—it reorganizes relationships between data, evidence, meetings, and actions.
+This case shows that AI-native's essence is not "automatically writing PPTs." The real transformation is turning business analysis from one-time, ad hoc material preparation into continuous task management. The system does more than generate content. It reorganizes relationships between data, evidence, meetings, and actions.
 
-![Figure 3-4: Business Analysis Meeting — From Manual Material Compilation to Task Workbench](../../images/part1/en/ch03-04.png)
+![Figure 3-4: Business Analysis Meeting: From Manual Material Compilation to Task Workbench](../../images/part1/en/ch03-04.png)
 
-*Figure 3-4: Business Analysis Meeting — From Manual Material Compilation to Task Workbench. Source: Self-drawn for this book.*
-*Alt text: Top 'Traditional Mode' shows operations staff manually querying and compiling materials across BI, inventory, and customer service systems. Bottom 'Task Workbench' shows user setting analysis goals, system automatically retrieving data and diagnosing, generating evidence-backed materials. The arrows highlight the step count difference between the two paths.*
+*Figure 3-4: Business Analysis Meeting: From Manual Material Compilation to Task Workbench. Source: Self-drawn for this book.*
+*Alt text: Top 'Traditional Mode' shows operations staff manually querying and compiling materials across BI, inventory, and customer service systems. Bottom 'Task Workbench' shows user setting analysis goals, system automatically retrieving data and diagnosing, generating evidence-backed materials. The arrows show the step count difference between the two paths.*
 
 AI-native systems organize cross-system data retrieval, anomaly root cause analysis, evidence accumulation, report generation, and action item follow-up into a continuous task chain.
 
 ### 3.6.1 User Training Focus: Task Templates, Not Prompts
 
-Many enterprises immediately organize “prompt training” after launching AI-native systems. While helpful, simply teaching users how to write prompts can misdirect focus. What enterprise users truly need to learn is not chatting with the model but expressing work as executable tasks.
+Many enterprises immediately organize "prompt training" after launching AI-native systems. While helpful, simply teaching users how to write prompts can misdirect focus. What enterprise users truly need to learn is not chatting with the model but expressing work as executable tasks.
 
-For example, “Help me analyze East China” is too vague. A better task definition should specify scope, goals, constraints, and deliverables: “Analyze last week’s East China gross margin decline causes, focusing on comparing impact of promotions, inventory, and logistics costs; output draft meeting materials and highlight questions needing regional manager confirmation.” This is not prompt engineering but task definition skill.
+For example, "Help me analyze East China" is too vague. A better task definition should specify scope, goals, constraints, and deliverables: "Analyze last week's East China gross margin decline causes, focusing on comparing impact of promotions, inventory, and logistics costs; output draft meeting materials and show questions needing regional manager confirmation." This is not prompt engineering but task definition skill.
 
-Therefore, AI-native systems should provide task templates, not just a blank input box. Task templates help users express goals clearly and help the system consistently understand boundaries.
+Therefore, AI-native systems should provide task templates rather than a blank input box alone. Task templates help users express goals clearly and help the system consistently understand boundaries.
 
 *Table 3-9: Roles of Various Elements in a Business Analysis Task Template. Source: Compiled by this book.*
 
 | Template Element | Purpose                                                  |
 |------------------|----------------------------------------------------------|
-| Task Goal        | Clarify what to accomplish, not just vague questions      |
+| Task Goal        | Clarify what to accomplish instead of asking a vague question |
 | Analysis Scope   | Limit by time, region, product category, customer, process |
 | Constraints      | Specify definitions, rules, risk boundaries               |
 | Deliverables     | Specify report, charts, draft, recommendations, action items|
@@ -252,29 +246,28 @@ Therefore, AI-native systems should provide task templates, not just a blank inp
 
 A multi-line business can prepare a set of task templates for different scenarios: business analysis template, quotation draft template, customer service quality inspection template, invoice anomaly template, contract clause review template. Users start from business tasks, not from blank dialogs. This lowers entry barriers and makes platform evaluation and governance easier.
 
-Task templates also have an added value: they solidify organizational experience. How excellent operations managers prepare business analysis meetings, how senior sales judge quotation risks, how finance supervisors check invoice anomalies—all can gradually be embedded into templates. The long-term value of AI-native systems emerges through this accumulation.
+Task templates also have an added value: they solidify organizational experience. How excellent operations managers prepare business analysis meetings, how senior sales judge quotation risks, and how finance supervisors check invoice anomalies can all gradually be embedded into templates. The long-term value of AI-native systems emerges through this accumulation.
 
 ![Figure 3-5: From Functional Menus to Role Task Maps](../../images/part1/en/ch03-05.png)
 
 *Figure 3-5: From Functional Menus to Role Task Maps. Source: Self-drawn for this book.*
 *Alt text: On the left, a functional menu tree organized by system modules; on the right, a high-frequency task map organized by roles such as operations, sales, and customer service. Arrows indicate the product organization shifting from "function-first" to "role-task-first."*
 
-AI-native business systems no longer organize entry only by function modules but build workspaces centered on high-value tasks for different roles.
-## 3.7 Chapter Conclusion: AI-Native Will Ultimately Return to the Platform Panorama
+AI-native business systems should build workspaces around high-value tasks for different roles while keeping the necessary functional modules available as support.
 
-What this chapter truly aims to deliver to readers is a demystified understanding of the term "AI-native business system."
+## 3.8 Migration path for AI-native systems
 
-First, AI-native is not just "adding another chat box"; it means the system organizes itself around tasks rather than pages.
+AI-native business systems do not emerge by replacing every page with a chat box. A more realistic migration path starts by identifying business processes that already involve heavy system switching, manual copying, metric interpretation, and approval waiting. Those processes can then be turned into task entry points. The Agent coordinates the task: it understands the goal, calls tools, organizes evidence, waits for confirmation, and produces the final artifact. The interface may be a conversation, a workbench, a report page, or an embedded Copilot. The important change is that the task becomes the organizing unit.
 
-Second, legacy systems will not disappear but will recede into the tool layer. They will continue to provide facts, rules, permissions, auditing, and transactional consistency.
+Migration must protect the boundaries of existing systems. CRM, ERP, BI, the data warehouse, and ticketing systems remain systems of record. If an Agent bypasses them and maintains another version of the truth, reconciliation, audit, and permission control will break later. The AI-native layer is better understood as a task orchestration and explanation layer. It organizes existing system capabilities into a smoother workflow while keeping business data governed by the original authoritative systems. In that arrangement, the Agent platform owns intent, state, evidence, and action coordination.
 
-Third, the best candidates for early AI-native adoption are those tasks that span multiple systems and knowledge sources, where draft generation and diagnostics are possible.
+The migration should usually follow three steps. First, start with an AI-enhanced page or embedded Copilot in an existing system, where risk is low and user habits remain familiar. Second, extract a cross-system task chain and let an Agent coordinate it under explicit approval and trace requirements. Third, turn repeated task chains into a role-based workbench with templates, state, evidence, structured results, and follow-up actions. The goal is not a dramatic interface change. The goal is to move real work from manual stitching to controlled task execution.
 
-Fourth, the AI-native front end should be designed as a task workspace rather than simply an enlarged chat interface.
+## Chapter summary
 
-Fifth, AI-native is not a purely technical movement; it inevitably impacts product design, data, platform, security, and business collaboration methods.
+AI native does not mean adding another chat box to a legacy system. It means organizing the system around tasks rather than pages. Legacy systems continue to provide facts, rules, permissions, audit records, and transactional consistency, but they increasingly expose those capabilities as tools that Agents can call under governance.
 
-The next chapter will regroup these conclusions into a complete map: Given that agent platforms ultimately serve AI-native business systems, why does the rest of this book proceed along the route of models, data, knowledge, platforms, evaluation, and security?
+The first AI-native scenarios should usually be cross-system, document-intensive, draft-oriented, or diagnostic tasks where risk can be controlled through confirmation and approval. The frontend should be a task workspace with status, evidence, structured results, takeover, and approval controls. AI-native transformation affects product design, data foundations, platform capabilities, security, and business collaboration at the same time. The next chapter turns these conclusions into the full-book map.
 ## References
 
 Yao, S. et al. (2023). [*ReAct: Synergizing Reasoning and Acting in Language Models*](https://arxiv.org/abs/2210.03629). ICLR.

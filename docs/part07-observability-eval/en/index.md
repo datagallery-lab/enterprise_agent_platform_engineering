@@ -2,9 +2,9 @@
 
 ## Objectives of This Section
 
-This section addresses a critical set of questions for an enterprise-grade Agent platform moving from "just running" to "operational excellence": How to understand why an Agent succeeds or fails, whether online quality is improving, if costs are controllable, and whether the system can withstand real business traffic.
+This section addresses a high-risk set of questions for an enterprise-grade Agent platform moving from "just running" to "operational excellence": How to understand why an Agent succeeds or fails, whether online quality is improving, if costs are controllable, and whether the system can withstand real business traffic.
 
-Observability, evaluation, cost governance, and SLOs are not just add-ons after launch; they form the production foundation of an Agent platform. Without tracing, it is impossible to review a multi-step task execution; without evaluation, it is impossible to judge if changes in models, prompts, tools, or data cause regressions; without cost and resilience governance, Agents can easily spiral out of control during long-running tasks, high concurrency, or uncertain inference.
+Observability, evaluation, cost governance, and SLOs are more than add-ons after launch; they form the production foundation of an Agent platform. Without tracing, it is impossible to review a multi-step task execution; without evaluation, it is impossible to judge if changes in models, prompts, tools, or data cause regressions; without cost and resilience governance, Agents can easily spiral out of control during long-running tasks, high concurrency, or uncertain inference.
 
 ## Chapters in This Section
 
@@ -52,7 +52,7 @@ Observability, evaluation, cost governance, and SLOs are not just add-ons after 
 
 ## Recommended Reading Paths
 
-- **Platform Leaders / CTOs**: Focus on the observability closed loop in Chapter 38, evaluation systems in Chapters 39–40, and cost & SLO trade-offs in Chapters 41–42.
+- **Platform Leaders / CTOs**: Focus on the observability closed loop in Chapter 38, evaluation systems in Chapters 39-40, and cost & SLO trade-offs in Chapters 41-42.
 - **Architects**: Read the entire section, with emphasis on trace data models, evaluation platform architecture, online experimentation, cache hierarchy, and stability strategies.
 - **Engineers**: Read the full section and align with engineering implementations in `mini-platform/core/observability/`, `mini-platform/core/eval/`, and `mini-platform/core/gateway/`.
-- **Data Intelligence Teams**: Focus on Chapters 39–40 to establish DataAgent offline benchmarks, online feedback, and continuous regression mechanisms.
+- **Data Intelligence Teams**: Focus on Chapters 39-40 to establish DataAgent offline benchmarks, online feedback, and continuous regression mechanisms.

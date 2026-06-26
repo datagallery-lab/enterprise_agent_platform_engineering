@@ -1,14 +1,14 @@
 # Enterprise Agent Platform Engineering
 
-This book is about building enterprise-grade Agent platforms: data foundations, model inference, knowledge engineering, Agent Runtime, tool ecosystems, evaluation, deployment, frontend interaction, security, compliance, and operating models.
+This book is for teams building enterprise-grade Agent platforms. It covers the engineering system behind production Agents: data foundations, model inference, knowledge engineering, Agent Runtime, tool ecosystems, evaluation, deployment, frontend interaction, security, compliance, and organizational governance.
 
-The English edition follows the same structure as the Chinese edition. The first release keeps the book honest: chapters with stable technical content are published; acknowledgements, real business cases, and project closure material are left blank unless there is verified source material.
+The first English edition follows the same structure as the current Chinese draft. Stable technical chapters are published first. Case chapters, acknowledgements, and project-closure material remain placeholders until they have verified source material.
 
 ## Edition Entry Points
 
 | Edition | Entry |
 | --- | --- |
-| Chinese | [Start with Part I](../../part01-overview/ch/index.md) |
+| Chinese | Available from the site language switcher |
 | English | [Start with Part I](../../part01-overview/en/index.md) |
 
 ## Front Matter
@@ -36,3 +36,22 @@ The English edition follows the same structure as the Chinese edition. The first
 | [Part IX Frontend, Interaction, and Multimodality](../../part09-frontend-multimodal/en/index.md) | Conversational UI, Generative UI, multimodal input, and voice Agents |
 | [Part X Security, Compliance, and Organization](../../part10-security-org/en/index.md) | Security, Guardrails, regulation, organization, and platform evolution |
 | [Part XI Case Methodology](../../part11-cases/en/index.md) | Case admission, review, and platform consolidation standards |
+
+## Reading Paths
+
+| Role | Recommended Path |
+| --- | --- |
+| AI platform leader / CTO | Part I -> Part V -> Part VI -> Part X |
+| Architect | Part I -> Part II -> Part III -> Part IV -> Part V -> Part VIII |
+| Data intelligence engineer | Part III -> Part IV -> Part VI -> Part VII |
+| AI application developer | Part II -> Part V -> Part IX -> mini-platform |
+| Security / compliance owner | Part I -> Part VII -> Part X |
+
+## Local Validation
+
+```bash
+bash scripts/check_all.sh
+python -m mkdocs build --strict --clean --site-dir /tmp/enterprise-agent-book-site
+```
+
+The first command checks chapter structure, terminology, sensitive information, and mini-platform tests. The second command verifies that the web-book project can build in strict mode. Together, they cover the main local quality gates before a submission.

@@ -1,30 +1,17 @@
 # Chapter 38 Agent Observability and Operational Diagnostics
 
 ---
-## Chapter Summary
 
-This chapter discusses the observability and runtime diagnostics of Agent platforms. Failures of an Agent often do not appear in the final answer but are hidden within context packaging, Planner decisions, tool parameters, permission policies, downstream systems, or some step in artifact generation. The platform must connect the evidence chain of a single Run using traces, spans, events, logs, metrics, and artifact references. This chapter clarifies the boundaries of Session, Run, Context Package, Trace, Checkpoint, and Artifact, explains how to collect runtime traces and diagnose failures, and describes how online tracing feeds into the continuous improvement loop of AgentOps.
-## Key Terms
+Agent failures often do not appear directly in the final answer. They hide in context packaging, Planner decisions, tool parameters, permission policies, downstream systems, or artifact generation. The platform needs Trace, Span, events, logs, metrics, and artifact references to connect the evidence chain of a single Run. This chapter defines the boundaries of Session, Run, Context Package, Trace, Checkpoint, and Artifact, then explains how runtime traces are collected, how failures are diagnosed, and how online Trace evidence enters the AgentOps improvement loop.
 
-Observability, Trace, Span, Context Package, Checkpoint, Artifact, AgentOps
-## Learning Objectives
+An Agent being able to provide an answer does not mean it is ready for production use. The team also needs to know why it responded that way, what context it saw at the time, which tools it invoked, what SQL criteria were used, which artifact the charts in the report came from, and at which step it failed. Without this evidence, troubleshooting is guesswork.
 
-- Distinguish the responsibility boundaries of Session, Turn, Run, Trace, Checkpoint, and Artifact.
-- Explain which observable evidence should be recorded at a minimum during an Agent Run.
-- Use Trace to pinpoint whether a failure occurred in context, planning, tools, data, permissions, or downstream systems.
-- Integrate online failure samples into evaluation, regression, and staged release processes.
+Take DataAgent as an example. The user first asks, "Why did the operating cash flow decline this month?" The system generates SQL, executes the query, analyzes the reasons, and produces charts. Then the user asks, "Break out the East China region separately." The system must remember the previous round's metrics, time frame, and analysis intent. Finally, the user requests, "Generate a briefing for the CFO." The system must reuse conclusions, charts, and criteria from the previous two rounds. The frontend only shows three dialogue rounds, but the backend involves multiple Runs, multiple Tool Calls, context summaries, Memory, chart artifacts, and report approvals.
+
+The goal of observability is not to store every raw text string, but to save a sufficient evidence chain. When results are wrong, costs spike, approvals reject, or users complain, the platform should be able to answer which step went wrong, why it happened, and how to avoid it next time. In DataAgent especially, a wrong number may come from the semantic layer, NL2SQL, query execution, interpretation, report generation, or context inheritance. Trace turns that chain into inspectable evidence.
 
 ---
-## Opening Scenario
-
-An Agent being able to provide an answer does not mean it is ready for production use. The team also needs to know why it responded that way, what context it saw at the time, which tools it invoked, what SQL criteria were used, which artifact the charts in the report came from, and at which step it failed if any. Without this evidence, troubleshooting is guesswork.
-
-Take DataAgent as an example. The user first asks, "Why did the operating cash flow decline this month?" The system generates SQL, executes the query, analyzes the reasons, and produces charts. Then the user asks, "Break out the East China region separately." The system must remember the previous round’s metrics, time frame, and analysis intent. Finally, the user requests, "Generate a briefing for the CFO." The system must reuse conclusions, charts, and criteria from the previous two rounds. The frontend only shows three dialogue rounds, but the backend involves multiple Runs, multiple Tool Calls, context summaries, Memory, chart artifacts, and report approvals.
-
-The goal of observability is not to store every raw text string, but to save a sufficient evidence chain: when results are wrong, costs spike, approvals reject, or users complain, the platform can answer “which step went wrong, why it happened, and how to avoid it next time.”
-
----
-## 38.1 Boundaries of Runtime Objects
+## 38.1 Session, Run, Trace, and Artifact
 
 Agent runtime generates many types of objects. The most easily confused are Session and Run. A Session represents a continuous interaction with the user, which can include multiple Turns and trigger multiple Runs. A Run is a single specific task execution, such as one cash flow analysis, one SQL query, or one report generation. Trace describes the detailed steps within a Run; Checkpoint enables interrupt and resume; Artifact references outputs like charts, SQL queries, reports, Excel files, etc.
 
@@ -58,16 +45,16 @@ flowchart TB
 
 These object boundaries should be separated in the storage model. Session serves frontend review and user experience; Run serves execution and state management; Trace serves playback and diagnostics; Checkpoint serves recovery; Artifact serves delivery, download, and audit. Mixing them into one "big log table" may simplify early implementations but will incur costs later on permissions, lifecycle management, and troubleshooting.
 
-The Context Package is especially critical. The model does not “see the entire session” but sees a context package assembled by the Runtime at that moment. It may include the latest user utterance, recent turns, early summaries, Memory, Schema, Tool Specs, and policy context. When diagnosing multi-turn errors, you must inspect the Context Package, not just the full Session.
+The Context Package is especially high-risk. The model sees the context package assembled by the Runtime at that moment, rather than the entire Session. It may include the latest user utterance, recent turns, early summaries, Memory, Schema, Tool Specs, and policy context. When diagnosing multi-turn errors, the Context Package is the primary evidence and the full Session is background material.
 
 These objects also correspond to different lifecycles. Sessions might be retained for a period based on user experience and compliance; Traces may enter observability systems and be retained according to debugging and auditing policies; Checkpoints only remain valid within the task recovery window; Artifacts may be archived long-term or expire quickly due to sensitive data. Without distinct lifecycles, cleanup, export, and permission handling become chaotic.
 
-Multi-tenant platforms must also bind tenants and permissions per object type. An operations staff member may view Trace structure and error types but not raw tool outputs; a business user may see their own report artifacts but not model input summaries; an auditor may view desensitized evidence chains according to process. Observability is not “everyone can see all logs,” but enabling the right people to see sufficient evidence under the right permissions.
+Multi-tenant platforms must also bind tenants and permissions per object type. An operations staff member may view Trace structure and error types but not raw tool outputs; a business user may see their own report artifacts but not model input summaries; an auditor may view desensitized evidence chains according to process. Observability means the right people see sufficient evidence under the right permissions.
 
 ---
 ## 38.2 What Should a Single Run Record
 
-A diagnosable run should at minimum record identity, context, steps, model calls, tool calls, state transitions, artifacts, and costs. The recording granularity doesn’t need to be infinitely fine but must be sufficient to answer questions such as: Where did the task come from? What did the model see? Which tools were chosen? What parameters did the tools receive? What did downstream returns contain? Where did the final artifact originate?
+A diagnosable run should at minimum record identity, context, steps, model calls, tool calls, state transitions, artifacts, and costs. The recording granularity doesn't need to be infinitely fine but must be sufficient to answer questions such as: Where did the task come from? What did the model see? Which tools were chosen? What parameters did the tools receive? What did downstream returns contain? Where did the final artifact originate?
 
 ![Figure 38-1: Diagram of Agent Run Trace Collection](../../images/part7/en/ch38-01.png)
 
@@ -90,14 +77,14 @@ A failed run should not be recorded simply as `failed`. It must at least log the
 
 Collection should also control field stability. `run_id`, `trace_id`, `span_id`, `step_id`, `artifact_id`, and `tenant_id` are cross-system correlation keys and should not be frequently renamed. Logs, metrics, Traces, and Report EvidenceRefs all rely on these keys for navigation. Consistent field naming is more important than overly detailed one-off records.
 
-OpenTelemetry can serve as a general skeleton for tracing. The agent platform can map model calls, tool calls, retrievals, SQL executions, and report generation as Spans, while state changes, retries, approvals, and errors map to Events. For model inputs/outputs, tool results, and artifacts, it’s recommended to only save summaries, hashes, and references, avoiding turning the OpenTelemetry backend into a large object store.
+OpenTelemetry can serve as a general skeleton for tracing. The agent platform can map model calls, tool calls, retrievals, SQL executions, and report generation as Spans, while state changes, retries, approvals, and errors map to Events. For model inputs/outputs, tool results, and artifacts, it's recommended to only save summaries, hashes, and references, avoiding turning the OpenTelemetry backend into a large object store.
 
-Collection points should not be limited to successful paths. Retries, refusals, human takeovers, Policy denials, context compression, cache hits, demotion to smaller models, switching to async tasks — these events all affect diagnosis. Many online issues are not “tool failures” but system choices to downgrade without recording reasons.
+Collection points should cover unsuccessful and degraded paths as well. Retries, refusals, human takeovers, Policy denials, context compression, cache hits, demotion to smaller models, and switching to async tasks all affect diagnosis. Many online issues are system choices to downgrade without recording reasons, not ordinary tool failures.
 ## 38.3 Frontend Timeline and Backend Trace
 
 The timeline presented to users should be simple and stable, for example: "Understanding Requirements," "Querying Data," "Generating Chart," and "Waiting for Approval." The backend trace, however, is more detailed: a single "Querying Data" step may include Schema Linking, SQL Generation, AST Validation, Policy Validation, OLAP Execution, Result Truncation, and Artifact Writing.
 
-The frontend timeline serves the user experience, while the backend trace serves diagnostics. The two cannot substitute for each other. The frontend should not expose every internal event, or users will be overwhelmed by implementation details; the backend also cannot only store frontend cards, or it will be impossible to locate the real failure point when troubleshooting.
+The frontend timeline serves the user experience, while the backend trace serves diagnostics. The two cannot substitute for each other. The frontend should not expose every internal event, or users will be overwhelmed by implementation details; the backend must store more than frontend cards so engineers can locate the real failure point during troubleshooting.
 
 A trace is not the raw internal output of the model's reasoning. The platform should store auditable decision summaries, tool calls, input and output summaries, errors, and artifact references, rather than long-term preservation of implicit model reasoning that is unsuitable for display or persistence. This enables review while controlling compliance risks.
 
@@ -108,15 +95,15 @@ The backend trace must also support time analysis. A slowdown in a Run may be ca
 
 Multi-turn conversations are not passed into the next model call verbatim. The runtime retains the latest user request and keeps the full text of the most recent few turns, while compressing earlier history into a Context Summary. Large objects are only referenced by pointers. Memory, Schema, and Policy Context are then injected. When replaying, the Context Package for that particular run must be examined.
 
-A Context Package must at minimum record: the source of each item, whether it entered the model, how it entered, the summary version, reference objects, and estimated token counts. Only then can questions such as “Did the model see the chart parameters from the last turn?” or “Did the summary omit the East China region filter?” or “Did Memory incorrectly inject user preferences?” be answered.
+A Context Package must at minimum record: the source of each item, whether it entered the model, how it entered, the summary version, reference objects, and estimated token counts. Only then can questions such as "Did the model see the chart parameters from the last turn?" or "Did the summary omit the East China region filter?" or "Did Memory incorrectly inject user preferences?" be answered.
 
-Context compression failures are a common issue for agents. For example, if the summary omits “Only look at East China,” subsequent SQL may query the whole company. Or if the chart artifact only retains the image but not the generation parameters, a later command like “redraw that chart” will fail. The trace must preserve `context_summary_id`, source turn, and compression strategy, otherwise these issues are difficult to diagnose.
+Context compression failures are a common issue for agents. For example, if the summary omits "Only look at East China," subsequent SQL may query the whole company. Or if the chart artifact only retains the image but not the generation parameters, a later command like "redraw that chart" will fail. The trace must preserve `context_summary_id`, source turn, and compression strategy, otherwise these issues are difficult to diagnose.
 
-Memory must also be separated from Context Summary. The summary comes from the current session’s history; memory may be reused across sessions. Summaries can be regenerated, but memory requires deletion, expiration, and access controls. Mixing the two complicates deletion and auditing.
+Memory must also be separated from Context Summary. The summary comes from the current session's history; memory may be reused across sessions. Summaries can be regenerated, but memory requires deletion, expiration, and access controls. Mixing the two complicates deletion and auditing.
 
 The replay page is best organized as an evidence chain rather than a reverse chronological log stack. Start by showing the user query and task goal, then display the Context Package, followed by Planner decisions, tool calls, state transitions, artifacts, and the final response. This lets business, engineering, and auditing all view the same chain but with different visible fields.
 
-Replay must also support “the then version.” Prompt versions, model versions, ToolSpec versions, semantic layer versions, Policy versions, and report template versions may all change. Historical runs must be interpreted using the versions active at that time, not with the current configuration. Otherwise replay becomes “what the current system thinks happened” instead of “what actually happened then.”
+Replay must also support "the then version." Prompt versions, model versions, ToolSpec versions, semantic layer versions, Policy versions, and report template versions may all change. Historical runs must be interpreted using the versions active at that time, not with the current configuration. Otherwise replay becomes "what the current system thinks happened" instead of "what actually happened then."
 
 If a run needs to be re-executed, it should be marked as a new debug execution. Re-running can help verify fixes but should not overwrite the original trace. The original trace is the factual record; the rerun trace is an experimental record. Both should be kept linked to avoid mixing problem review and fix validation.
 
@@ -138,36 +125,104 @@ Diagnosis typically begins with metrics. A drop in success rate, an increase in 
 | Permission Failures    | Policy denial, field desensitization, tenant boundary crossing | Change permission prompts or approval paths    |
 | Cost Out of Control    | Token explosion, retry loops, broad queries | Increase budget, add caching and step limits   |
 
-When diagnosing, avoid letting a single phrase like “model hallucination” obscure all issues. Many results that look like model nonsense actually stem from missing semantic layer fields, unclear tool descriptions, missing constraints in context summaries, or ambiguous permission feedback. The value of a trace is to break down responsibility boundaries.
+When diagnosing, avoid letting a single phrase like "model hallucination" obscure all issues. Many results that look like model nonsense actually stem from missing semantic layer fields, unclear tool descriptions, missing constraints in context summaries, or ambiguous permission feedback. The value of a trace is to break down responsibility boundaries.
 
-Playback is not rerunning the model. LLM output is stochastic—playback aims to reconstruct the evidence chain at that time: input, Prompt version, tool outputs, state transitions, artifacts, and final answer. If needed, specific tool calls can be replayed, but that counts as debugging rather than pure playback.
+Playback is not rerunning the model. LLM output is stochastic, and playback aims to reconstruct the evidence chain at that time: input, Prompt version, tool outputs, state transitions, artifacts, and final answer. If needed, specific tool calls can be replayed, but that counts as debugging rather than pure playback.
 
-Root cause analysis requires clear ownership. Context packaging problems belong to Runtime or Memory policy, semantic layer problems to the data platform, tool parameter issues to Tool and Planner, permission denials to Policy, and model quality issues to Prompt, model routing, or evaluation sets. A trace doesn’t just describe errors; it helps teams know who should fix them.
+Root cause analysis requires clear ownership. Context packaging problems belong to Runtime or Memory policy, semantic layer problems to the data platform, tool parameter issues to Tool and Planner, permission denials to Policy, and model quality issues to Prompt, model routing, or evaluation sets. A trace doesn't just describe errors; it helps teams know who should fix them.
 
 Diagnosis results should be documented. After a post-incident review, failure runs should be marked as samples, recording failure categories, fix actions, and regression status. When the same problem recurs, the team should not start guessing from logs again but be able to search historical similar traces and fix records.
 
-For user-facing faults, diagnostic info should be converted to understandable feedback. An internal error might be `SCHEMA_LINKING_AMBIGUOUS`, but the user sees “Sales volume has multiple definitions; please choose between operational GMV or financial GMV.” Observability systems record technical details, product interfaces provide actionable guidance, and both must share error codes.
+For user-facing faults, diagnostic info should be converted to understandable feedback. An internal error might be `SCHEMA_LINKING_AMBIGUOUS`, but the user sees "Sales volume has multiple definitions; please choose between operational GMV or financial GMV." Observability systems record technical details, product interfaces provide actionable guidance, and both must share error codes.
 
 ---
 ## 38.6 AgentOps Closed Loop
 
 Observability is not valuable enough if it is used only for incident investigation. The Agent platform needs to turn online traces into quality improvement assets. Failed runs, timed-out runs, high-cost runs, user downvotes, manual interventions, and approval rejections should all enter the sample pool, be cleaned, and then feed into the offline evaluation of Chapter 39 and the online evaluation of Chapter 40.
 
-AgentOps can operate along a simple chain: collect run traces, filter high-value samples, cluster by failure category, accumulate benchmarks, fix prompts, tools, semantic layers, or policies, run regression tests, perform staged rollouts, and continue monitoring online metrics. This closed loop transforms traces from mere “logs” into “engineering assets.”
+AgentOps can operate along a simple chain: collect run traces, filter high-value samples, cluster by failure category, accumulate benchmarks, fix prompts, tools, semantic layers, or policies, run regression tests, perform staged rollouts, and continue monitoring online metrics. This closed loop transforms traces from mere "logs" into "engineering assets."
 
 For example, if user downvotes increase for a batch of cash flow analysis tasks, metrics first detect quality degradation; traces reveal that multiple failed samples selected the wrong cash flow scope at the schema linking stage; the team adds these samples to offline evaluation, enriches field descriptions and sample SQL; after passing regression, the fix is staged online; then success rate, judge scores, user feedback, and token costs for similar tasks are continuously monitored. The entire process relies on traceable run evidence.
 
-Sample governance should avoid collecting only failures. Successfully completed runs with abnormal costs, runs where users manually made large report edits, and runs that were rejected by HITL but then fixed successfully are also valuable. They expose hidden quality issues: answers may be correct but too slow, reports usable but requiring heavy manual edits, advice directionally right but with insufficient evidence. AgentOps needs these intermediate states, not only success and failure.
+Sample governance should avoid collecting only failures. Successfully completed runs with abnormal costs, runs where users manually made large report edits, and runs that were rejected by HITL but then fixed successfully are also valuable. They expose hidden quality issues: answers may be correct but too slow, reports usable but requiring heavy manual edits, advice directionally right but with insufficient evidence. AgentOps needs these intermediate states in addition to clear successes and failures.
 
 Evaluation samples must also be desensitized and minimized. Online traces cannot be directly used as benchmarks, especially when containing client data, PII, or business-sensitive fields. Sample retention should preserve task structure, error categories, essential input summaries, tool result summaries, and expected behavior; whenever synthetic data can substitute, real details should be removed.
 
 AgentOps ultimately returns to release governance. Any change to the model, prompts, tool descriptions, semantic layers, or policies should be traceable to which samples were fixed, which scenarios regressed, and which metrics remained stable during staged rollouts. Without this chain, teams can only guess if a change is safe.
 
-Before samples enter the evaluation set, they must undergo “evidence minimization.” Traces often contain user original texts, business fields, tool parameters, and downstream response summaries—the platform cannot keep all fields long-term. Samples can be split into three layers: the first layer is publicly reusable task structure and expected behavior, the second layer is internally visible, desensitized tool results, and the third layer is raw evidence accessible only via approval. The evaluation set by default retains only the first two layers, while the third layer can be back-referenced via EvidenceRef. This enables reproducibility without uncontrolled copying of production logs to the evaluation system.
+Before samples enter the evaluation set, they must undergo "evidence minimization." Traces often contain user original texts, business fields, tool parameters, and downstream response summaries, and the platform cannot keep all fields long-term. Samples can be split into three layers: the first layer is publicly reusable task structure and expected behavior, the second layer is internally visible, desensitized tool results, and the third layer is raw evidence accessible only via approval. The evaluation set by default retains only the first two layers, while the third layer can be back-referenced via EvidenceRef. This enables reproducibility without uncontrolled copying of production logs to the evaluation system.
 
 Sampling strategy must also be explicitly documented. Storing all traces is costly and risky; storing only failed samples leaves teams blind to normal paths. A prudent approach is: low-rate sampling of successful runs, increased sampling for high-risk tasks and new version rollouts, keeping all failed, timed-out, manually taken over, and user downvoted samples. Sampling rules themselves should be versioned since differences in pre/post release sampling ratios affect quality trend interpretation.
 
-Finally, AgentOps needs a fixed retrospective entry point. Whenever a quality issue is closed, the retrospective record should at minimum include related traces, failure categories, fix PRs, regression samples, release versions, and observation windows. Without these fields, fixes tend to remain superficial “prompt tweaks.” The platform should convert a temporary firefight into a traceable quality asset so that next time a similar issue arises, engineers can build on historical samples and fix records rather than re-digging logs.
+Finally, AgentOps needs a fixed retrospective entry point. Whenever a quality issue is closed, the retrospective record should at minimum include related traces, failure categories, fix PRs, regression samples, release versions, and observation windows. Without these fields, fixes tend to remain superficial "prompt tweaks." The platform should convert a temporary firefight into a traceable quality asset so that next time a similar issue arises, engineers can build on historical samples and fix records rather than re-digging logs.
+
+---
+
+## 38.7 Using Trace for Incident Localization
+
+Trace is valuable because it connects what the user saw with what the backend actually executed. A DataAgent incident often crosses frontend state, Runtime, Planner, tools, model gateway, data warehouse, and report artifacts. If each layer has its own logs but no shared `run_id`, `trace_id`, and artifact references, the team still cannot locate the problem quickly. Frontend events should enter the same diagnostic chain. User actions such as stop, tool-card expansion, filter modification, negative feedback, report approval, and report rejection all change task state or quality judgment. Backend spans alone cannot show what the user saw; frontend telemetry alone cannot show tool and model calls.
+
+The Conversation API should associate frontend events with backend Runs. At minimum, it should preserve event type, timestamp, user identity, page-state summary, and Trace link. Sampling should follow risk. Ordinary low-risk Q&A may keep summaries and key errors, while high-risk tool calls, approvals, exports, and report publication should keep richer structured evidence. Sampling must not break audit requirements. Even when the full prompt is not retained, the platform still needs enough fields to determine responsibility boundaries: tool version, policy hit, data domain, error code, and artifact reference.
+
+During an incident review, Trace should answer four questions: what the user asked, what context the system saw, which tools and models were called, and which evidence produced the final artifact. If Trace cannot answer these questions, it is only performance monitoring. If it can answer them, it becomes the foundation for AgentOps.
+
+## 38.8 Correlating Frontend Events with Backend Trace
+
+Agent observability cannot stop at backend logs. Users see the frontend timeline: question input, waiting, streaming output, tool cards, approval buttons, error messages, and final artifacts. The backend sees Run, Step, model calls, tool calls, queued jobs, and database access. Without shared identifiers, incident response bounces between "the page is stuck" and "the backend looks normal."
+
+Frontend and backend correlation needs at least `session_id`, `run_id`, `step_id`, `message_id`, and `artifact_id`. Every frontend state transition should carry the corresponding backend event identifier, and every SSE or WebSocket event from the backend should record the frontend-visible state. Then a user screenshot, support ticket, or product event can be traced back to a concrete Run. For streaming output, the platform should distinguish model tokens, tool progress, system notices, and final messages instead of merging all incremental content into one text log.
+
+Correlation also has to respect privacy fields. The frontend may show desensitized text while the backend Trace stores original or encrypted fields. Trace should mark field visibility scope, and diagnostic access should not grant data outside the user's role. Observability should provide enough evidence to the right people at the right time, not expose every recorded value to everyone.
+
+## 38.9 Sampling, Retention, and Incident Review
+
+Full Trace retention is expensive, especially when traces include long context, document snippets, chart artifacts, and tool returns. The platform needs a sampling and retention policy. Ordinary successful requests can keep summaries and key events. High-risk tasks, failed tasks, manually intervened tasks, and user-complaint tasks should retain a complete evidence package. Sampling should consider business risk, model version, tool type, and rollout state rather than simple traffic percentage.
+
+Retention should also be layered. Runtime diagnosis needs short-term complete data. Quality evaluation needs medium-term samples. Compliance audit may need long-term immutable records. These use cases require different field granularity and access controls. Trace that contains sensitive data should support desensitized views and controlled decryption; failed samples promoted into the evaluation set should preserve the relationship between the desensitized version and the original evidence.
+
+During incident review, Trace should help reconstruct causality rather than merely support log search. A review should identify the user's intent, the chosen plan, tools invoked, evidence source, the step where deviation occurred, whether validators caught it, and what the user ultimately saw. The conclusion should feed back into the semantic layer, tool governance, Prompt, evaluation sample set, or product interaction. Otherwise observability remains a postmortem viewer and does not improve the system.
+
+## 38.10 Engineering Boundaries of Run Replay
+
+Run replay is not re-execution. Many tool calls have side effects, external system state may have changed, and model outputs may not be fully reproducible. Production replay should prioritize reconstructing the decision process rather than trying to recreate the outside world. The platform can display original events, model outputs, tool responses, and artifacts to show what happened at the time. Re-executing steps should be limited to safe sandboxes or read-only environments.
+
+Replay views should serve different roles. Developers need Prompt text, model responses, error stacks, and tool parameters. Business reviewers need user questions, evidence, approval records, and final artifacts. Security teams need permissions, desensitization, external calls, and abnormal access. Putting every field into one log page makes the view hard for every role. Trace data can share one storage model, but the views should follow responsibility boundaries.
+
+This chapter is where many earlier chapters meet. Chapter 22 Runtime events, Chapter 23 tool calls, Chapter 33 semantic-layer versions, Chapter 34 SQL, Chapter 35 Python artifacts, and Chapter 36 report EvidenceRefs should all appear in Trace. Readers can treat Trace as the runtime ledger of the Agent platform. Without that ledger, the system may answer questions but will not earn long-term enterprise trust.
+
+## 38.11 Converting Between Trace and Evaluation Samples
+
+Trace should become a source of evaluation samples as well as troubleshooting material. Online failures, human rejections, user follow-ups, tool timeouts, policy blocks, and report revisions can all be extracted from Trace. Extraction should preserve task intent, context, key evidence, failure stage, and expected behavior. The evaluation set then evolves with real usage rather than staying limited to pre-launch handwritten cases.
+
+Evaluation results should also return to the Trace view. When developers inspect a failed Run, they should see whether it has entered the evaluation set, whether the fix version passed, and whether similar failures are still happening. Otherwise evaluation and observability become two disconnected systems: one produces offline scores, the other supports online debugging. The platform needs to connect the evidence.
+
+Sample conversion must handle privacy. Online Trace may contain user data, internal documents, and sensitive tool results, so it cannot be copied directly into benchmarks. The platform should support desensitization, summarization, evidence replacement, and access control. Reproducibility and compliance have to be handled together; this is one reason enterprise Agent evaluation is harder than ordinary model evaluation.
+
+## 38.12 Organizational Use of Observability
+
+If Trace is used only by engineers, much of its value is lost. Business owners need to know whether tasks were completed. Support teams need to locate user feedback. Security teams need to inspect privilege escalation and injection. Data teams need to debug metric definitions. Platform teams need to observe models, tools, and queues. These roles need different fields, granularity, and actions, but they should all derive from the same runtime facts.
+
+The organizational use case determines the Trace product shape. Engineering views can show Prompt, request body, error stack, and latency. Business views should show user goal, key evidence, approval records, and final artifacts. Security views should emphasize permissions, desensitization, external calls, and policy hits. Raw logs alone are hard for non-engineers to use, while business summaries alone do not give engineers enough detail.
+
+Observability should become part of operations. Weekly quality reviews, monthly scenario reviews, and major incident reviews should use Trace as the factual source. Only when the organization actually uses this evidence does Trace become platform governance infrastructure instead of an expensive logging system.
+
+## 38.13 Stability Governance for Trace Fields
+
+Trace fields need governance. Run, Step, Tool Call, Artifact, EvidenceRef, and Policy Decision fields cannot be renamed or redefined freely once evaluation, audit, support, and operations systems depend on them. Many platforms initially treat Trace as debug logs and let fields change with code iterations. Later, when they need quality analysis and compliance audit, historical data is no longer comparable.
+
+Field governance starts with a dictionary. Each field should state its source, meaning, visibility scope, retention period, and sensitivity. When a field is added, the change should identify downstream consumers. When a field is deprecated, there should be a migration window and compatibility mapping. Key fields such as `run_id`, `step_id`, `tool_name`, `policy_version`, `semantic_version`, and `artifact_id` are platform contracts, not ordinary log attributes.
+
+Field stability also supports cross-chapter capabilities. Chapter 34 SQL replay, Chapter 35 code audit, Chapter 36 report evidence, and Chapter 51 Guardrails policies all depend on Trace fields to connect evidence. If field semantics drift, dashboards and evaluations drift with them. The engineering quality of observability starts with whether these basic fields remain trustworthy over time.
+
+## 38.14 Incident Severity and Response Process
+
+Agent incidents need severity levels. An ordinary wrong answer, a high-risk tool miscall, a sensitive-data leak, and broad service unavailability should not follow the same process. Severity can be based on user impact, data sensitivity, external side effects, recoverability, compliance obligations, and whether the issue is ongoing. Clear severity levels make it easier to choose the right response under pressure.
+
+Trace is the factual record during incident response. On-call staff should quickly see affected Runs, users, tenants, model versions, tools, policies, data domains, and time range. For high-risk incidents, related Trace should be frozen so cleanup or sampling rules do not delete key evidence. After the incident, conclusions should be written back to the sample library, policy configuration, tool governance, or documentation.
+
+Incident response must cover more than technical repair. The platform may need to notify users, withdraw reports, temporarily disable tools, re-run desensitization, or compensate a business workflow. Trace provides facts; organizational process decides how those facts are handled. This is why Chapter 38 connects engineering observability with the organizational operating model in Chapter 53.
+
+Trace design should support incident localization, evaluation sample construction, cost attribution, and user explanation. Too few fields make later analysis impossible; too many unstructured fields remain hard to use. The key is to connect Run, Step, Tool Call, Artifact, and approval events into a queryable chain. With that chain, diagnosis moves from debate to localization.
 
 ---
 ## Chapter Recap
@@ -177,12 +232,7 @@ Finally, AgentOps needs a fixed retrospective entry point. Whenever a quality is
 3. Trace should be able to answer what the model saw at that time, which tools were invoked, and where the artifacts originated.
 4. Failure diagnosis must attribute issues to specific links such as context, planning, tools, data, permissions, downstream processes, or cost.
 5. The core of AgentOps is turning online failures into engineering assets that are measurable, fixable, and regression-testable.
-## Further Reading
 
-- [Chapter 22 Agent Runtime](../../part05-agent-capabilities/ch/ch22-agent-runtime.md)
-- [Chapter 30 Human-in-the-loop and Long-running Tasks](../../part05-agent-capabilities/ch/ch30-human-in-the-loop.md)
-- [Chapter 39 Enterprise-level DataAgent Evaluation System Design and Benchmark Construction](ch39-dataagent-eval-benchmark.md)
-- [Chapter 42 SLO Management, Rate Limiting, and System Resilience](ch42-slo.md)
 ## References
 
 OpenTelemetry. (n.d.). *Documentation*. [https://opentelemetry.io/docs/](https://opentelemetry.io/docs/)

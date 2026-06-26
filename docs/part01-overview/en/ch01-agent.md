@@ -1,249 +1,157 @@
-# Chapter 1 The Essence of Agents: From Conversational Assistants to Task Execution Systems
+# Chapter 1 Agent Boundaries: From Conversational Assistants To Task Execution Systems
 
 ---
-## Chapter Summary
 
-Once enterprises connect large language models to tools, the most common source of confusion is failing to distinguish between what they have actually built: "an assistant that answers questions" versus "a system that takes action." The cost of failure differs sharply between the two. When an answering assistant gets something wrong, the result is usually just a poor response; when an action-taking system makes a wrong move, it can overstep permissions, bypass approvals, or misuse data. This chapter opens with a quotation-assistant case study to draw clear boundaries among RAG, Copilot, Workflow, and Agent, then explains the task-completion loop that defines an Agent, the categories of tasks it suits, its risk-tier classification, and the bar an enterprise must clear before taking it to production. Subsequent chapters will examine the platform, models, data, tools, and governance in depth. This chapter answers a more fundamental question first: what exactly is the enterprise building?
-## Key Terms
+## Scenario Introduction
 
-Task Execution System, Task Closed Loop, RAG, Copilot, Workflow, Risk Grading, Autonomy Boundary
-## Learning Objectives
+When a quotation assistant moves from looking up references and drafting text to generating a quotation that can be sent to a customer, the system boundary has already changed. In the first case, a wrong answer usually stops at a draft that sales can revise. In the second case, once the system calls discount rules, inventory systems, and approval interfaces, the error enters a real business process. Many enterprises misjudge this moment in their first Agent projects: the demo conversation is smooth and the task appears complete, but the team has not designed whether the system is making decisions, whether it creates side effects, or what needs approval and audit. Figure 1-1 marks that line. When a system moves from giving advice to advancing a task, its engineering responsibility changes with it.
 
-- Be able to distinguish RAG, Copilot, Workflow, and Agent based on "who makes the final decision, whether it is dynamic multi-step, and whether it produces side effects."
-- Be able to identify whether the difficulty of an enterprise task lies in knowledge retrieval, content drafting, process specification, or multi-step progression, in order to choose the right initial approach.
-- Be able to classify tasks by read-only, low-risk write, and medium-to-high risk actions, and match them with appropriate control methods such as automatic execution, confirmation, or approval.
-- Be able to explain why Agents inherently raise accountability issues, and therefore must be developed as platform capabilities rather than isolated features.
+A manufacturing enterprise once used a quotation assistant as a large-model pilot. The early version did three things: searched historical contracts, summarized discount ranges for similar customers, and helped sales draft an explanation. This version did not look highly automatic, but its risk was clear. The system gave suggestions, sales decided whether to use them, and formal quotation still went through the original approval chain. Even if the model misunderstood a historical project, the error stayed in the draft layer, where sales and managers could still catch it.
 
----
-## Opening Scenario
+After the pilot was accepted, the business team wanted to push the process further. Salespeople did not want to switch among the contract system, inventory system, discount rules, and email system, so the team connected these tools to the model. With one sentence, "the customer wants to sign this week; give me a competitive price," the system could generate a quotation. On the surface, the user saved a few clicks. In responsibility terms, the system had become something else. The model began deciding which rules to inspect, which customer tier to apply, whether approval should be triggered, and in what format the result should be returned to sales. What the salesperson saw was no longer an editable suggestion, but a business document that could be forwarded to a customer.
 
-![Figure 1-1: From Conversational Assistants to Task Execution Systems](../../images/part1/en/ch01-01.png)
+The real problem often appears in this gray zone. The system has not sent the email or signed the contract, so the team may believe the risk is still controlled. Yet it may have already written an expired promotion rule into the quote draft, interpreted "competitive" as a discount level reserved for major accounts, and failed to warn sales that regional-director approval was required. If the salesperson copies and sends the draft while rushed, the consequence is no longer an inaccurate answer. It becomes a pricing commitment, an approval bypass, and a customer-expectation problem. Incidents like this rarely yield to the simple instruction that the model should be more accurate. The system also needs to know which data source is authoritative, which actions are suggestions, which actions change business state, who may confirm them, and how to replay the original input, tool calls, and intermediate decisions after a problem. The first step in discussing enterprise Agents is to make these responsibilities explicit before applying the same name to every intelligent feature.
 
-*Figure 1-1: From conversational assistants to task execution systems. Source: Original illustration by the book. Alt text: On the left, a "conversational assistant" receives questions and returns answers; on the right, a "task execution system" driven by goals calls tools, advances multi-step actions, and produces results with business consequences. The arrows highlight the boundary between the two in terms of decision-making and side effects.*
+![Figure 1-1: From conversational assistants to task execution systems](../../images/part1/en/ch01-01.png)
 
-The key transformation of agents is not that they "speak better," but that they begin to organize data, tools, workflows, and responsibility boundaries around enterprise task objectives.
+*Figure 1-1: From conversational assistants to task execution systems. Source: original diagram by the authors. Alt text: The left side shows a conversational assistant receiving questions and returning answers. The right side shows a goal-driven task execution system calling tools, advancing multi-step actions, and producing results with business consequences. Arrows mark the boundary in decision-making and side effects.*
 
----
-## 1.1 From "Can Answer" to "Can Execute": The Fundamental Turning Point of Agents
+The key change in an Agent is not expression quality, but the way a task is advanced. It begins to organize data, tools, process, and responsibility boundaries into one task chain. Readers should enter this book with a clear expectation: the Agents discussed here are not imaginary systems that finish everything in a demo video. They are constrained, observable, replayable, and degradable task-execution capabilities inside enterprise systems. The book separates intelligent interaction, task execution, and platform responsibility so every capability does not collapse into one vague concept. Later chapters keep returning to one question: when model output starts affecting real business action, what engineering responsibility must the system add?
 
-A manufacturing division within a multi-business enterprise once developed a quoting assistant. Initially, it only helped salespeople by retrieving historical contracts, referencing discount ranges, and generating draft quotes. The demonstrations worked well: users submitted requests, and the system would produce a structured quote suggestion within seconds, also organizing similar past project examples for reference.
+This chapter establishes the conceptual boundary. By the end, readers should be able to judge whether a system has entered the Agent scope through three plain questions: who makes the final decision, whether the task path can change dynamically, and whether system actions create business side effects. Knowledge lookup should usually start with RAG. Content drafting should usually start with Copilot. Stable process execution should usually start with Workflow. Agent becomes necessary when the task needs cross-system advancement, step adjustment based on feedback, and actions that can change subsequent choices. The purpose of this judgment is to reduce production mismatch, not to attach fashionable labels. Treating RAG as Agent adds unnecessary approval and runtime burden. Treating an Agent as a chat assistant misses permissions, audit, failure recovery, and human confirmation. Enterprise Agent design begins with boundaries, and every concept in this chapter later maps to concrete platform components.
 
-The team soon made a natural but risky assumption: since the system could already "understand questions, find information, and produce results," why not take it a step further and let it directly assist sales in completing the quoting process? Consequently, the quoting assistant was connected to real tools—contract systems, inventory systems, discount policies, approval interfaces, and it could even automatically generate draft emails to customers with the quote.
+## 1.1 From "Can Answer" To "Can Execute": The Fundamental Turning Point Of Agents
 
-Problems followed.
+A manufacturing division in a multi-business enterprise once built a quotation assistant. At first, it helped sales retrieve historical contracts, reference discount ranges, and generate quotation drafts. The demo worked well: users stated a need, and the system produced a structured quotation suggestion within seconds while organizing similar past cases. The team soon made a natural but dangerous judgment. If the system could understand the question, find information, and write a result, why not let it complete more of the quotation process?
 
-On one occasion, a salesperson input: "The customer hopes to sign this week; give the most competitive price possible." The system inferred a 12% discount based on historical cases and generated a quote. On the surface, this was merely "turning suggestions into a draft"; in essence, the system had begun performing a business-critical task: understanding intent, determining price strategy, calling tools, and producing results with real business consequences.
+The assistant was connected to real tools: contract systems, inventory systems, discount policies, approval interfaces, and customer-email draft generation. A salesperson entered, "the customer wants to sign this week; give the most competitive price possible." The system inferred a 12 percent discount from historical cases and generated the quote. On the surface, it had turned a suggestion into a draft. In the actual system chain, it had become an enterprise task: interpreting intent, choosing a pricing strategy, calling tools, and producing an output with business consequences.
 
-Post-mortem analysis revealed three issues:
+The postmortem found three issues. First, the system used an expired promotion rule and did not recognize the new price limit that had taken effect that day. Second, it interpreted "competitive" as close to a major-customer discount, while this customer did not have the same discount authority. Third, it handed a result that should have entered approval directly to the salesperson, where a user in a hurry could forward it to a customer. The case exposes a frequently underestimated turning point. Once a system starts advancing tasks for people, the discussion moves from answer quality to execution responsibility. A question-answering system failure often means a poor answer. An execution-system failure can mean privilege overreach, process bypass, data misuse, and unclear accountability. From this boundary onward, an Agent should be treated as a task execution system rather than a smarter chat assistant. Later chapters on Runtime, Tool Registry, HITL, Trace, and evaluation all follow this responsibility boundary.
 
-- It applied an outdated promotion rule and did not realize a new price limit had come into effect that day.
-- It interpreted "most competitive price" as "match the discounts given to major historical customers," ignoring that this customer did not have the same discount privileges.
-- It prematurely delivered the result—meant to enter the approval chain—directly to the salesperson, who could potentially forward it to the customer without oversight.
-
-This case reveals a frequently underestimated turning point: **when a system shifts from "helping people answer questions" to "advancing tasks on their behalf," it is no longer dealing merely with Q&A problems but with execution problems.**
-
-A Q&A system error often just means a bad answer; an execution system error can mean unauthorized permissions, bypassed processes, misused data, or unclear accountability. It is precisely in this sense that an Agent is not just a "smarter chat assistant" but a fundamentally different kind of system.
-
-This book emphasizes this point repeatedly from the first chapter—not to hype the concept of Agents, but to prevent enterprises from mistakenly treating something originally intended as a mere "assistant" as a "production-executable system."
 ## 1.2 RAG, Copilot, Workflow, Agent: Boundaries Among Four System Types
 
-One of the biggest sources of confusion when enterprises discuss Agents is the naming chaos. Many projects call themselves Agents simply because they use large models; many fixed-process systems are also repackaged as Agents. To avoid drifting off-topic in later discussions, let’s separate four common types of systems.
+One major source of confusion in enterprise Agent discussions is naming. Many projects call themselves Agents simply because they use a large model. Many fixed-process systems are also repackaged as Agents. Before later chapters discuss platforms, tools, and governance, four common forms need to be separated. RAG finds material, answers questions, and supplies context; the final decision usually remains with the user, and the system does not directly advance business state. Copilot goes further by helping the user draft, revise, complete, and suggest, while the user remains in charge. Workflow handles deterministic processes: rules and paths are specified in advance, and the system follows them. Agent differs because it judges the next step around a goal, calls tools, receives feedback, and continues after task state changes. These forms often combine in a mature system. RAG may provide knowledge and context, Copilot may help draft or revise, Workflow may lock high-risk and compliance-heavy steps, and Agent may handle cross-system advancement that cannot be fully predetermined.
 
-*Table 1-1: Comparison of RAG, Copilot, Workflow, and Agent across decision-making主体 and execution capability. Source: Compiled by this book.*
+The important test is responsibility, not naming. If the system mainly searches an enterprise knowledge base, it is likely RAG. If a human remains the driver and the model assists on the side, it is closer to Copilot. If the path from start to finish is fixed, it is closer to Workflow. A system enters this book's Agent scope when it understands context around a goal, selects actions, receives feedback, and continues advancing the task. A more useful question is: where is the hard part of this task? If the hard part is knowledge lookup, RAG is often enough. If it is content drafting, Copilot is easier to land. If it is process standardization, Workflow is more stable. Only when the hard part is multi-step judgment, cross-system advancement, and real-time adjustment should the task be treated as an Agent task.
 
-| Type | What the system mainly does | Who makes the final decision | Is there dynamic multi-step advancement | Is it close to real execution |
-|---|---|---|---|---|
-| **RAG** | Find information, give answers, supplement context | User | Very weak | Very low |
-| **Copilot** | Give suggestions, draft text, assist user in completing work | User | Moderate | Low to moderate |
-| **Workflow** | Advance process according to predefined rules | Developer or business rules | Low | Moderate to high |
-| **Agent** | Dynamically decide next step based on goals, invoke tools to advance tasks | System and user complete jointly | High | Moderate to high |
+![Figure 1-2: Boundaries among RAG, Copilot, Workflow, and Agent](../../images/part1/en/ch01-02.png)
 
-These four types are not mutually exclusive. A mature system is often a hybrid: It uses RAG to provide knowledge and context, Copilot to help users express goals or revise results faster, Workflow to lock down high-risk or heavily compliant steps, and Agent to handle parts that can’t be hardcoded ahead of time and must push forward across systems.
+*Figure 1-2: Boundaries among RAG, Copilot, Workflow, and Agent. Source: original diagram by the authors. Alt text: Four system types are arranged along decision authority and execution determinism. RAG and Copilot are user-led and low-execution, Workflow follows fixed paths, and Agent dynamically selects actions under a goal. A dashed line shows that mature systems often combine all four.*
 
-The key to judgment is not whether the system is called an Agent but what role it fulfills. If the system only retrieves answers from an enterprise knowledge base, it’s most likely RAG; if the user always leads and the model only offers advice on the side, it’s more like a Copilot; if the path from first step to last is fixed, it resembles Workflow. Only when the system needs to continuously understand context, select actions, receive feedback, and keep pushing forward toward a goal can we reasonably call it an Agent.
+Figure 1-2 is not asking readers to choose exactly one category. Mature systems can combine RAG, Copilot, Workflow, and Agent, but the combination must obey decision authority, process determinism, and execution responsibility. Once a component starts advancing a business action for the user, it should be engineered with Agent-level responsibility.
 
-Here’s a practical heuristic: Don’t ask first, “Can we build an Agent?” but ask instead, “What is truly the hardest part of this task?”
+## 1.3 The Agent Task Closed Loop: Goal, Context, Decision, Action, And Feedback
 
-- If knowledge retrieval is hard, prioritize RAG.
-- If content drafting is hard, prioritize Copilot.
-- If process standardization is hard, prioritize Workflow.
-- If multi-step reasoning, cross-system advancement, and real-time adjustment are hard, only then consider Agent.
+This section defines Agent through a task loop rather than model capability or product naming. That definition lets later discussions of tools, memory, approval, and evaluation return to the same question: whether the system is truly advancing a task. In plain terms:
 
-![Figure 1-2: Boundaries between RAG, Copilot, Workflow, and Agent](../../images/part1/en/ch01-02.png)
+> An Agent is a system loop that organizes perception, decision-making, action, and feedback around a task goal.
 
-*Figure 1-2: Boundaries between RAG, Copilot, Workflow, and Agent. Source: Illustrated by this book. Alt text: Four system types distributed along the two dimensions of “decision主体” and “execution determinism,” with RAG and Copilot user-led and having low execution, Workflow having fixed paths, Agent dynamically selecting actions under goal-driven control; dashed line indicates mature systems often combine all four.*
+The emphasis is on the loop. An enterprise Agent usually has to handle five objects. Table 1-1 turns them into five questions that can later map to Runtime, Planner, tool invocation, and Trace.
 
-These four types can be combined, but they differ significantly in decision主体, process determinism, and execution responsibility.
-## 1.3 The Agent Task Closed Loop: Goals, Context, Decisions, Actions, and Feedback
+*Table 1-1: Five elements of the Agent task loop and the questions they answer. Source: compiled by the authors.*
 
-If we were to define an Agent in the simplest possible terms, this book would say:
+| Element | Question It Answers |
+|---|---|
+| Goal | What task needs to be completed, and is answering a question enough? |
+| Context | What data, rules, documents, and identity information are needed for this task? |
+| Decision | Given the current state, what action is most appropriate next? |
+| Action | Which tool should be called, and what result or side effect will it produce? |
+| Feedback | Does the tool result change the next decision? |
 
-> **An Agent is not a style of chat but a system closed loop organized around a task goal that integrates perception, decision-making, action, and feedback.**
+If any part is missing, the system falls back to a weaker form. Without a goal, it becomes generic conversation. Without context, it makes plausible judgments on wrong information. Without decision, it can only write text. Without action, it stays at the suggestion layer. Without feedback, it cannot correct itself or converge. Many products that look like Agents are closer to advanced Copilots: they have conversation, tools, and output, but the task does not form a loop. In enterprise settings, the loop also creates responsibility questions: who allowed the system to act this way, what information it used, when it must stop, and how errors are detected, reviewed, and corrected. These issues cannot be absorbed by one application alone; they eventually return to the platform layer.
 
-The key concept in this definition is not the "model" but the "closed loop." An enterprise-grade Agent must handle at least five things.
+### 1.3.1 Why The Agent Concept Spread So Quickly
 
-*Table 1-2: The five elements of the Agent task closed loop and the corresponding questions they answer. Source: Compiled by this book.*
+The rapid spread of the word "Agent" comes from academic definitions and several forces arriving together. Model capability changed first. Earlier enterprise AI systems were good at classification, prediction, retrieval, and local generation, but few organizations allowed them to decide what to do next. Large models raised natural-language understanding, cross-domain knowledge use, and structured output enough for enterprises to see a new possibility: the system could move from answerer to task participant. Tool invocation also matured. Early large-model applications often stayed inside text even when the answer was good. Function Calling, structured output, Code Interpreter, and MCP made models able to do as well as say in a more stable way. That forced enterprises to take execution boundaries seriously.
 
-| Element   | The Question It Answers                                  |
-|-----------|----------------------------------------------------------|
-| **Goal**    | What is the actual task to be completed, beyond just answering a question? |
-| **Context** | What data, rules, documents, and identity information are needed to complete this task? |
-| **Decision**| Given the current state, what is the most appropriate next action? |
-| **Action**  | What tool should be invoked, and what result or side effect should be produced? |
-| **Feedback**| Did the result of the tool execution change subsequent decisions? |
+Enterprise software itself also changed. For more than a decade, modular SaaS dominated: CRM was one system, ERP another, BI another, ticketing another. With large models, users started expressing a clearer expectation: they did not want to switch among systems, but wanted to hand the task to one system. The market heat came quickly, so the word Agent was used to package almost every large-model feature. Whether a system truly enters the Agent category still depends on how much task responsibility it takes on.
 
-Without any one of these components, the closed loop breaks down. Without a goal, the system degenerates into vague conversation; without context, the system makes seemingly plausible judgments based on incorrect information; without decision-making, the system can only write text but cannot advance the task; without action, it remains stuck at the suggestion stage; without feedback, it cannot correct errors or converge on a solution.
+## 1.4 Agent Task Fit, Risk Level, And Value Judgment
 
-Therefore, many products that appear to be Agents are ultimately just advanced copilots. They have conversations, tools, and outcomes but do not form a task closed loop.
+Enterprise Agent projects often start with boundaries that are too broad. Once a team has a large model and several tools, it may place every intelligent demand under the Agent umbrella, which increases governance pressure. A more controllable path is to classify enterprise tasks first. Query tasks are about finding accurate information and usually start with retrieval, RAG, semantic layer, or BI. Drafting tasks are about generating editable results quickly and usually fit Copilot or content-generation assistants. Diagnostic tasks combine multiple information sources and narrow the problem step by step, where Agent value begins to appear. Execution tasks call tools, move across systems, and create side effects; they usually require Agent, Workflow, and approval chain together.
 
-For enterprises, this loop has an additional implication: once the system can autonomously close the loop to advance tasks, issues of responsibility naturally arise. Who authorizes the system to act in this way? On what information does it base its judgments? Under what conditions must it stop? How are mistakes detected, reviewed, and corrected?
+Concrete scenarios make the judgment clearer. "Check this customer's complaints from the past three months" is primarily a query task; RAG plus a CRM query covers most of the value. "Draft an operational review from this week's sales data" is primarily a drafting task; Copilot or a low-risk task Agent is enough. "Explain why gross margin in East China is abnormal" needs diagnosis across metrics, orders, inventory, and historical explanations, so it is closer to DataAgent. "Generate a quotation and enter approval" touches business action and must be designed together with Workflow, approval, and audit. This classification avoids over-engineering and also shows which scenarios pull platform capability. Diagnostic and execution tasks tend to need Runtime, Registry, Policy, and Trace repeatedly.
 
-These questions mean that from the very beginning, the Agent is not just a product issue but a platform-level issue.
+Task fit and risk level are separate concerns. A task may fit Agent structurally but still carry high risk, so it can advance only with strong approval. A task may be low risk but not need Agent at all. Enterprises often mix these two judgments, slowing scenes that should move quickly while pushing risky scenes too aggressively.
 
-### 1.3.1 Why Almost All Systems Have Started Calling Themselves Agents in the Past Two Years
+*Table 1-2: Five risk levels for tasks and corresponding execution controls. Source: compiled by the authors.*
 
-The rapid popularity of the word “Agent” is driven not just by academic definitions but by the confluence of three forces.
+| Risk Level | Typical Action | Recommended Control |
+|---|---|---|
+| Level 0 read-only | Look up material, check metrics, generate summaries | Execute automatically and preserve evidence |
+| Level 1 low-risk write | Create drafts, generate to-dos, write temporary data | Execute automatically with undo |
+| Level 2 medium-risk action | Update ticket status, generate quote draft, send internal notification | Confirm key checkpoints |
+| Level 3 high-risk action | Send customer email, submit financial voucher, modify master data | Approval plus secondary verification |
+| Level 4 extremely high risk | Payment, contract signing, delete high-risk data | Forbid automatic execution by default |
 
-First, model capabilities have significantly improved. Past enterprise AI systems mostly excelled at classification, prediction, retrieval, and generating localized results but rarely dared to let the system decide “what to do next” on its own. With large models elevating natural language understanding, cross-domain knowledge invocation, and structured output capabilities, enterprises are for the first time commonly seeing a possibility: the system no longer just answers but starts to behave like a task participant.
+The controlled approach is to first ask whether the task structure fits Agent, then ask how autonomous the Agent may be if it does fit. This book separates Agent definition, platform boundary, and AI-native systems into three chapters for this reason: task fit, governance constraint, and system form belong to different layers.
 
-Second, tool invocation capabilities have matured. Even when early large model applications gave reasonable answers, they often remained confined to the text domain. As abilities like Function Calling, structured output, Code Interpreter, and MCP have matured, models have moved beyond merely "speaking" to reliably "doing." This forces enterprises to seriously confront execution boundaries.
+## 1.5 Enterprise Agent Difficulty: Boundaries, Responsibility, And Organizational Language
 
-Third, the shape of enterprise software itself has evolved. For the past decade or more, the dominant enterprise software paradigm has been modular SaaS: CRM is one system, ERP is another, BI is another, and ticketing yet another. With the arrival of large models, users have clearly expressed a new expectation: I don’t want to keep switching between systems; I just want to hand the task over to a single system.
+Consumer Agents are attractive because they appear able to do anything. Enterprise Agents are difficult because they must know where to stop. Once placed in an enterprise environment, an Agent faces organizational, permission, process, and responsibility boundaries. As a result, enterprise Agent failures usually do not start with whether the model can answer. They usually appear in five forms.
 
-Because the hype arrived quickly, many teams started labeling any large model functionality as “Agent.” The first chapter is meant to strip away this buzzword to reveal the true nature of the system.
-## 1.4 Which Tasks Are Suitable for Agents: Scenario Typing, Risk Grading, and Value Judgment
+*Table 1-3: Five failure types in enterprise Agents and common root causes. Source: compiled by the authors.*
 
-A common mistake enterprises make when developing Agents is not doing too little, but rather trying to do too much. Many teams, once they have a large model and a few tools, attempt to bundle all intelligent demands under the Agent umbrella. This impulse often leads to governance loss of control.
+| Failure Type | Symptom | Common Root Cause |
+|---|---|---|
+| Understanding failure | User constraints are ignored and the goal drifts | Ambiguous expression, insufficient context |
+| Planning failure | Wrong tool, wrong action order, or overly long path | Poor tool descriptions, rough decision strategy |
+| Execution failure | Invalid parameters, tool timeout, permission denial | Weak schema, insufficient retry and recovery |
+| Governance failure | Privilege overreach, missing approval, no trace, no replay | Missing platform policy |
+| Product failure | Users distrust results, do not know how to use them, or cannot take over | Weak frontend and evidence design |
 
-A more prudent approach is to first categorize enterprise tasks.
+This failure taxonomy prevents teams from blaming every problem on the model. Many enterprise projects react to errors by changing the model or continuing to tune the prompt. The problem may instead come from tool contracts, permissions, semantic layer, or approval chain. Classification restores system analysis. In enterprises, failure handling also has an order. Governance failure decides whether the system can go live. Execution failure decides whether it is stable. Understanding and planning failures decide result quality. Product failure decides whether users will keep using it. Enterprise scenarios first ask whether the system is controllable, then whether the experience is impressive.
 
-*Table 1-3: The Core Challenges of Four Types of Enterprise Tasks and Their More Suitable Implementation Approaches. Source: Compiled by the author.*
+### 1.5.1 Limits Of The "Digital Employee" Analogy
 
-| Task Type       | Core Challenge                             | More Suitable Approach                  |
-|-----------------|-------------------------------------------|----------------------------------------|
-| **Query Tasks** | Finding accurate information               | Retrieval, RAG, semantic layers, BI    |
-| **Drafting Tasks** | Quickly generating editable results        | Copilot, content generation assistants |
-| **Diagnostic Tasks** | Combining multi-source information and iteratively narrowing down issues | Agent                                  |
-| **Execution Tasks** | Tool invocation, cross-system coordination, side effects | Agent + Workflow + Approval            |
+Marketing language often calls Agents digital employees, AI colleagues, or virtual specialists. These labels spread easily, but they are risky in engineering. Once an Agent is imagined as an employee, teams tend to expect human-like context understanding, responsibility, discretion, and automatic context completion. Real systems do not possess these abilities by default. They generate the next action from the context, tools, strategy, and model capability they are given.
 
-Placing several tasks from a multi-business-line enterprise into this framework makes things clear.
+A more accurate description is that an Agent is a system component in a task chain. It takes on part of perception, decision-making, and execution. It can increase human leverage, while the enterprise responsibility chain still belongs to the organization, process, and surrounding systems. If the team treats the Agent as an employee, the discussion slides toward whether it is smart enough. If the team treats it as a task execution system, the discussion returns to where it is reliable. Enterprise teams need the second question.
 
-*Table 1-4: Four Typical Scenarios in a Multi-Business-Line Enterprise and Corresponding Starting Approaches. Source: Compiled by the author.*
+### 1.5.2 From Business Language To System Language
 
-| Multi-Business-Line Enterprise Scenario       | Most Suitable Starting Approach          |
-|------------------------------------------------|------------------------------------------|
-| “Check a certain customer’s complaint records from the past three months”   | Query type: RAG + CRM query              |
-| “Draft operational review based on this week’s sales data”                   | Drafting type: Copilot or low-risk Agent |
-| “Explain why gross margin in East China region is abnormal”                   | Diagnostic type: DataAgent                 |
-| “Generate quotation and initiate approval”                                   | Execution type: Agent + Workflow           |
+The people who propose Agent requirements in enterprises are often business leaders, product managers, operations teams, or functional departments, not engineers. They do not say, "I need a task execution system with Runtime, Tool Registry, and Policy." They say, "I want the system to analyze anomalies automatically," "I want it to follow up with customers like an assistant," or "I want it to prepare monthly closing materials first." These are real needs, but they are not yet system requirements. Agent platform engineers must translate business language into system language.
 
-This classification has two key values. First, it helps enterprises avoid overdesign— not all problems require dynamic multi-step decision-making. Second, it clarifies subsequent platform development: only truly diagnostic and execution tasks will reliably drive platform capabilities such as Runtime, Registry, Policy, and Trace.
+That translation looks like requirement clarification, but it often decides whether the project can land. When the business says "analyze anomalies automatically," the system must ask what defines an anomaly, what data sources are authoritative, and what diagnostic steps are allowed. When the business says "follow up with customers like an assistant," the system must distinguish reminders, internal to-dos, customer contact, and approval responsibility. When the business says "prepare monthly closing materials," the system must distinguish data that must be accurate, drafts that can be edited, and conclusions that require audit. When the business says "understand the policy and tell me what to do," the system must confirm whether the policy source is authoritative, whether citations are required, and whether the answer can trigger concrete action.
 
-Task suitability and risk level are two different tables. A task may be very suitable for an Agent but carry high risk, thus it can proceed only under strict approval; or it may be low risk but not require an Agent at all. Enterprises often confuse these two issues, causing low-risk scenarios that should move fast to proceed slowly, while high-risk scenarios progress too aggressively.
+Many failed projects do not fail because the model lacks capability. They fail because the requirement was never decomposed into goal, context, tools, risk, and acceptance criteria. A quotation assistant illustrates the problem. "Give me a competitive price" is natural business language, but at the system layer it needs at least five questions: competitive against similar historical customers or against current inventory pressure; what customer tier and sales discount cap apply; whether regional price limits, campaign rules, or temporary bans exist; whether the system creates a suggestion, a draft, or a direct quotation; and what threshold requires approval. Only after this translation can an Agent move from understanding human language to acting reliably inside enterprise boundaries.
 
-*Table 1-5: Five-Level Task Risk Grading and Corresponding Execution Control Methods. Source: Compiled by the author.*
+## 1.6 From Pilot To Production: Lifecycle, Task Composition, And Operational Thresholds
 
-| Risk Level          | Typical Actions                                | Recommended Control                        |
-|---------------------|-----------------------------------------------|-------------------------------------------|
-| **Level 0 Read-Only**      | Looking up information, checking metrics, generating summaries | Automatic execution, evidence preserved   |
-| **Level 1 Low-Risk Write** | Creating drafts, generating to-dos, writing temporary data | Automatic execution, reversible            |
-| **Level 2 Medium-Risk Actions** | Updating ticket status, generating quotation drafts, sending internal notifications | Key checkpoint confirmation                 |
-| **Level 3 High-Risk Actions** | Sending customer emails, submitting financial vouchers, modifying master data | Approval + secondary verification         |
-| **Level 4 Extremely High-Risk Actions** | Payments, contract signing, deleting critical data | Automatic execution forbidden by default  |
+Many enterprises design early Agents around one interaction: the user enters a sentence and the system returns a result. That view works for demos, but it is not enough for enterprise Agents. Valuable enterprise tasks are rarely one-off Q&A; they are continuing processes. After a business-analysis Agent answers why gross profit declined, the work continues into meetings, action items, owners, and weekly review. After a quotation Agent generates a draft, the work continues into approval, customer communication, contract signing, and fulfillment tracking. After a customer-service quality Agent finds an anomaly, the work continues into staff training, knowledge-base revision, and service-strategy adjustment.
 
-The more prudent approach is to first assess “structurally, is this task fit for an Agent?” and then ask “even if suitable, to what extent does it allow an Agent to act autonomously?” This book splits the essence of Agents, platform boundaries, and AI native systems into three chapters because task suitability, governance constraints, and system architecture belong to three different layers.
-## 1.5 Why Enterprise-Level Agents Are Challenging: Boundaries, Responsibilities, and System Language
+Once an Agent enters an enterprise, it shifts from one-time execution to long-running operation. Task state must be saved: where the task started, what steps it took, where humans confirmed, and what is still waiting. Task results must be consumable downstream: action items may enter project management or meeting systems, quotation drafts may enter approval, and ticket anomalies may enter finance review. If an Agent's output remains only in chat logs, it is hard to make it part of enterprise work. Task experience must also accumulate. Every user edit, rejection, confirmation, and feedback item is a basis for system improvement. An enterprise Agent is not finished after deployment; it becomes closer to real work through continuous feedback and iteration.
 
-The appeal of consumer-level agents is that they seem capable of doing everything; the challenge of enterprise-level agents is that they must know what *not* to do.
+### 1.6.1 Five Thresholds From Pilot To Production
 
-Once placed in an enterprise environment, an agent faces not an open internet but organizational boundaries, permission boundaries, process boundaries, and responsibility boundaries. Because of this, the difficulties of enterprise agents typically do not stem primarily from “will the model answer” but rather manifest as one of the following five failure types.
+Many Agent projects are not blocked during pilot. They fail because they enter production too soon after a successful pilot. Moving from pilot to production requires at least five thresholds.
 
-*Table 1-6: Five Types of Failures in Enterprise Agents and Their Common Root Causes. Source: Compiled by this book.*
+*Table 1-4: Five thresholds from pilot to production and their different states in two phases. Source: compiled by the authors.*
 
-| Failure Type   | Manifestation                              | Common Root Causes                   |
-|---------------|-------------------------------------------|------------------------------------|
-| **Understanding Failure** | Ignoring user constraints, misinterpreting goals | Ambiguous expression, insufficient context |
-| **Planning Failure**      | Choosing wrong tools, incorrect action order, overly long paths | Poor tool descriptions, coarse decision strategies |
-| **Execution Failure**     | Invalid parameters, tool timeouts, permission denials | Weak schema, insufficient retry and recovery mechanisms |
-| **Governance Failure**    | Unauthorized actions, lack of approvals, no traceability, no replay | Missing platform policies          |
-| **Product Failure**       | Users distrust results, don’t know how to use, unable to take over | Poor frontend and evidence design  |
+| Threshold | Typical Pilot State | Required Production State |
+|---|---|---|
+| Task stability | A few cases run through | Boundary samples and exceptional scenarios are covered |
+| Context credibility | Temporary material stitching | Authoritative sources, versions, and definitions |
+| Boundary control | Manual verbal agreement | Explicit risk grading and approval |
+| Result reviewability | Only final answer is checked | Evidence, process, and trace |
+| Operating mechanism | Temporary project-team maintenance | Continuous feedback, evaluation, and version governance |
 
-This taxonomy of failures has a crucial role: it prevents teams from attributing all problems solely to the model. Many enterprise projects, when encountering errors, first react with “change the model” or “keep tweaking the prompt.” However, problems often come from tool contracts, permissions, semantic layers, or approval chains. Categorizing problems restores system analysis capabilities.
+These five thresholds belong to the Agent system itself. Agent value comes from execution; once execution begins, stability, credibility, boundary control, reviewability, and operations must keep up. Another often missed threshold is whether the business accepts partial automation. Many pilots try to finish the whole task in one pass during demos. Production systems need to split actions into categories: automatically executable, confirmation required, approval required, and forbidden by default. A quotation assistant can automatically organize historical cases, generate discount suggestions, and write a quote into a draft area. Actions above discount thresholds, customer-facing email, and formal approval submission should be handled by humans or existing processes. This looks less automatic, but it protects long-term operation.
 
-Within enterprises, failure handling follows a clear priority. First address governance failures, as they determine whether the system can be launched; next address execution failures, since they affect system stability; then handle understanding and planning failures, which influence outcome quality; and finally address product failures, which determine whether users are willing to adopt the system long-term. This is the fundamental difference between enterprise and consumer product perspectives: enterprises prioritize controllability first, then amazement.
+Before go-live, the most important preparation is not a longer prompt. The team needs a task responsibility table: where inputs come from, what tools can do, which steps change business state, which results are suggestions, and which exceptions must stop the run. Engineering teams use it to design tool permissions and Runtime. Business teams use it to confirm process responsibility. Security and internal control use it to judge approval requirements. Without this table, a system may run in demo but still fail to enter production.
 
-### 1.5.1 Do Not Imagine Agents as “Digital Employees”
+The table also exposes a reality: the same task name can have different boundaries in different organizations. Headquarters quotation, regional quotation, and channel quotation may use different discount authority. Internal business review and external customer email require different approval. Agent design cannot rely on task name alone; it must know which business process the Agent enters. Once an enterprise faces these thresholds seriously, it can no longer build only an isolated Agent. It enters the platform problem. That is the starting point of Chapter 2.
 
-Marketing often calls agents “digital employees,” “AI colleagues,” or “virtual agents.” Such labels have promotional appeal but are dangerous from an engineering standpoint.
+## 1.8 From Concept Boundaries To Platform Responsibility
 
-Because once you imagine an agent as an “employee,” teams tend to expect human-like understanding of context, accountability, discretion, and automatic context completion. But real systems do not inherently possess these abilities. They only generate the next action based on given context, tools, strategies, and model capabilities.
+This chapter discusses Agent boundaries to make new enterprise-system responsibilities explicit, not to freeze one industry definition. Once a system moves from answering questions to decomposing tasks, calling tools, and advancing state, it is no longer only a model application. The platform must answer who authorized the execution, which actions were taken, what evidence was used, how failure is recovered, and who reviews the result. Readers will see this boundary repeatedly in later chapters. Chapter 22's Runtime turns a task into a manageable Run. Chapter 23's Tool Registry makes actions registerable and auditable. Chapter 30's HITL stops high-risk actions for human judgment. Chapter 38's Trace makes the process replayable. Without these platform responsibilities, an Agent can remain a demo system: it can generate a plausible answer, but it cannot become an enterprise production system.
 
-More accurately, an agent is a system component capable of performing some perception, decision-making, and execution tasks within a task chain. It can increase human leverage but cannot replace the enterprise’s chain of responsibility. When you treat an agent as an employee, you ask “Is it smart enough?” When you treat it as a task execution system, you ask “Within what boundaries is it reliable?” Enterprises truly need the latter question.
+When judging whether a scenario fits Agent, model understanding is only the starting point. Teams must also examine whether the task advances across steps, whether it touches enterprise data and tools, and whether it needs an evidence chain and responsibility chain. This judgment directly affects how the rest of the book should be read: the opening chapters establish the platform view, and later chapters add models, data, tools, runtime, evaluation, security, and organizational governance.
 
-### 1.5.2 From Business Language to System Language
+## Chapter Recap
 
-Those proposing agent needs in enterprises are often not engineers but business leaders, product managers, operations teams, or functional departments. They don’t say “I need a task execution system with runtime, tool registry, and policy,” but more like: “I want the system to automatically analyze anomalies,” “I want it to follow up with customers like an assistant,” “I want it to first organize monthly closing materials.”
+Agent is not a general name for large-model applications. It is a system that organizes perception, decision-making, action, and feedback around a task goal. RAG, Copilot, Workflow, and Agent each have boundaries, and many enterprise project failures that look like weak model capability start with wrong requirement classification. The challenge of enterprise Agents is not to make the system more human-like, but to make it know which actions can be automatic, which need confirmation, and which must leave evidence. This book starts from the platform because once a system can advance enterprise tasks, the problem enters runtime, permission, audit, and governance layers rather than staying at the model layer. The next chapter continues with platform boundaries: enterprises are building shared infrastructure for many Agents, not isolated Agents. Applications, frameworks, and low-code tools can all participate, but the platform still carries model access, tool governance, runtime state, evaluation, safety, and audit responsibility.
 
-These are real needs, but not system requirements yet. The first thing an agent platform engineer must do is translate business language into system language.
-
-*Table 1-7: Four Examples of Translating Business Expressions into System Questions. Source: Compiled by this book.*
-
-| Business Expression              | System Questions to Translate Into                         |
-|---------------------------------|-------------------------------------------------------------|
-| “Automatically analyze anomalies for me” | What defines an anomaly? What are the data sources? What diagnostic steps are needed? |
-| “Follow up with customers like an assistant” | Which actions are just reminders? Which actively contact customers? Who approves these? |
-| “Organize the monthly closing materials”  | Which data must be accurate? Which content is draft? What requires auditing? |
-| “Understand the policies and tell me how to handle them” | Are policy sources authoritative? Does the answer require citations? Can it trigger actions? |
-
-This translation process may seem like requirement clarification but is actually the watershed for agent project success or failure. Many failed projects are not due to inadequate model ability but because business language was directly stuffed into prompts without conversion into goals, context, tools, risks, and acceptance criteria.
-
-Take a pricing assistant as an example: “Give a competitive price” sounds natural in business language but must be broken down systemically into at least five questions: Is “competitive” relative to historical similar customers or current inventory pressure? What is the customer tier and sales permission discount cap? Are there region price limits, promotional rules, or temporary bans? Is the system generating suggestions, drafts, or direct quotes? What thresholds trigger approval?
-
-Only after this translation can an agent move from “understanding human language” to “acting reliably within enterprise boundaries.”
-## 1.6 From Pilot to Production: Lifecycle, Task Composition, and Operational Thresholds
-
-Many enterprises, when initially designing an Agent, tend to focus on a single interaction: the user inputs a sentence, and the system outputs a result. This perspective works well for demos but is insufficient for understanding enterprise-grade Agents.
-
-In enterprises, truly valuable tasks are rarely a one-off Q&A; rather, they involve ongoing processes. Business analysis does not end by simply answering “Why did gross profit decline?”; it continues into meetings, action items, owners, and weekly reviews. Quoting does not end with generating a draft; it proceeds through approval, customer communication, contract signing, and fulfillment tracking. Customer service quality checks do not stop at detecting a single anomaly; they extend to staff training, knowledge base updates, and service strategy adjustments.
-
-In other words, once an Agent enters an enterprise environment, it shifts from "one-time execution" to "long-term operation." This raises three key issues.
-
-First, task state must be preserved. The system cannot only remember the final answer but must also track where the task started, what steps it passed through, which parts are confirmed by humans, and which parts are still pending.
-
-Second, task results must be consumable downstream. Action items generated by a business analysis Agent might need to feed into project management or meeting systems; drafts from a quoting Agent may need to enter approval workflows; anomalies identified by a ticketing Agent might be queued for finance review. If an Agent’s output stays only in chat logs, it is difficult to integrate into enterprise workflows.
-
-Third, task experience must be accumulated. Every user edit, rejection, confirmation, and feedback forms the basis for system improvement. An enterprise Agent is never “finished” once deployed; it becomes closer to the enterprise through continuous feedback and iteration.
-
-### 1.6.1 Five Thresholds from Pilot to Production
-
-Many Agent projects fail not because pilots fail, but because they are pushed into production too early after pilot success. Moving from pilot to production involves at least five thresholds.
-
-*Table 1-8: Five thresholds from pilot to production and their states in two phases. Source: compiled for this book.*
-
-| Threshold           | Typical State in Pilot Phase          | Required for Production                        |
-|---------------------|-------------------------------------|-----------------------------------------------|
-| Task Stability      | A few cases running successfully    | Coverage of boundary cases and anomalies       |
-| Context Credibility | Temporarily patched sources          | Authoritative sources, versions, and standards |
-| Boundary Control    | Manual verbal agreements             | Clear risk grading and approval processes      |
-| Result Verifiability| Only final answers reviewed          | Evidence, process, and traceability             |
-| Operational Mechanism| Project team temporary maintenance  | Continuous feedback, evaluation, and version governance |
-
-These five thresholds are not merely engineering details appearing in later chapters—they are essential to understanding the nature of Agents. Because Agents’ value derives from execution, execution demands stability, credibility, control, verifiability, and operability.
-
-Once an enterprise seriously addresses these thresholds, it can no longer treat an Agent as a standalone solution but naturally faces platform-level challenges. This topic marks the starting point of Chapter 2.
-## 1.7 Chapter Conclusion: Agents as the New Boundary Condition for Enterprise Software
-
-What this chapter truly aims to deliver to readers is not a trendy definition, but a set of initial judgments.
-
-First, an agent is not a catch-all term for large model applications; it is a type of system organized around a closed loop of perception, decision-making, action, and feedback centered on task objectives.
-
-Second, RAG, Copilot, Workflow, and Agent each have their own boundaries. The most common mistake in enterprises is not that the technology is incapable, but that the classification of requirements is wrong.
-
-Third, the core challenge of enterprise-grade agents is not about "making systems more human-like," but about "making systems know what should be done, what must not be done, and what actions must be recorded as evidence."
-
-Fourth, the reason this book begins with the platform perspective is that once a system can “drive tasks forward” within an enterprise, it inevitably involves platform-level issues—not just model-level problems.
-
-The next chapter will further answer: since enterprises are really building not an isolated agent but a shared infrastructure supporting multiple agents, what exactly are the boundaries of the “platform”? And what is its precise relationship with applications, frameworks, and low-code tools?
 ## References
 
 Yao, S. et al. (2023). [*ReAct: Synergizing Reasoning and Acting in Language Models*](https://arxiv.org/abs/2210.03629). ICLR.

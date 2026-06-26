@@ -1,36 +1,24 @@
 # Chapter 34 Engineering NL2SQL
 
 ---
-## Chapter Summary
+## Scene Introduction
 
-This chapter discusses the engineering of NL2SQL in DataAgent. Production-grade NL2SQL is not about generating a single SQL statement with one prompt; rather, it is a collaborative loop involving compilation, generation, validation, execution, error feedback, and business-level interpretation under semantic constraints. Chapter 33 has already linked user queries to Metrics, Dimensions, and Views. Building on these Linked Schemas, this chapter explains how to generate executable SQL, how to perform pre-execution checks using AST, schema, cost, and policy, how to implement self-repair through observations, and how to transform results into business responses with calibrated metrics and evidence.
-## Key Terms
+Chapter 33 binds the question "Which were the main SKUs driving last week's sales decline in East China?" to the view `gmv_ops@2025Q1`, with `region_code = EAST`, `grain = sku`, and the current user's `sales_ops` view. The challenge this chapter addresses is: under these constraints, how does DataAgent generate SQL that is executable, auditable, and fixable?
 
-NL2SQL, Semantic SQL, SQL Validation, Execution Feedback, Read-Only Execution, Business Explanation
-## Learning Objectives
+If NL2SQL is simplified to just "the model writes SQL," the system will quickly run into production issues. The model might omit the `tenant_id`, refer to tables outside the Linked Schema, misuse SKU fields, generate a full-database-scan join, or produce conclusions without clear data definitions even if the SQL runs correctly. What DataAgent needs is an engineering pipeline, not a pretty piece of SQL code.
 
-- Explain how NL2SQL fits into DataAgent Run alongside the Planner, semantic layer, and Registry.
-- Distinguish between generation strategies: example-driven prompting, step-by-step decomposition, large-schema pruning, and fine-tuning open-source models.
-- Design SQL validation, execution guardrails, and self-repair workflows to prevent unauthorized and runaway queries.
-- Convert SQL results into answers that carry `metric_id@version` references, data-freshness indicators, and evidence citations.
+Production incidents rarely appear as pure SQL syntax errors. More often, the SQL runs and the chart renders, but the result drifts away from business rules. One model treats `order_amount` as sales without using the semantic-layer definition `amount_ops`; another forgets to include `tenant_id` until the executor blocks it; a third creates a wide join over two years of order detail to answer a simple SKU question. To users, these should not be explained as model instability. They show that NL2SQL has not been placed inside a governed execution chain.
+
+This chapter places NL2SQL back into the context of the Agent platform. The Planner is responsible for proposing the next action; the semantic layer handles data definitions and joins; the Registry manages tool invocation auditing; the `sql_executor` handles read-only validation and execution; and Observation structures error feedback back to the Planner. What users ultimately see are business explanations, while SQL remains an intermediate artifact.
 
 ---
-## Opening Scenario
+## 34.1 Responsibilities of NL2SQL in DataAgent Run
 
-Chapter 33 binds the question “Which were the main SKUs driving last week's sales decline in East China?” to the view `gmv_ops@2025Q1`, with `region_code = EAST`, `grain = sku`, and the current user's `sales_ops` view. The challenge this chapter addresses is: under these constraints, how does DataAgent generate SQL that is executable, auditable, and fixable?
-
-If NL2SQL is simplified to just “the model writes SQL,” the system will quickly run into production issues. The model might omit the `tenant_id`, refer to tables outside the Linked Schema, misuse SKU fields, generate a full-database-scan join, or produce conclusions without clear data definitions even if the SQL runs correctly. What DataAgent needs is an engineering pipeline, not a pretty piece of SQL code.
-
-This chapter places NL2SQL back into the context of the Agent platform. The Planner is responsible for proposing the next action; the semantic layer handles data definitions and joins; the Registry manages tool invocation auditing; the `sql_executor` handles read-only validation and execution; and Observation structures error feedback back to the Planner. What users ultimately see are business explanations—the SQL is only an intermediate artifact.
-
----
-## 34.1 The Position of NL2SQL
-
-DataAgent’s NL2SQL lives inside the Planner loop. After the Planner obtains the Question Frame and Linked Schema, it can either call the semantic layer to compile the query or request the Gateway to generate or fine-tune the SQL within constraints. When executing the query, the SQL must go through the `sql_executor` in the Registry; neither the model nor the Planner can directly connect to the database.
+DataAgent's NL2SQL lives inside the Planner loop. After the Planner obtains the Question Frame and Linked Schema, it can either call the semantic layer to compile the query or request the Gateway to generate or fine-tune the SQL within constraints. When executing the query, the SQL must go through the `sql_executor` in the Registry; neither the model nor the Planner can directly connect to the database.
 
 ![Figure 34-1: NL2SQL Collaboration Sequence](../../images/part6/en/ch34-nl2sql-sequence.png)
 
-*Figure 34-1: NL2SQL collaboration sequence. Source: Created by the authors. Alt text: A sequence diagram showing the call order among Planner, semantic layer, Registry, sql_executor, and model gateway—from compiling Linked Schema to SQL execution, observation feedback, and result interpretation.*
+*Figure 34-1: NL2SQL collaboration sequence. Source: Created by the authors. Alt text: A sequence diagram showing the call order among Planner, semantic layer, Registry, sql_executor, and model gateway, from compiling Linked Schema to SQL execution, observation feedback, and result interpretation.*
 
 A typical invocation can be broken into four stages. The first stage is semantic compilation, which converts Metrics, Dimensions, filters, and time ranges into Semantic SQL or a structured query object. The second stage is SQL generation, which augments sorting, grouping, LIMIT clauses, or specific SQL dialects under semantic layer constraints. The third stage is execution governance, where `sql_executor` performs read-only checks, permission checks, cost estimation, and executes the query. The fourth stage is business interpretation, where the Planner generates an answer based on results, metric context, and trusted context.
 
@@ -72,11 +60,11 @@ ORDER BY (gmv_last_week - gmv_prior_week) ASC
 LIMIT 50;
 ```
 
-The key point of this SQL is not the syntax, but its origin. The `amount_ops` comes from the definition of `gmv_ops`; `is_internal = false` comes from the metric’s default filter; the time range comes from the Question Frame; `tenant_id` comes from IAM and Policy. If the model generates similar SQL on its own, it must go through the same validation.
+The key point of this SQL is not the syntax, but its origin. The `amount_ops` comes from the definition of `gmv_ops`; `is_internal = false` comes from the metric's default filter; the time range comes from the Question Frame; `tenant_id` comes from IAM and Policy. If the model generates similar SQL on its own, it must go through the same validation.
 
-In a large schema, pruning happens before generation. The prompt should only include a small subset of tables and columns relevant to the current question, not the entire database DDL. Frameworks like CHESS emphasize a workflow of first retrieving, then selecting the schema, then generating, then validating. The underlying principle aligns with this book’s: large-scale NL2SQL must first reduce the context window, then have the model write SQL.
+In a large schema, pruning happens before generation. The prompt should only include a small subset of tables and columns relevant to the current question, not the entire database DDL. Frameworks like CHESS emphasize a workflow of first retrieving, then selecting the schema, then generating, then validating. The underlying principle aligns with this book's: large-scale NL2SQL must first reduce the context window, then have the model write SQL.
 
-Pruning results must also be recorded for auditing. Which tables, columns, and candidate schemas were used or excluded in a query determines what SQL the model can generate. If a user questions “Why wasn’t the returns table queried?”, the platform should be able to explain that the current Question Frame does not include returns analysis, or the active View forbids access to returns details. Without pruning records, it is very difficult to trace whether erroneous SQL resulted from a linking error, pruning error, or model generation error.
+Pruning results must also be recorded for auditing. Which tables, columns, and candidate schemas were used or excluded in a query determines what SQL the model can generate. If a user questions "Why wasn't the returns table queried?", the platform should be able to explain that the current Question Frame does not include returns analysis, or the active View forbids access to returns details. Without pruning records, it is very difficult to trace whether erroneous SQL resulted from a linking error, pruning error, or model generation error.
 
 ---
 ## 34.3 Generation Route Selection
@@ -92,7 +80,7 @@ NL2SQL engineering does not have a single fixed route. Enterprises can select a 
 | Large Schema Pruning | Narrow down tables and columns first, then generate and verify | Thousands of columns, cross-domain data warehouse |
 | Open Source Model Training | Train or fine-tune models with SQL corpora       | Localization and cost sensitivity           |
 
-In the East China case, the scale is small, so semantic layer compilation plus light Gateway fine-tuning is sufficient. For the entire集团 data warehouse, a single View may still contain many tables and columns, requiring a heavier pruning pipeline. If an enterprise cannot send schema and questions to a closed-source model, they can integrate a local SQL-specialized model via the LLM Gateway in Chapter 45.
+In the East China case, the scale is small, so semantic layer compilation plus light Gateway fine-tuning is sufficient. For a group-wide data warehouse, a single View may still contain many tables and columns, requiring a heavier pruning pipeline. If an enterprise cannot send schema and questions to a closed-source model, it can integrate a local SQL-specialized model through the LLM Gateway in Chapter 45.
 
 When selecting routes, avoid two extremes. One is using one giant prompt for all questions, letting the model resolve metrics, fields, joins, and security itself. The other is over-fragmenting the flow, causing a simple query to trigger a dozen model calls. The first version can prioritize semantic layer compilation, accumulate error samples, and then decide whether more complex pipelines are needed.
 
@@ -137,7 +125,7 @@ Retry counts should be managed independently from the Run's `max_steps`. Once `m
 
 The design of Observations directly affects self-healing quality. Errors given to the Planner should not be just raw database errors but also include useful repair clues, such as candidate columns, permitted tables, current dialect, failure stage, and retry allowance. Errors shown to users should be more restrained to avoid exposing table structures or permission details. One error object can simultaneously serve Planner, user, and audit needs, but its fields should be layered accordingly.
 
-Self-healing must also prevent calibration drift. When the Planner repairs SQL, it should only change column names, aliases, dialect functions, ordering, or Limit clauses—technical details. If the fix requires changing metrics, expanding views, or removing default filters, it should revert to chapter 33 for relinking or enter manual confirmation. SQL running successfully does not guarantee the business logic remains correct.
+Self-healing must also prevent calibration drift. When the Planner repairs SQL, it should only change column names, aliases, dialect functions, ordering, or Limit clauses. If the fix requires changing metrics, expanding views, or removing default filters, it should return to Chapter 33 for relinking or enter manual confirmation. SQL running successfully does not guarantee the business logic remains correct.
 
 Failure classification should be incorporated into the evaluation framework. Syntax errors, column name errors, permission errors, timeouts, empty results, and explanation errors correspond to different repair paths. Grouping all as "SQL failures" will lead teams to keep tweaking prompts blindly; separating categories clarifies whether to revise Linker, semantic layer, executor, or response templates. The DataAgent Eval in chapter 39 will continue using these error tags.
 
@@ -161,20 +149,20 @@ require_tenant_predicate: true
 deny_tables: [raw_pii, admin]
 ```
 
-Execution protection cannot rely solely on string matching. A SQL parser should generate an AST to determine the statement type, table references, function calls, and subqueries. The `WITH` clause might also contain write operations or dangerous expressions—just seeing the start as `WITH` cannot grant free pass.
+Execution protection cannot rely solely on string matching. A SQL parser should generate an AST to determine the statement type, table references, function calls, and subqueries. The `WITH` clause might also contain write operations or dangerous expressions; seeing the statement start with `WITH` cannot grant a free pass.
 
-Cost protection is especially critical in DataAgent. Business users’ natural language queries often don’t proactively restrict partitions, row counts, or join scopes. The model may generate wide-table queries to answer “why the drop”. The executor should estimate scanned rows, join width, and result size during the EXPLAIN phase. If thresholds are exceeded, the Planner should narrow the time range, reduce granularity, or route to offline jobs. A single ad hoc query must not cripple production OLAP.
+Cost protection is especially high-risk in DataAgent. Business users' natural language queries often don't proactively restrict partitions, row counts, or join scopes. The model may generate wide-table queries to answer "why the drop". The executor should estimate scanned rows, join width, and result size during the EXPLAIN phase. If thresholds are exceeded, the Planner should narrow the time range, reduce granularity, or route to offline jobs. A single ad hoc query must not cripple production OLAP.
 
 Result protection also needs proper design. Top-K results can go directly into the model context; full results should be saved as artifacts, passing only references, schema, samples, and hash. When full data is needed for reports or downstream Python analysis, controlled tools should read the artifact, rather than giving the model all detail. This controls token usage and reduces sensitive data leakage risk.
 
-Audit logs must include at least SQL hash, normalized SQL, parameters, user, tenant, Metric version, View, execution time, scan volume, returned row count, and result artifact. External displays do not need all these fields, but internal replay and cost governance require them. Chapter 38’s Trace will continue to use this information.
+Audit logs must include at least SQL hash, normalized SQL, parameters, user, tenant, Metric version, View, execution time, scan volume, returned row count, and result artifact. External displays do not need all these fields, but internal replay and cost governance require them. Chapter 38's Trace will continue to use this information.
 
-Rate limiting must differentiate by tenant and task type. Ordinary queries can run on online OLAP; complex diagnostics or wide-table exports should enter asynchronous jobs or offline queues. High-priority users do not get to bypass resource protections; they only have different queue priorities or higher quotas. Otherwise, DataAgent’s natural language entry becomes a backdoor bypassing data platform governance.
+Rate limiting must differentiate by tenant and task type. Ordinary queries can run on online OLAP; complex diagnostics or wide-table exports should enter asynchronous jobs or offline queues. High-priority users do not get to bypass resource protections; they only have different queue priorities or higher quotas. Otherwise, DataAgent's natural language entry becomes a backdoor bypassing data platform governance.
 
 Result truncation must be visible to users. If only the top 50 rows are returned, the answer must not imply it covers all SKUs; if the result set is sampled, conclusions must be limited to that sample. Truncation markers, total row counts, and sorting bases should all be inputs to the Planner. Many misinterpretations are not SQL errors but models not realizing the data they see is truncated.
 ## 34.6 From Results to Business Explanation
 
-Users don’t care whether the SQL is well-written; they care whether the conclusions are trustworthy. After `sql_executor` returns results, the Planner should first produce a result summary: top-K rows, key differences, aggregated values, whether results are truncated, and whether the sample size is sufficient. Then it should merge the `metric_context`, data freshness, and evidence references into a readable response.
+Users don't care whether the SQL is well-written; they care whether the conclusions are trustworthy. After `sql_executor` returns results, the Planner should first produce a result summary: top-K rows, key differences, aggregated values, whether results are truncated, and whether the sample size is sufficient. Then it should merge the `metric_context`, data freshness, and evidence references into a readable response.
 
 ```json
 {
@@ -194,20 +182,20 @@ A user-facing answer might be:
 
 > Operating GMV in East China (`gmv_ops@2025Q1`) declined by 12.3% last week compared to the prior week. The SKU contributing most to the drop is SKU-A, accounting for about 32% of the regional decline; SKU-B contributes about 11%. Data is from `orders_fact v3`, synchronized as of 06:00 on 2025-06-14.
 
-This response contains the conclusion, the scope of metrics, evidence, and freshness. It does not display the full SQL, but the Trace keeps the SQL hash, parameters, metric version, and result references. When the user follows up with “Does it relate to category structure?”, the Planner can expand the Question Frame and proceed into the Python analysis path described in Chapter 35.
+This response contains the conclusion, the scope of metrics, evidence, and freshness. It does not display the full SQL, but the Trace keeps the SQL hash, parameters, metric version, and result references. When the user follows up with "Does it relate to category structure?", the Planner can expand the Question Frame and proceed into the Python analysis path described in Chapter 35.
 
-If the result is empty, the DataAgent should not simply respond “No issues.” It must distinguish between truly no data, overly strict filters, default filter exclusions due to the metric definition, data not yet synced, or lack of user permissions. Different reasons require different responses and next steps.
+If the result is empty, the DataAgent should not simply respond "No issues." It must distinguish between truly no data, overly strict filters, default filter exclusions due to the metric definition, data not yet synced, or lack of user permissions. Different reasons require different responses and next steps.
 
-Business explanations should avoid over-attribution. The SQL result can tell the user which SKUs declined but cannot automatically prove causation. If the user asks “Is it caused by category structure?”, the system should enter the analysis path in Chapter 35 instead of making a causal judgment based only on Top SKU rankings. NL2SQL handles data retrieval and initial summarization; attribution, forecasting, and complex statistics require more explicit analysis steps.
+Business explanations should avoid over-attribution. The SQL result can tell the user which SKUs declined but cannot automatically prove causation. If the user asks "Is it caused by category structure?", the system should enter the analysis path in Chapter 35 instead of making a causal judgment based only on Top SKU rankings. NL2SQL handles data retrieval and initial summarization; attribution, forecasting, and complex statistics require more explicit analysis steps.
 
-During multi-turn questioning, SQL results should enter Working Memory along with the Question Frame. If the user asks, “What about North China?”, the Planner can reuse metrics, time filters, and query structure but replace the region; if the user asks to see results “by category,” the Planner adds dimensions and re-executes. This maintains context continuity while avoiding using the previous SQL text as the sole basis.
+During multi-turn questioning, SQL results should enter Working Memory along with the Question Frame. If the user asks, "What about North China?", the Planner can reuse metrics, time filters, and query structure but replace the region; if the user asks to see results "by category," the Planner adds dimensions and re-executes. This maintains context continuity while avoiding using the previous SQL text as the sole basis.
 
-Explanation should also preserve the ability to say “I don’t know.” If SQL only returns declining SKUs, the system should not answer “The reason is pricing.” If the data lacks promotion fields, it cannot judge the promotional impact. A trustworthy DataAgent will clearly state: “This query only identifies declining SKUs; to determine category structure or pricing effects requires further analysis.” This boundary explanation is more valuable than forcibly providing conclusions.
+Explanation should also preserve the ability to say "I don't know." If SQL only returns declining SKUs, the system should not answer "The reason is pricing." If the data lacks promotion fields, it cannot judge the promotional impact. A trustworthy DataAgent will clearly state: "This query only identifies declining SKUs; to determine category structure or pricing effects requires further analysis." This boundary explanation is more valuable than forcibly providing conclusions.
 
 The reporting pipeline will reuse the results of this chapter. Chapter 36, when generating charts and reports, should not rerun SQL with unclear metric definitions but use the result artifact, SQL hash, and metric context produced here. This ensures every conclusion in a report can trace back to the original query rather than recalculating numbers anew at report generation.
 
 ---
-## 34.7 mini-platform Implementation Path
+## 34.7 From SQL Generation to a Controlled Execution Chain
 
 `sql_executor` is a Registry Tool. Its inputs include SQL, tenant, Metric context, and an optional Linked Schema summary; outputs include result summary, artifact references, SQL hash, execution statistics, and structured errors. The Planner only uses it through Tool Call and does not connect directly to the database.
 
@@ -235,7 +223,7 @@ The real implementation is stricter than this example: handling CTEs, UNION, sub
 
 The directory structure should also separate generation from execution. The `agents/data_agent/` can handle Question Frame, SQL generation prompts, and explanation templates; `tools/sql_executor/` handles validation, execution, and result packaging only; `infra/semantic_layer/` is responsible for Metric compilation. Mixing these in a single module may expedite short-term implementation but makes it difficult long-term to swap databases, change execution strategies, or integrate new semantic layers.
 
-The rollout can start with a narrow closed loop. Initially support single View, a small number of Metrics, read-only SELECT, and fixed dialect; then add multi-dialect support, EXPLAIN cost, artifacts, automatic error correction, and evaluation suites. Do not promise “arbitrary natural language generates arbitrary SQL” from day one. DataAgent’s reliability comes from a controlled scope, not covering all queries.
+The rollout can start with a narrow closed loop. Initially support single View, a small number of Metrics, read-only SELECT, and fixed dialect; then add multi-dialect support, EXPLAIN cost, artifacts, automatic error correction, and evaluation suites. Do not promise "arbitrary natural language generates arbitrary SQL" from day one. DataAgent's reliability comes from a controlled scope, not covering all queries.
 
 The first regression sets can be small but must cover key boundaries: correct queries, ambiguous metrics, missing time filters, unauthorized tables, timeout queries, empty results, truncated results, column name errors, and dialect errors. Each sample must have expected behavior, which does not have to be success. Rejections, follow-up questions, failures, and handoffs to manual operations are also correct results.
 
@@ -244,23 +232,72 @@ Execution logs should also serve product improvement. Frequent column name error
 Before launch, prepare at least three types of regressions. The first type covers normal queries, e.g., East China weekly comparison of Top SKUs, verifying results include `gmv_ops@2025Q1`. The second type involves safe rejections, e.g., DDL, DML, missing tenant filters, accessing forbidden tables. The third type covers self-corrections, e.g., column name errors, dialect errors, and fixable aggregation errors. Only if both success and failure paths are testable can NL2SQL be production-ready.
 
 ---
+## 34.8 Failure Replay and Quality Loop for NL2SQL
+
+After NL2SQL goes online, failures spread across several layers. The user question may be ambiguous, the semantic layer may lack the term, the model may select the wrong field, the SQL may execute with the wrong business definition, or the explanation may turn correlation into causation. The platform must record these failures separately. A single "query failed" label gives the team no guidance on whether to fix the Linker, semantic layer, SQL generator, executor, or answer template.
+
+A replayable NL2SQL Run should store a summary of the user question, Linked Schema version, candidate metrics and fields, generated SQL, pre-execution validation result, resource usage, result summary, and explanation text. Sensitive raw data does not need to be retained forever, but reference IDs, field names, row counts, aggregation method, and error codes should be preserved. When a business user challenges a result, the platform should return to the semantic version and evidence used at that time rather than rerunning against changed data.
+
+Self-repair also needs a boundary. Missing columns, type mismatch, and time-window formatting can usually be repaired once with structured error feedback. Permission denial, resource-limit rejection, cross-tenant access, and write requests should stop immediately. Otherwise, the model treats safety controls as ordinary errors and searches for alternate paths. Chapter 50 Policy takes precedence over self-repair.
+
+The evaluation set should contain real business language alongside standard SQL exercises. Samples should include colloquial metrics, time expressions, regional aliases, permission differences, empty results, ambiguous questions, and situations that require clarification. Each failed sample should be attributable to semantic layer, generation model, execution validation, or explanation layer.
+
+## 34.9 Canary Release for the Query Chain
+
+NL2SQL should be released as a query chain. A complete chain includes question understanding, semantic linking, SQL generation, pre-execution validation, read-only execution, result explanation, and frontend display. Changing any link can change the final answer. Canary rollout should therefore publish the chain instead of replacing only a prompt or model.
+
+Canary samples should include real user questions. Public benchmarks help measure SQL generation capability, but production rollout also needs metric aliases, organization definitions, permission differences, empty results, timeouts, clarification, and explanation quality. During canary, the platform can run old and new chains side by side on a small tenant group or shadow traffic, comparing generated SQL, execution result, referenced metrics, and explanation text. Differences are not automatically wrong, but high-impact differences must be explained.
+
+Release records should separate model changes from platform changes. Model replacement, prompt edits, Linker adjustment, semantic-layer updates, and executor-threshold changes all affect the answer, but the risk source differs. The release note should state which layer changed and which sample set proves the risk is controlled. For high-value domains, the new chain can generate suggested SQL and explanations in Trace without changing user-visible answers until data owners and business reviewers approve the difference profile.
+
+## 34.10 Interactive Recovery After Query Failure
+
+After an NL2SQL failure, a technical error message rarely helps the user continue. Different failures need different recovery paths. Ambiguous questions should enter clarification. Missing permission should offer an application path or aggregate-level fallback. SQL syntax errors can self-repair. Resource limit failures should ask the user to narrow time range or granularity. Empty results should explain filters, freshness, and permissions.
+
+Clarification should be structured. If the user asks "How were sales last week?", the system may ask for region, channel, metric definition, or comparison baseline. Each clarification item should come from a semantic-layer dimension or Metric, not from temporary model improvisation. Once the user chooses, the new condition must enter the Question Frame and Trace. Otherwise, replay cannot reconstruct the final query.
+
+Empty results require careful interpretation. They may mean true absence of business data, over-restrictive filters, permission pruning, wrong time windows, or delayed data. The platform should record execution result, filter conditions, freshness, and permission hits separately before the answer layer writes user-facing text. Otherwise, the model may treat an empty result as a business anomaly.
+
+Recovery also has a cost boundary. Automatically widening the time range, rewriting SQL, and switching models after every failure may improve apparent success rates while increasing warehouse scan cost. Production systems should limit self-repair rounds and query budget. After the limit, the user should see a concrete next step: narrow scope, request permission, wait for data refresh, or transfer to human analysis.
+
+## 34.11 Minimum Evidence Package for Failure Replay
+
+Failure replay needs evidence beyond the final SQL. A failure often crosses semantic layer, generator, validator, executor, and explanation layers. The minimum evidence package should include the original user question, session context, semantic-layer version, Linked Schema, candidate metrics and fields, model output or tool arguments, validation errors, execution plan, database response, explanation text, and user-visible result. The goal is not to store everything, but to preserve inputs and outputs at every responsibility boundary.
+
+The replay package should answer three questions. For generation: did the model select the wrong table, omit filters, misunderstand time, or map a business term to the wrong metric? For platform controls: did the semantic layer provide enough context, did permission pruning hide required fields, or did SQL validation allow a dangerous query? For interaction: did the user omit a required condition, did the system ask clarification, and did the user accept a degraded answer?
+
+When failures enter the evaluation set, keep the failure type. Field disambiguation failure, time-window error, permission rejection, empty result, resource overrun, and explanation inconsistency belong to different owners. Averaging them into one accuracy score hides the real risk. Chapter 39 evaluation and Chapter 38 Trace should both reuse this evidence model.
+
+## 34.12 Production Degradation Strategy for Query Chains
+
+Production NL2SQL should treat failure as a normal path. Low-risk failures can ask the user to add time range, business domain, or metric definition. Medium-risk failures can return candidate query explanations and request confirmation before execution. High-risk failures must stop execution and hand the reason to a reviewer or data owner. The risk level depends on permission, data sensitivity, estimated scan size, historical failure type, user intent, and model confidence.
+
+Degradation belongs in Runtime as well as frontend messages. The frontend can show clarification panels and alternative actions, but backend state decides whether execution continues. If a query moves from `running` to `waiting_human`, Trace should record the pause point, approver, approval basis, and resumed SQL. Otherwise, a human confirmation button adds little audit value.
+
+Some scenarios need partial success. An operating analysis may successfully query sales and inventory while customer-service data is delayed. The system does not need to mark the whole Run as failed, but it also cannot provide full attribution. A better response lists completed evidence, missing evidence, and the next recommended step. This mirrors real business work better than a binary success/failure outcome.
+
+## 34.13 Layered Release of SQL Generation Capability
+
+SQL generation capability should open in layers. The first layer supports read-only single-metric queries with one time window and a small set of dimensions. The second layer adds grouping, sorting, period-over-period comparison, and simple attribution. The third layer considers multi-table joins, window functions, subqueries, and complex analysis. Layering lets the team verify semantic layer, validator, resource controls, and user recovery before taking on all SQL risks.
+
+Each layer needs exit criteria. Single-metric queries should be stable before multi-dimensional grouping opens. Resource protection should be stable before wider time ranges open. Failure replay should be reliable before expanding to more domains. If one layer shows frequent failures, the platform should narrow capability instead of giving the model more freedom.
+
+Layered release also helps evaluation. Different layers use different samples and metrics, so simple questions do not hide complex failures. Chapter 39 can report accuracy, execution success, clarification rate, and human-intervention rate by query layer. Business stakeholders also get clearer expectations: first, core metrics can be queried, traced, and refused correctly; second, common comparisons and grouping become stable; third, complex diagnosis enters the analysis chain.
+
+Every layer increase should include user education. Users of the first layer need to understand metric footnotes and refusal reasons. Users of the second layer need to understand period comparisons, grouping, truncation markers, and sorting. Users of the third layer need to understand that complex diagnosis requires more evidence and SQL rankings do not prove causality. Good UI can place this education inside task templates and result explanations.
+
+NL2SQL maturity ultimately depends on operating discipline. Models may improve, but production systems still need semantic constraints, pre-execution validation, resource budgets, error classification, Trace replay, and canary release. Without those controls, stronger generation only makes the system more willing to answer, not more trustworthy.
+
+---
 ## Chapter Recap
 
-1. NL2SQL in DataAgent is a collaborative loop involving the semantic layer, Planner, Registry, and `sql_executor`, rather than a one-time prompt interaction.
-2. Before generating SQL, Linked Schema and View pruning should be applied to avoid including full-database DDL in the model context.
-3. SQL execution must be subjected to syntax, read-only, schema, cost, and policy validations beforehand.
-4. Self-repair mechanisms are suitable only for fixable errors; unauthorized or sensitive access should be outright rejected.
-5. User value stems from business explanations with defined scope, freshness, and evidence; SQL serves merely as an intermediate artifact.
-## Further Reading
+NL2SQL in DataAgent is a collaboration among semantic layer, Planner, Registry, and `sql_executor`; it is not a one-prompt SQL generator. Before SQL generation, Linked Schema and View pruning should constrain the model context. Before execution, SQL must pass syntax, read-only, schema, cost, and Policy validation. Self-repair applies only to fixable errors such as syntax, field names, dialect functions, or aggregation details; unauthorized access and sensitive fields should be rejected.
 
-- [Chapter 33 Semantic Layer Engineering](ch33.md)
-- [Chapter 35 Text-to-Python and Analysis Sandbox](ch35-text-to-pandas-text-to-python.md)
-- [Chapter 25 Planner and Orchestration Patterns](../../part05-agent-capabilities/ch/ch25-planner.md)
-- [Chapter 39 DataAgent Eval and Benchmark](../../part07-observability-eval/ch/ch39-dataagent-eval-benchmark.md)
-- [Chapter 50 Policy and Permissions](../../part10-security-org/ch/ch50.md)
+The user value is a business explanation with scope, freshness, and evidence. SQL is an intermediate artifact. Production readiness depends on failure replay, canary release, interactive recovery, evidence packages, degradation strategy, and layered release of SQL capability. With these controls, DataAgent can grow from demo querying into enterprise querying without losing auditability.
+
 ## References
 
-Liu, X., et al. (2025). A survey of Text-to-SQL in the era of LLMs. *IEEE TKDE*, 37(10), 5735–5754. [https://doi.org/10.1109/TKDE.2025.3592032](https://doi.org/10.1109/TKDE.2025.3592032)
+Liu, X., et al. (2025). A survey of Text-to-SQL in the era of LLMs. *IEEE TKDE*, 37(10), 5735-5754. [https://doi.org/10.1109/TKDE.2025.3592032](https://doi.org/10.1109/TKDE.2025.3592032)
 
 Tang, Z., et al. (2025). LLM/Agent-as-Data-Analyst: A survey. arXiv:2509.23988. [https://arxiv.org/abs/2509.23988](https://arxiv.org/abs/2509.23988)
 
