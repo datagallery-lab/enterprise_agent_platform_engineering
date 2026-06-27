@@ -15,9 +15,7 @@ Part VI 以 DataAgent 为主线，把前面讨论的模型、数据、知识和 
 | [第36章 数据分析、可视化与报告](ch36.md) | 洞察、图表、报告与证据链 | DataAgent 怎样把计算结果变成可审计的业务产物 |
 | [第37章 DataAgent 对标与生态](ch37-dataagent.md) | 开源/商业对标与选型 | 企业应怎样评估 DataAgent 产品和生态方案 |
 
-统一案例是一条“华东区 GMV 下滑”的问数、分析和报告 Run 链，从第32章开始贯穿六章。这里不虚构公司背景，案例只保留任务、数据、工具和证据链。
-
-以下模块为 mini-platform 中 DataAgent 能力在 Part VI 各章的展开顺序。
+统一案例是一条“华东区 GMV 下滑”的问数、分析和报告 Run 链，从第32章开始贯穿六章。这里不虚构公司背景，案例只保留任务、数据、工具和证据链。以下模块为 mini-platform 中 DataAgent 能力在 Part VI 各章的展开顺序。
 
 ## Part VI mini-platform 模块地图
 
@@ -30,7 +28,7 @@ Part VI 以 DataAgent 为主线，把前面讨论的模型、数据、知识和 
 | `tools/chart_renderer/` | 图表 spec | 第36章 |
 | `agents/data_agent/templates/` | 报告模板 | 第36章 |
 
-平台 Run、Registry 和 HITL 底座见 Part V，尤其是 [第22章 Agent Runtime](../../part05-agent-capabilities/ch/ch22-agent-runtime.md) 至第30章。
+本部分不会重复展开平台底座，Run、Registry 和 HITL 的基础设计集中放在 Part V。需要回看实现边界时，优先参考 [第22章 Agent Runtime](../../part05-agent-capabilities/ch/ch22-agent-runtime.md) 到第30章。
 
 ## Part VI 能力体系（一览）
 

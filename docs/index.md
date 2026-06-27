@@ -53,10 +53,8 @@ bash scripts/check_all.sh
 python -m mkdocs build --strict --clean --site-dir /tmp/enterprise-agent-book-site
 ```
 
-第一条命令检查章节结构、术语、敏感信息和 mini-platform 测试；第二条命令检查电子书站点能否按严格模式构建。
+第一条命令检查章节结构、术语、敏感信息和 mini-platform 测试；第二条命令检查电子书站点能否按严格模式构建。两条命令合在一起，基本覆盖了这本书在提交前最需要守住的本地质量门槛。
 
 [开始阅读 Part I](part01-overview/ch/index.md)
-
 [Start with English Edition](part01-overview/en/index.md)
-
 [阅读卷末说明](afterword.md)

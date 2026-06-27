@@ -1,6 +1,7 @@
 # Chapter 30 Human-in-the-loop and Long-running Tasks
 
 ---
+
 Chapter 22 defines `waiting_human` as one of the six Run states. It indicates that the Runtime intentionally pauses and waits for Console or human intervention. This state is very common in production systems: a draft report has been generated but cannot yet be sent out; a discount plan has been calculated but requires manager approval due to thresholds; contract risk points have been extracted but the legal department needs to review the evidence first.
 
 Without HITL (Human-In-The-Loop), the Agent can easily turn "seemingly reasonable" results directly into system actions. Unreviewed competitor descriptions might be sent to regional manager groups, incorrect discounts might be recorded into master data, and reports containing personal information might be externally shared. Research by Amershi et al. on interactive machine learning emphasizes that humans should be empowered collaborators with control, not passive annotators (Amershi et al. 2014; Mosqueira-Rey et al. 2023). Human intervention in enterprise Agents is the practical engineering realization of this principle.
@@ -16,13 +17,12 @@ Long-running tasks are also more than larger timeouts. A report task that runs f
 This chapter puts HITL and long-running tasks together because both deal with work that cannot finish immediately. A task may wait for data, a model, an external Agent, or a person. If these waits are scattered across business code, frontend state, and temporary queues, later audit and recovery become fragile. A unified Runtime state lets users see progress, approvers see evidence, SREs identify stuck tasks, and auditors know who made which decision.
 
 ---
+
 ## 30.1 HITL Design Goals
 
 ### 30.1.1 What Human Intervention Addresses
 
-HITL (Human-In-The-Loop) differs from asking the user a few extra questions in a chat. Clarifying questions help complete the task input, while human approval authorizes the Agent to execute actions. The former usually happens before planning, while the latter occurs at Runtime when preparing to carry out high-risk actions or release artifacts.
-
-Enterprises adopt HITL generally for four types of objectives.
+HITL (Human-In-The-Loop) differs from asking the user a few extra questions in a chat. Clarifying questions help complete the task input, while human approval authorizes the Agent to execute actions. The former usually happens before planning, while the latter occurs at Runtime when preparing to carry out high-risk actions or release artifacts. Enterprises adopt HITL generally for four types of objectives.
 
 *Table 30-1: HITL Objectives and Risks Without Human Intervention. Source: Compiled by this book.*
 
@@ -37,7 +37,7 @@ Industries like finance, healthcare, government, and retail marketing may requir
 
 ### 30.1.2 `waiting_human` as a Runtime State
 
-Approvals must be handled within the Runtime's six execution states under `waiting_human`, rather than through if/else logic inside an Agent application. The reason is straightforward: only the Runtime state can know whether the current Run is paused, if it can resume, whether to continue pushing SSE (Server-Sent Events), if checkpoints are complete, and how to handle approval timeouts.
+Approvals must be handled within the Runtime's six execution states under `waiting_human`, instead of through if/else logic inside an Agent application. The reason is straightforward: only the Runtime state can know whether the current Run is paused, if it can resume, whether to continue pushing SSE (Server-Sent Events), if checkpoints are complete, and how to handle approval timeouts.
 
 When entering `waiting_human`, the Runtime must at least do three things. First, write an engine checkpoint saving Run state, Memory, Tool results, and the pending approval information. Second, write a business checkpoint so the Console shows "Draft report generated, pending approval." Third, push an `approval_request` event to the frontend or ticketing system to create a to-do.
 
@@ -63,11 +63,12 @@ Cancellation and timeout need explicit semantics for long tasks. If a user cance
 
 The evidence package should serve approvers as well as auditors. Approvers need impact scope, key parameters, data sources, model recommendations, alternative actions, and the result of rejection. Auditors need approver identity, time, policy version, artifact hash, and subsequent tool calls. These views can share the same underlying data, but the product surface should not reduce both to an "approve/reject" button.
 
-Long tasks also need to handle concurrent edits. While a report waits for approval, the user may ask for a rewritten summary, another collaborator may modify an attachment, or the system may receive a data freshness update. Runtime should turn these changes into new artifact versions rather than overwrite the original. Approval always binds to a specific version; new versions require new approval or an explicit incremental review. This keeps collaboration from breaking the responsibility chain.
+Long tasks also need to handle concurrent edits. While a report waits for approval, the user may ask for a rewritten summary, another collaborator may modify an attachment, or the system may receive a data freshness update. Runtime should turn these changes into new artifact versions instead of overwrite the original. Approval always binds to a specific version; new versions require new approval or an explicit incremental review. This keeps collaboration from breaking the responsibility chain.
 
 For the platform, HITL is not a burden that lowers automation rate. It is what allows high-risk actions to enter Agent workflows safely. Without HITL, many write operations, exports, and external releases must be prohibited. With clear approval state, evidence, and recovery, the platform can open more capabilities without losing organizational control.
 
 ---
+
 ## 30.2 Approval Modes and Event Contracts
 
 ### 30.2.1 Pre-Approval, Post-Approval, and Multi-Level Approval
@@ -119,15 +120,16 @@ After receiving the callback, the Runtime must verify three things: the Run is c
 
 Policies determine which actions require human intervention. Common triggers include tool tags like `requires_approval`, parameter thresholds, data domains, tenant policies, and Reviewer Agent risk scores. For example, `discount_rate > 0.15`, documents containing `pii:true`, or tool names such as `send_email` or `publish_report` can all trigger `need_approval`.
 
-Approval SLA also falls under policy. After expiry, it can automatically reject, notify approvers, or escalate to higher-level approvers. Regardless of the strategy, state changes must be recorded in checkpoints and approval logs rather than only updated as a TODO status on the Console frontend.
+Approval SLA also falls under policy. After expiry, it can automatically reject, notify approvers, or escalate to higher-level approvers. Regardless of the strategy, state changes must be recorded in checkpoints and approval logs instead of only updated as a TODO status on the Console frontend.
 
-Policy should avoid dumping all risks onto approvers. Low-risk, repetitive, well-evidenced actions can pass automatically; high-risk but under-evidenced actions should first require the Planner to gather more evidence, rather than directly assigning to a human. Otherwise, the approval desk becomes a new bottleneck, drowning important approvals in a flood of low-value tasks.
+Policy should avoid dumping all risks onto approvers. Low-risk, repetitive, well-evidenced actions can pass automatically; high-risk but under-evidenced actions should first require the Planner to gather more evidence, instead of directly assigning to a human. Otherwise, the approval desk becomes a new bottleneck, drowning important approvals in a flood of low-value tasks.
 
 Approval records must preserve the evidence visible at the time. The same draft report may be regenerated before or after approval, and metric versions may change. If the record only stores `approved=true`, the team cannot later prove which content was approved. A production record should at least preserve artifact hash, metric version, key data freshness, Policy trigger reason, and a reference to the approval-page snapshot.
 
 More HITL is not automatically better. A mature system reduces meaningless approvals and improves evidence quality for high-risk cases. Approvers should see more than a "yes/no publish" button: why the model recommends publishing, what data is used, which Policies were triggered, and the consequences of rejection. This way, human intervention becomes a true decision node instead of a mere formality.
 
 ---
+
 ## 30.3 Pause, Resume, and Cancel
 
 ### 30.3.1 Resume Within the Same Run
@@ -160,6 +162,7 @@ This workflow prevents two types of incidents: one where the system unintentiona
 Recovery also needs to preserve which artifact version was approved. If the draft artifact is regenerated during approval, the original approval should no longer apply to the new artifact. A simple approach is for the `approval_request` to record an artifact hash and validate this hash again during approval callbacks. If the content has changed, the old approval is invalidated and a new approval task is issued.
 
 ---
+
 ## 30.4 Two Types of Checkpoints and Long-Running Task Queues
 
 ### 30.4.1 Engine Checkpoints and Business Checkpoints
@@ -198,13 +201,12 @@ If all waits are lumped into one timeout, systems will misjudge conditions. A SQ
 Asynchronous queues cannot replace checkpoints. The queue knows if a `tool_call_id` is still running but does not know which results the Planner has seen or which business milestone the Console has displayed. Long-running tasks need to maintain queue messages, engine checkpoints, and business checkpoints simultaneously; missing any of these will make recovery or replay incomplete.
 
 ---
+
 ## 30.5 Business Replay and Audit
 
 ### 30.5.1 Replay Package
 
-Compliance and customer complaint scenarios often require proving within a limited time frame: who approved the content, based on what data, which version was published, and whether the model bypassed human supervision automatically. Chapter 38's Trace solution addresses technical replay, while this section's business replay package addresses organizational accountability.
-
-The replay package can be exported via API:
+Compliance and customer complaint scenarios often require proving within a limited time frame: who approved the content, based on what data, which version was published, and whether the model bypassed human supervision automatically. Chapter 38's Trace solution addresses technical replay, while this section's business replay package addresses organizational accountability. The replay package can be exported via API:
 
 ```http
 GET /runs/{run_id}/export?format=bundle
@@ -235,6 +237,7 @@ Human rejections and modifications should also enter the evaluation closed loop.
 The granularity of the replay package must also be controlled. Compliance officers typically care about versions, evidence, approvals, and publication outcomes, not the entire model inference process. Archiving all intermediate drafts indiscriminately increases privacy and storage pressure; archiving only the final released material cannot explain why approval occurred. A more reasonable approach is to store key artifacts, tool parameter summaries, data versions, and human comments.
 
 ---
+
 ## 30.6 HITL and Runtime State Recovery
 
 ### 30.6.1 Recovery from Runtime State to Approval
@@ -288,7 +291,7 @@ The first long-task version does not need a full workflow engine. A separate Run
 
 The core of HITL is responsibility transfer, not an extra confirmation button. When a user approves an action, the platform should record the approver, role, approval object, evidence summary, risk level, and the action allowed after approval. If the frontend shows a confirmation dialog while the backend continues as a normal tool call, the confirmation cannot support audit or incident review.
 
-Approval material must be specific enough for business judgment. High-risk actions should not show only "continue or stop." They should show impact scope, key parameters, data source, model recommendation, alternative actions, and what happens after rejection. If a DataAgent is about to export customer details, the approval card should show field scope, row limit, masking state, export purpose, and retention period. The approver sees the business consequence rather than a model explanation detached from the action.
+Approval material must be specific enough for business judgment. High-risk actions should not show only "continue or stop." They should show impact scope, key parameters, data source, model recommendation, alternative actions, and what happens after rejection. If a DataAgent is about to export customer details, the approval card should show field scope, row limit, masking state, export purpose, and retention period. The approver sees the business consequence instead of a model explanation detached from the action.
 
 Timeout policy must be defined before launch. If an approval waits too long, the Run may continue waiting, auto-cancel, degrade to a read-only report, or reassign to a higher-level approver. Different risk levels can use different policies: a low-risk report publication may keep waiting after reminders, while a high-risk write operation should time out, cancel, and leave a recovery path. This gives users and operators a clear explanation after refreshes, restarts, or handoffs.
 
@@ -314,31 +317,102 @@ The first implementation can limit HITL to a few high-risk nodes: external write
 
 HITL is both backend state and product experience. Users need to know why the system paused, who needs to act, what will happen after action, and whether they can cancel or add information while waiting. If the frontend only shows loading, users assume the system is stuck. If it only shows approval buttons, approvers cannot understand risk. Product experience must translate Runtime state into actions people can take.
 
-The experience should not push vague responsibility onto the user. High-risk operations need human confirmation, but the page should show original request, planned action, tool parameters, impact scope, and failure consequence. If the evidence is insufficient, the correct action is to ask the system for more material, not to force the approver to guess.
-
-Every frontend button should correspond to an auditable backend event, and every risk explanation shown on the page should trace back to a policy or tool result. Otherwise, human intervention remains an interaction pattern rather than platform governance.
+The experience should not push vague responsibility onto the user. High-risk operations need human confirmation, but the page should show original request, planned action, tool parameters, impact scope, and failure consequence. If the evidence is insufficient, the correct action is to ask the system for more material, not to force the approver to guess. Every frontend button should correspond to an auditable backend event, and every risk explanation shown on the page should trace back to a policy or tool result. Otherwise, human intervention remains an interaction pattern instead of platform governance.
 
 HITL also needs operating metrics: approval waiting time, timeout rate, rejection rate, reassignment rate, post-approval failure rate, and repeated-approval ratio. Long waiting time points to process or ownership problems. High rejection rate suggests the model or policy triggers risky actions too early. High post-approval failure indicates weak evidence before approval. The goal is to place people where judgment is required, then use operational data to adjust the boundary.
 
 These metrics can also guide automation. Low-risk approvals with a long history of approval can be downgraded to user confirmation or automatic pass. Actions that are often rejected should be blocked earlier by Planner or Policy. HITL is not a fixed switch; it is a process that should be calibrated with real operating data.
 
 ---
+
+## 30.10 HITL Operating Ledger and Approval Review
+
+After HITL goes live, the platform needs an operating ledger for every human intervention. The fields can stay compact, but they must include `run_id`, `approval_id`, approval object, artifact hash, risk level, approver, waiting time, result, rejection reason, follow-up action, and post-approval failure. Without this record, the team only knows that someone clicked approve. It cannot prove which content was approved, what evidence the approver saw, or which action the Runtime executed afterward. For reports, exports, external writes, and cross-system delegation, that distinction affects audit results directly.
+
+Approval review should separate waiting, rejection, and failure. Long waiting time may point to wrong owner assignment, broken notification, or vague risk material that leaves the approver unsure. High rejection rate may mean Planner proposes risky actions too early, or that the approval card lacks evidence. High post-approval failure often means tool parameters, artifact version, or external system state were not validated before approval. These problems require different repairs, so grouping them under "slow approval" hides the useful signal.
+
+The ledger should also calibrate the automation boundary. Approval nodes with a long record of low-risk, evidence-rich approvals can move to batch approval, user confirmation, or policy auto-pass. Nodes that are frequently rejected should move earlier into Planner or Policy blocking. Nodes that time out often need different owners, SLA rules, or reassignment. HITL should place people where judgment is needed; the boundary has to be adjusted with operating data.
+
+Each review should check for fake-button risk. If the approval event does not bind artifact hash, or if Runtime regenerates content after approval, the record cannot prove that the released item was reviewed by a person. If a frontend button has no backend event, the audit bundle will miss approval object and allowed action. The team should sample approved tasks and verify that the approval page, backend event, Trace, artifact, and final release match. When they do not match, that class of automated release should pause until the approval chain can prove version and action consistency.
+
+The first version can bring HITL operations into the weekly platform meeting. The platform team reviews waiting and timeouts, business owners review rejection reasons, compliance samples high-risk approval bundles, and product owners decide which nodes downgrade, stay, or gain more automation. Human intervention then becomes a measurable, adjustable, auditable process instead of a feature that ends at implementation.
+
+## 30.11 Responsibility Records And Timeout Recovery For Human Approval
+
+The production value of HITL is not a confirm button on the page. It is that human judgment changes Run state and leaves responsibility records. An approval record should state who confirmed which action under which permission, what evidence was visible, whether the model suggestion was edited, whether extra conditions were added, and which tool calls the decision affected. If approval exists only as a frontend event, Runtime and audit systems cannot prove that a high-risk action passed through a person.
+
+Timeout recovery should be designed with responsibility records. When an approver does not respond, the system may remind, delegate, degrade, cancel, or keep waiting, but the task should not continue silently. Different scenarios need different timeout actions. Data export can be cancelled. Contract sending can transfer to a manager. A low-risk report can remain as draft. External-system writes should pause and release related locks. The timeout action should enter Trace and explain why the task did not continue.
+
+Human nodes should also avoid fake confirmation. If a frontend button merely lets the model continue while the backend has no approval state, permission check, or tool-execution constraint, the button cannot carry responsibility. Real HITL should be created as a waiting node by Runtime. Policy Engine decides whether a person is required. The frontend displays evidence and available actions. The approval result writes back to the state machine. Human participation then becomes part of the production chain.
+
+## 30.12 Sample Return From Human Feedback
+
+Human approval and review produce high-quality feedback. When an approver edits a conclusion, rejects a report, adds evidence, blocks export, or asks for another query, the Agent missed a business requirement somewhere in the chain. If this feedback remains only in approval records, Planner, tools, semantic layer, and report templates cannot improve. The platform should convert human feedback into structured samples.
+
+Each sample should record original task, Agent suggestion, human edit, edit reason, related evidence, affected tool, and final disposition. If approvers often add the same evidence type, default evidence display is weak. If humans repeatedly rewrite the same kind of conclusion, report templates or metric explanations need repair. If many exports are rejected, risk prompts and policy boundaries need adjustment.
+
+Feedback return should preserve responsibility boundaries. A human edit does not always mean model error. It may reflect business-policy change, metric-definition dispute, or permission constraint. Sample classification should keep these reasons so every feedback item does not become model-training data. The long-term value of HITL comes from turning human judgment into platform evidence, not from placing buttons at key moments.
+
+## 30.13 Consistency between human-node experience and responsibility
+
+HITL experience design must match responsibility design. Buttons, messages, and countdowns shown to users should correspond to real backend state. If the frontend says approved while the backend is still waiting to execute a write, the user has a false sense of completion. If the user sees cancel while Runtime has already submitted the external action, the interface is misleading. If an approver sees only a summary without evidence and risk, the responsibility record is incomplete. Human-node reliability depends on interface, state machine, and audit record describing the same event.
+
+Approval pages should show enough evidence. A high-risk write action needs parameters, affected object, data source, policy hit, expiry time, and rollback method. Report publication needs EvidenceRef, human edits, data time, and export scope. Permission requests need request reason, data category, and approval scope. An approver should not see only a model-generated explanation, because approval would become a formality.
+
+A first version can divide human nodes into confirmation, approval, review, and takeover. Confirmation handles low-risk clarification. Approval handles side-effect actions. Review handles evidence or compliance judgment. Takeover handles tasks the system cannot continue. Each node type has its own state, timeout, responsibility record, and user message. HITL then becomes an explainable responsibility mechanism in the runtime path, not a universal button.
+
+## 30.14 Cross-system notification and receipt for human nodes
+
+In production, HITL approval rarely happens only inside the Agent page. Approvers may enter the task from enterprise chat, Slack, email, ticketing, or approval systems. Cross-system notification must stay consistent with Runtime state. The artifact version, risk level, expiry time, and available actions shown in the notification should match the approval page and backend event. When an approver clicks approve from an external system, the receipt must return to the same `run_id` and `approval_id`. Otherwise the notification appears to complete the work while Runtime cannot prove who approved which action.
+
+The notification path also needs failure handling. Message delivery failure, missing approver permission, expired links, callback timeout from the approval system, duplicate callbacks, and organizational-role changes can all suspend a task. The platform should model notification state inside the human node: pending send, sent, read, received, send failed, receipt failed, and reassigned. Each state should be visible in Trace so the platform can distinguish an approver who has not acted from a notification system that never delivered the request.
+
+A first version can support a small set of receipt fields: notification channel, recipient, sent time, receipt time, approval action, artifact hash, permission-check result, and failure reason. HITL can then work across systems without losing its responsibility chain. Human approval is an organizational process, and notification plus receipt are operating evidence for that process.
+
+## 30.15 Evidence packages for human-node disputes
+
+HITL disputes usually happen at responsibility handoff. An approver may believe they only confirmed information, while the system interprets the action as execution authorization. A business owner may believe a human node has been handled, while Runtime keeps waiting because no receipt arrived. A user may think the task was cancelled, while a backend tool completed a write action. After human nodes enter production, responsibility cannot be explained only through button text and chat records. The platform needs evidence packages for high-risk human nodes.
+
+An evidence package should include task goal, reason for entering the human node, approver identity, approval permission, context shown to the approver, user-visible message, approval action, action time, downstream tool calls, and final state. If approval involves an external system, the package should also record external receipt and idempotency key. Review can then decide whether the approver authorized continued analysis, draft generation, a write action, or result publication. These authorization scopes have different consequences and should be clear before an incident.
+
+Evidence packages also improve product design. If many approvers approve after reading only the title, the context may be too long or the risk notice too weak. If approvals time out often, the owner, notification channel, or fallback mechanism is wrong. If approval continues after user cancellation, Runtime events and notification systems are out of sync. Feeding this material into Chapter 39 Eval and Chapter 42 SLO makes HITL a system that improves over time, not a compliance decoration.
+
+A first version can generate evidence packages for three human-node types: high-risk write action, external publication, and permission or data egress. Low-risk human feedback can keep lighter records, but high-risk nodes should export a complete timeline. HITL earns its place through clear responsibility and recoverable state, not through adding a confirmation button to the interface.
+
+## 30.16 Rotations and backups for human nodes
+
+After HITL enters production, a human node should not bind to one person only. Leave, role changes, organizational changes, notification failure, and peak backlog can all leave long-running tasks waiting. Users see an Agent that never finishes. The platform sees a suspended Run. Business owners see a process without an accountable handler. Human nodes need rotations and backups, turning waiting from a personal action into an operating process.
+
+The rotation should define primary approver, backup approver, escalation path, and timeout action. Low-risk tasks can move to a backup after timeout. High-risk tasks can require second confirmation or enter a human queue. External publication and write actions should preserve approval responsibility and should not bypass it automatically. Runtime should record every notification, confirmation, reassignment, and timeout. The frontend should tell users who the task is waiting for, when it will escalate, and whether they can cancel or add material.
+
+Backup handling also needs permission checks. Whether a backup can see the same context, approve the same action, or modify the generated artifact should be decided by Policy. If the backup lacks permission, the system should detect it before timeout, not after the task fails. For cross-department approval, the platform should also avoid sending sensitive context to a backup without access rights.
+
+A first version can configure rotation tables for frequent human nodes. Each table includes role, primary owner, backup owner, notification channel, timeout, escalation rule, and audit fields. HITL then avoids blocking an Agent chain because one approver is offline, and Chapter 42 SLO can make executable commitments for long-task waiting.
+
+## 30.17 Approval backlog and backup owners
+
+After HITL reaches production, approval backlog directly affects user experience and business timeliness. Routing high-risk actions to human confirmation is necessary, but Runs can remain suspended when approvers are on leave, organizations change, messages are missed, or too many tasks arrive. The platform should define timeout, reminder, backup owner, and escalation path instead of only showing waiting for human. Otherwise users will chase manually or submit again, creating duplicate tasks.
+
+Backup mechanisms should keep responsibility clear. After the primary approver times out, the task can move to a backup approver, business owner, or on-call role. The transfer must record reason, time, and visible material. The backup approver should see the same evidence as the primary approver: user request, tool parameters, risk label, historical context, and available actions. If the material is incomplete, backup approval becomes a formality and cannot carry responsibility.
+
+A first version can set SLA for each HITL task class: first reminder time, timeout transfer time, terminal failure time, and user message. Suspended state enters Trace and operating dashboards. Teams periodically review which approvals accumulate. If one task class depends on human review for too long, the platform should decide whether to add automatic validation or redesign the business process. HITL exists to assign ownership for high-risk actions, not to create a new waiting sink.
+
+## 30.18 Responsibility evidence for human approval
+
+When responsibility evidence for human approval reaches production, the platform needs a shared evidence standard for reviewer, visible material, available action, approval time, exception scope, expiry time, and follow-up retest. This standard is not paperwork for its own sake. It lets business, platform, data, security, and operations teams discuss the same facts. Without this material, incident review depends on memory and personal judgment. With it, the team can see which inputs were valid, which actions executed, which artifacts can still be used, and which results need correction or withdrawal.
+
+This evidence should connect to Chapter 25 on Planner, Chapter 28 on multi-Agent collaboration, and Chapter 52 on compliance. The upstream chapters provide the capability base, downstream chapters consume the runtime result, and this chapter explains how the middle layer is verified. If a capability looks complete inside one chapter but cannot enter Trace, Eval, release records, or the compliance evidence package, the production system still has a break in the chain. Readers should treat cross-chapter interfaces as engineering contracts, not as a reading order.
+
+Common risks include buttons existing while reviewers lack evidence, approval happening after the risky action, and exceptions remaining valid indefinitely. A successful demo rarely exposes these problems because demo samples are usually clean, short, and direct. Real business traffic brings stale data, abnormal input, permission changes, user withdrawal, budget limits, and long-running state. If the platform does not turn those situations into samples and ledgers, later scenarios will hit the same class of issues again.
+
+Buttons existing while reviewers lack evidence should be turned into a tracked review item when it appears repeatedly. The operating record should at least state owner, version, sample, affected scope, action, and review time. It does not need to become a long process report, but it must be clear enough for a later maintainer to understand the decision. For high-risk capability, the record should also state which conditions allow wider use and which failures require degradation or withdrawal.
+
+A first version can build this habit in a few representative scenarios. It is better to make high-traffic, high-risk, externally visible paths solid first, then copy the sample, ledger, and review method to related capabilities in other chapters. This makes the chapter read like engineering guidance: it explains how the capability is integrated, validated, operated, and retired.
+
 ## Chapter Recap
 
-HITL is a governance capability for high-risk Agents, not a patch for weak model quality. Approval should enter Runtime through `waiting_human` and resume on the same `run_id`. Pre-approval, post-approval, and hierarchical approval correspond to different risk levels; report scenarios usually generate a draft first and then approve the publishing action. Engine checkpoints resume execution, while business checkpoints show progress and support compliance replay. Long-running tasks should use asynchronous queues, checkpoints, and event logs rather than occupying synchronous connections for hours. A business replay bundle should at least answer who approved, what data supported the decision, which version was published, and whether the model bypassed human supervision.
+HITL is a governance capability for high-risk Agents, not a patch for weak model quality. Approval should enter Runtime through `waiting_human` and resume on the same `run_id`. Pre-approval, post-approval, and hierarchical approval correspond to different risk levels; report scenarios usually generate a draft first and then approve the publishing action. Engine checkpoints resume execution, while business checkpoints show progress and support compliance replay. Long-running tasks should use asynchronous queues, checkpoints, and event logs instead of occupying synchronous connections for hours. A business replay bundle should at least answer who approved, what data supported the decision, which version was published, and whether the model bypassed human supervision.
 
 ## References
 
-Amershi, S., et al. (2014). Power to the people: The role of humans in interactive machine learning. *AI Magazine*, 35(4), 105-120. [https://doi.org/10.1609/aimag.v35i4.2513](https://doi.org/10.1609/aimag.v35i4.2513)
-
-Mosqueira-Rey, E., et al. (2023). Human-in-the-loop machine learning: A state of the art. *Artificial Intelligence Review*, 56, 3005-3054. [https://doi.org/10.1007/s10462-022-10397-w](https://doi.org/10.1007/s10462-022-10397-w)
-
-EU AI Act. (2024). *Regulation (EU) 2024/1689*. [https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689)
-
-NIST. (2023). *Artificial Intelligence Risk Management Framework (AI RMF 1.0)*. [https://www.nist.gov/itl/ai-risk-management-framework](https://www.nist.gov/itl/ai-risk-management-framework)
-
-Shneiderman, B. (2022). *Human-centered AI*. Oxford University Press.
-
-LangChain. (n.d.). *Human-in-the-loop*. LangGraph. [https://docs.langchain.com/oss/python/langgraph/interrupts](https://docs.langchain.com/oss/python/langgraph/interrupts)
-
-Temporal. (n.d.). *Workflow persistence*. [https://docs.temporal.io/workflows](https://docs.temporal.io/workflows)
+Amershi, S., et al. (2014). Power to the people: The role of humans in interactive machine learning. *AI Magazine*, 35(4), 105-120. [https://doi.org/10.1609/aimag.v35i4.2513](https://doi.org/10.1609/aimag.v35i4.2513) Mosqueira-Rey, E., et al. (2023). Human-in-the-loop machine learning: A state of the art. *Artificial Intelligence Review*, 56, 3005-3054. [https://doi.org/10.1007/s10462-022-10397-w](https://doi.org/10.1007/s10462-022-10397-w) EU AI Act. (2024). *Regulation (EU) 2024/1689*. [https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689) NIST. (2023). *Artificial Intelligence Risk Management Framework (AI RMF 1.0)*. [https://www.nist.gov/itl/ai-risk-management-framework](https://www.nist.gov/itl/ai-risk-management-framework) Shneiderman, B. (2022). *Human-centered AI*. Oxford University Press. LangChain. (n.d.). *Human-in-the-loop*. LangGraph. [https://docs.langchain.com/oss/python/langgraph/interrupts](https://docs.langchain.com/oss/python/langgraph/interrupts) Temporal. (n.d.). *Workflow persistence*. [https://docs.temporal.io/workflows](https://docs.temporal.io/workflows)

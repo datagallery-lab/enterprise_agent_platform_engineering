@@ -1,6 +1,7 @@
 # Chapter 22 Agent Runtime
 
 ---
+
 A production Agent is not a single model call. It is a task chain that can be observed, paused, resumed, audited, and recovered. The model proposes steps, Runtime advances state and executes authorized tools, the frontend displays progress, and the audit system reconstructs each action after the fact. Without a clear Runtime contract, a long-running task cannot reliably resume after a page refresh, and the system cannot decide whether a tool failure should be retried, escalated to human approval, or terminated.
 
 This chapter focuses on three objects: Run, Step, and Tool Call. A Run is one auditable task. A Step is one Planner decision round. A Tool Call is one actual execution with potential side effects. These objects are intentionally separate because enterprise tasks often cross systems, wait for approvals, and need replay. If the platform records only a chat session, auditors cannot tell whether the third tool call was approved. If every tool call becomes a separate task, the original business task cannot be resumed after human review.
@@ -10,6 +11,7 @@ Consider a DataAgent task: the user asks for last week's sales decline in East C
 The Runtime boundary matters because Planner, Registry, Gateway, Console, and Policy each own different responsibilities. Planner proposes the next step. Registry finds and invokes tools. Gateway calls models. Console renders progress. Policy decides whether an action is allowed. Runtime connects them into a controlled execution chain: state transition, event stream, checkpoint, failure classification, and recovery path.
 
 ---
+
 ## 22.1 Runtime Object Model
 
 ### 22.1.1 Run / Step / Tool Call Responsibilities
@@ -63,11 +65,10 @@ Runtime does not replace Planner, Tool Registry, or Policy. Its responsibility i
 | Memory        | Reads/writes context visible to Planner | Long/short-term memory, summaries, retrieval |
 | Console       | Pushes status and approval events     | Displays progress, accepts human approval callbacks |
 
-Industry commonly decomposes Agent capabilities into planning, memory, tool use, and other modules (Wang et al. 2024). Runtime is the execution layer that connects these modules, ensuring they operate along a unified task lifecycle instead of independently advancing their own states.
-
-Delegating Runtime individually to each business Agent may seem flexible but can quickly spiral out of control. One team treats a tool timeout as failure, another retries three times for the same timeout; one team reruns tasks after frontend disconnect, another resumes from checkpoints; the security team wants to audit similar high-risk tool calls but finds every Agent logs different fields. The value of platform-level Runtime is here: it fixes states, events, error codes, and recovery semantics so business Agents only focus on task logic.
+Industry commonly decomposes Agent capabilities into planning, memory, tool use, and other modules (Wang et al. 2024). Runtime is the execution layer that connects these modules, ensuring they operate along a unified task lifecycle instead of independently advancing their own states. Delegating Runtime individually to each business Agent may seem flexible but can quickly spiral out of control. One team treats a tool timeout as failure, another retries three times for the same timeout; one team reruns tasks after frontend disconnect, another resumes from checkpoints; the security team wants to audit similar high-risk tool calls but finds every Agent logs different fields. The value of platform-level Runtime is here: it fixes states, events, error codes, and recovery semantics so business Agents only focus on task logic.
 
 ---
+
 ## 22.2 Run Six-State Machine
 
 ### 22.2.1 State Definitions
@@ -85,11 +86,7 @@ The Run six states represent the lifecycle exposed externally by the Runtime. In
 | `succeeded`     | Planner has finished, and no unfinished Tool Calls remain | Terminal state                                      |
 | `failed`        | Unrecoverable error, approval rejected, cancellation, or retries exhausted | Terminal state                                      |
 
-`waiting_human` is not a deadlock but a deliberate pause state entered by the Runtime. In compliance scenarios, approval waiting times often need to be separately tracked rather than simply counted as model or tool execution delay.
-
-This distinction matters for long-running tasks. Approval waits can last hours or even days, but the Runtime must preserve the original Run's identity, context, and checkpoints. Otherwise, recreating the task after approval would lose prior tool results and split the audit trail into two separate records.
-
-The same `run_id` spanning waiting, approval, resumption, and final export is what aligns business responsibility with technical execution. Traceability is the core difference between Runtime and ordinary chatbot backends.
+`waiting_human` is not a deadlock but a deliberate pause state entered by the Runtime. In compliance scenarios, approval waiting times often need to be separately tracked instead of simply counted as model or tool execution delay. This distinction matters for long-running tasks. Approval waits can last hours or even days, but the Runtime must preserve the original Run's identity, context, and checkpoints. Otherwise, recreating the task after approval would lose prior tool results and split the audit trail into two separate records. The same `run_id` spanning waiting, approval, resumption, and final export is what aligns business responsibility with technical execution. Traceability is the core difference between Runtime and ordinary chatbot backends.
 
 ### 22.2.2 Transition Diagram
 
@@ -106,6 +103,7 @@ Chapter 25 will discuss the Planner and orchestration patterns. Orchestration gr
 If internal orchestration nodes are directly exposed to the frontend, users will see many technical states unrelated to business. If Run six states are folded inside the Planner, the Runtime cannot independently handle cancelation, approval, retries, and recovery. Thus, internal orchestration can be complex, but the external lifecycle must remain stable.
 
 ---
+
 ## 22.3 Execution Loop and Event Flow
 
 ### 22.3.1 Main Loop
@@ -130,9 +128,7 @@ while run is not terminal:
       classify error and recover or fail
 ```
 
-There are two boundaries in this pseudocode. First, the Planner only returns decisions and does not drive the state machine. Second, any tool invocation must first pass schema validation, permission checks, and idempotency control before entering the executor.
-
-The main loop also needs to avoid turning repeated model deliberation into an infinite loop. Each Step should consume from a shared budget: model call count, tool call count, total elapsed time, and context length are all accounted against the same Run. The budget gives failure a termination point. Without budgeting, the Runtime can get stuck in loops caused by repeated tool argument revisions, unsatisfactory retrieval results, or Planner indecision.
+There are two boundaries in this pseudocode. First, the Planner only returns decisions and does not drive the state machine. Second, any tool invocation must first pass schema validation, permission checks, and idempotency control before entering the executor. The main loop also needs to avoid turning repeated model deliberation into an infinite loop. Each Step should consume from a shared budget: model call count, tool call count, total elapsed time, and context length are all accounted against the same Run. The budget gives failure a termination point. Without budgeting, the Runtime can get stuck in loops caused by repeated tool argument revisions, unsatisfactory retrieval results, or Planner indecision.
 
 ### 22.3.2 End-to-End Timing Sequence
 
@@ -140,7 +136,7 @@ The main loop also needs to avoid turning repeated model deliberation into an in
 
 *Figure 22-2: End-to-end Run Sequence. Source: Created by the book authors. Alt text: Sequence diagram illustrating call order among Client, Runtime, Planner, Tool Registry, and Model Gateway, from /run request through state transitions, tool invocations, event streaming, and final return.*
 
-Figure 22-2 shows the execution chain from the Runtime's perspective. ReAct organizes reasoning and acting into interleaved trajectories (Yao et al. 2023). In engineering terms, actions must be logged as Tool Call records, and observations as tool result events. The OpenAI Agents SDK's streaming runtime also distinguishes tool call and tool return events (OpenAI n.d.). In all cases, the frontend and auditing systems need to see execution progress rather than only the final text output.
+Figure 22-2 shows the execution chain from the Runtime's perspective. ReAct organizes reasoning and acting into interleaved trajectories (Yao et al. 2023). In engineering terms, actions must be logged as Tool Call records, and observations as tool result events. The OpenAI Agents SDK's streaming runtime also distinguishes tool call and tool return events (OpenAI n.d.). In all cases, the frontend and auditing systems need to see execution progress instead of only the final text output.
 
 ### 22.3.3 SSE Events
 
@@ -171,7 +167,7 @@ event: state
 data: {"run_id":"run-8f3a","state":"succeeded","answer":"Top 3 declining SKUs in East China are..."}
 ```
 
-SSE uses the `text/event-stream` format, with event format and reconnection semantics defined by the HTML Living Standard (WHATWG n.d.). Clients should reconnect with `Last-Event-ID` after disconnect. The server must resume pushing from event logs or checkpoints rather than re-triggering `/run` to avoid causing side effects.
+SSE uses the `text/event-stream` format, with event format and reconnection semantics defined by the HTML Living Standard (WHATWG n.d.). Clients should reconnect with `Last-Event-ID` after disconnect. The server must resume pushing from event logs or checkpoints instead of re-triggering `/run` to avoid causing side effects.
 
 ### 22.3.4 Trace and `run_id`
 
@@ -182,6 +178,7 @@ The Runtime also writes the execution process to a Trace system. A task might pa
 When troubleshooting incidents, both IDs appear together. Customer support uses `run_id` to locate the user-visible task; SRE uses trace-id to locate slow calls and error spans. Clearly mapping both IDs lets teams move from user feedback to system calls, then back from system calls to business tasks.
 
 ---
+
 ## 22.4 Checkpoints and Recovery
 
 ### 22.4.1 Checkpoint Contents
@@ -216,13 +213,14 @@ The recovery process should also obey the state machine constraints.
 4. If there are unfinished tool calls, first query the idempotency key's execution status, then decide whether to resend the `result` event, retry, or fail.
 5. On client reconnect, send only missed events based on the `Last-Event-ID`.
 
-Frameworks like LangGraph also persist graph execution state (LangChain n.d.). The difference emphasized here is that Runtime checkpoints use platform-level `run_id` as the primary key, serving the `/run` contract and the six states of Run, rather than binding to internal node names within a specific orchestration framework.
+Frameworks like LangGraph also persist graph execution state (LangChain n.d.). The difference emphasized here is that Runtime checkpoints use platform-level `run_id` as the primary key, serving the `/run` contract and the six states of Run, instead of binding to internal node names within a specific orchestration framework.
 
 The worst recovery failure is losing track of whether a write tool already executed and then executing it again. Write-action tools must therefore be designed with idempotency semantics alongside checkpoints. Actions such as creating tickets, sending emails, or writing approval records should be executed with an `idempotency_key` and store the tool-side returned business ID after execution. On recovery, query this business ID or idempotency key first, instead of directly invoking the tool again.
 
 Event ordering creates another recovery problem. A tool result may have been persisted before the SSE event reaches the frontend, or the frontend may have received the `action` event before the server restarts while writing the `result`. Event logs and checkpoints need to be designed together so the `action`, `result`, and state transition for the same `tool_call_id` can be replayed in order. Otherwise, the user interface may show a stalled task while the audit record shows that the tool already ran.
 
 ---
+
 ## 22.5 Failure Classification, Timeouts, and Cancellation
 
 ### 22.5.1 Error Codes and Recovery Strategies
@@ -258,6 +256,7 @@ Cancellation can be triggered by the user, Console, or upstream processes. Upon 
 Cancellation is not task deletion. Tool calls that have already executed may have produced external side effects, such as creating tickets, sending emails, writing approval records, or triggering data exports. Runtime can stop later actions and mark in-flight calls as cancellation requested, but completed actions need compensation steps or human handling. The cancellation event must enter Trace so reviewers can tell whether the user cancelled before result generation or after an external action had already run.
 
 ---
+
 ## 22.6 Runtime Code Boundary
 
 ### 22.6.1 Runtime Implementation Entry Point
@@ -297,15 +296,14 @@ When reading this project, it is not recommended to start from the business demo
 
 ### 22.6.2 Runtime Demo Scope and Evolution
 
-The demo covers the state machine, RunLoop, Registry invocation, SSE events, checkpoints, and manual approval. The production version still requires adding an HTTP `/run` service, OpenTelemetry tracing spans, three-level timeouts, persistent event logs, distributed locking, tool idempotency, and audit exports.
-
-The demo already covers Run six states, Tool Call execution, checkpoints, SSE, human approval, and basic logs, but each capability needs production hardening. Run six states need to stay consistent across the HTTP API, SSE stream, and checkpoint store. Tool Call execution needs permission checks, idempotency, timeouts, and circuit breaking. Checkpoints should move beyond files or lightweight local storage into online state storage plus audit archives. SSE needs `Last-Event-ID` and persistent event logs to handle reconnects. Human approval needs integration with Console, Policy, and ticketing systems. Observability needs trace IDs, spans, metrics, and alerts rather than plain logs.
+The demo covers the state machine, RunLoop, Registry invocation, SSE events, checkpoints, and manual approval. The production version still requires adding an HTTP `/run` service, OpenTelemetry tracing spans, three-level timeouts, persistent event logs, distributed locking, tool idempotency, and audit exports. The demo already covers Run six states, Tool Call execution, checkpoints, SSE, human approval, and basic logs, but each capability needs production hardening. Run six states need to stay consistent across the HTTP API, SSE stream, and checkpoint store. Tool Call execution needs permission checks, idempotency, timeouts, and circuit breaking. Checkpoints should move beyond files or lightweight local storage into online state storage plus audit archives. SSE needs `Last-Event-ID` and persistent event logs to handle reconnects. Human approval needs integration with Console, Policy, and ticketing systems. Observability needs trace IDs, spans, metrics, and alerts instead of plain logs.
 
 The initial version of the Runtime does not need to implement all production capabilities at once but must not miss these three bottom lines: the state machine must not be bypassable by model text, Tool Calls must have paired `action` and `result` records, and checkpoints must be able to restore the Planner-visible context.
 
 If only one acceptance scenario can be chosen, it is recommended to select "process restart after tool execution." This scenario tests the state machine, Tool Call records, checkpoints, idempotency, and SSE reconnection all at once: after recovery, tools must not be executed repeatedly, the frontend should continue to receive subsequent events, and the final state should be consistent with the pre-restart state.
 
 ---
+
 ## 22.7 Runtime Resource Isolation and Concurrency Control
 
 Resource isolation is often underestimated when Runtime enters production. In development, a Run usually comes from one user and calls only a few tools. After launch, the same tenant may start conversations, batch jobs, and background retries at the same time, while different tenants compete for model quota, tool connection pools, database query capacity, and queue workers. A Runtime that only keeps a state machine without resource boundaries can let one long task slow down the whole platform.
@@ -318,7 +316,7 @@ Concurrency control also depends on idempotency. Page refreshes, frontend reconn
 
 Runtime state should not live only in memory. Long tasks, human approval, tool callbacks, and frontend disconnections can make one Run cross several process lifetimes. A steadier design records key state changes as events: Run creation, Step start, tool request, tool result, model output, approval suspension, approval resume, cancellation, failure, and completion. Checkpoints store recoverable snapshots; the event log explains why the state changed.
 
-Event replay serves two scenarios. Incident review needs to know what happened before an incorrect answer, rather than only inspect the final message. State repair needs to load the nearest checkpoint after restart and then apply subsequent events. If events and snapshots disagree, Runtime should enter repair instead of continuing execution blindly. Repair may roll back to a safe state or mark the Run for human handling.
+Event replay serves two scenarios. Incident review needs to know what happened before an incorrect answer, instead of only inspect the final message. State repair needs to load the nearest checkpoint after restart and then apply subsequent events. If events and snapshots disagree, Runtime should enter repair instead of continuing execution blindly. Repair may roll back to a safe state or mark the Run for human handling.
 
 This mechanism adds storage and implementation cost, but it clarifies Runtime's responsibility. Runtime is more than a loop that calls models and tools; it is the ledger of Agent behavior. Chapter 38 can build diagnostic Trace views on top of events, Chapter 30 can connect approval events to recovery, and Chapter 39 can sample failed events for evaluation.
 
@@ -340,9 +338,9 @@ After Runtime becomes a platform capability, Agent applications become lighter. 
 
 Runtime operation also needs continuous state-distribution monitoring. A large number of Runs stuck in `waiting_human` usually points to unclear approval responsibility or notification flow. Many Runs terminated by `max_steps` indicate Planner loops or poor tool feedback design. Frequent user cancellation may indicate weak frontend progress visibility or mismatched expectations. These states are not log noise; they are direct signals of platform quality. Timeout and cancellation should also remain explicit semantics. After the user cancels a Run, Runtime must decide whether completed tool actions need compensation, whether queued work should be removed, and whether generated artifacts should be retained.
 
-Checkpoint contents need to be recoverable without turning Runtime into a new data exposure surface. Planner-visible context, tool result summaries, artifact references, approval state, and error classification usually need to be saved. Large raw datasets and sensitive records should stay in controlled storage and be recovered by reference. A recovery design built only for convenience can leak data through checkpoint stores, exports, or debug views. The same principle applies to tenant and business context: Runtime should record the organization, role, policy version, and data scope in effect when the Run started, rather than storing `user_id` alone. Otherwise, approval, audit, and replay can lose the permissions context that made the original execution valid.
+Checkpoint contents need to be recoverable without turning Runtime into a new data exposure surface. Planner-visible context, tool result summaries, artifact references, approval state, and error classification usually need to be saved. Large raw datasets and sensitive records should stay in controlled storage and be recovered by reference. A recovery design built only for convenience can leak data through checkpoint stores, exports, or debug views. The same principle applies to tenant and business context: Runtime should record the organization, role, policy version, and data scope in effect when the Run started, instead of storing `user_id` alone. Otherwise, approval, audit, and replay can lose the permissions context that made the original execution valid.
 
-Event ordering requires explicit design. Network reconnects can cause duplicate SSE delivery, and backend recovery can replay historical events. Runtime should assign a monotonically increasing sequence to each event and let clients apply events in order. Without event sequence numbers, the frontend timeline may occasionally appear out of order, and user-visible state can diverge from backend state. Tool idempotency keys should also be managed by Runtime rather than by the model or scattered business code. A practical key can combine `run_id`, `tool_call_id`, tool name, and business idempotency fields so retries, service restarts, and event replay do not create duplicate side effects.
+Event ordering requires explicit design. Network reconnects can cause duplicate SSE delivery, and backend recovery can replay historical events. Runtime should assign a monotonically increasing sequence to each event and let clients apply events in order. Without event sequence numbers, the frontend timeline may occasionally appear out of order, and user-visible state can diverge from backend state. Tool idempotency keys should also be managed by Runtime instead of by the model or scattered business code. A practical key can combine `run_id`, `tool_call_id`, tool name, and business idempotency fields so retries, service restarts, and event replay do not create duplicate side effects.
 
 Long-running Runs need retention and cleanup rules. Runs waiting for approval may need to stay online longer. Failed Runs may move quickly to audit archives. User-cancelled Runs need queue cleanup and temporary artifact cleanup. If cleanup is absent, Runtime data grows without bound; if cleanup happens too early, recovery and audit become unreliable. Runtime storage should also support audit queries from the beginning: lookup by `run_id`, user history, tool invocation history, long-suspended Runs, and status distribution are all routine operational needs. Storing each chat as one JSON blob makes these queries difficult later.
 
@@ -351,22 +349,94 @@ Developers and operators need a controlled debugging entry point. A Run's state 
 Multi-tenant Runtime requires resource isolation. One tenant's batch of long tasks should not consume all workers, and high-risk tasks waiting for approval should not block low-risk read-only tasks. Queue priority, concurrency, and budgets should be configured by tenant and task class. Synchronous HTTP requests are suitable for starting a task and returning `run_id`; long execution should move to queues or background workers. Binding a long task to a single HTTP request makes recovery difficult after client disconnects or gateway timeouts.
 
 ---
+
+## 22.10 Runtime Launch Gates And Operating Review
+
+Runtime needs launch gates before it can be trusted beyond demos. The first gate is state consistency. HTTP APIs, SSE events, checkpoints, database records, and frontend views must use the same Run states and error codes. The platform should not allow the backend to show `waiting_human`, the frontend to show `running`, and audit records to show `failed` for the same Run. The second gate is side-effect control. Every write tool needs an idempotency key, timeout, compensation note, and Tool Call record. Tools without those materials should remain in sandbox or read-only mode. The third gate is recovery verification. Process restart, queue replay, approval timeout, user cancellation, and partially successful tool calls should all be tested before launch.
+
+Operating review should inspect state distribution. Many Runs stuck in `waiting_human` may indicate missing approvers, failed notification, or unclear responsibility. Many tool-timeout failures may indicate tool-pool capacity or retry-policy defects. Frequent user cancellation may indicate poor frontend progress explanation or tasks that take longer than users expect. Many `max_steps` terminations usually point to Planner loops or weak tool feedback. Treating these states as ordinary logs misses the improvement signal. Runtime is the operating ledger of the Agent platform, and state distribution is one of its health indicators.
+
+The gate should also constrain debugging access. A console may let engineers inspect events, checkpoints, tool calls, and error codes, but it should not let them change Run state freely. When manual repair is necessary, the platform must record operator, reason, previous state, new state, and affected scope. Otherwise Runtime loses its role as the source of facts. The first Runtime version can stay simple, but its fact chain must be reliable: where the Run came from, what executed, why it stopped, who repaired it, and where the final artifact lives.
+
+## 22.11 Tenant Quotas and Recovery Drills
+
+After Runtime serves multiple tenants, quotas and recovery drills should become normal operating work. Quotas should cover more than model tokens. They should include concurrent Runs, background Workers, tool connection pools, per-tenant queue length, long-task retention, and the number of suspended approvals. This keeps one tenant's batch reports, file parsing, or retry storm from consuming resources needed by another tenant's interactive tasks. The policy can be tiered: high-priority read-only queries keep lower latency, low-priority batch jobs wait in queue, and high-risk write operations consume execution resources only after approval.
+
+Recovery drills should use real state combinations. The platform can periodically simulate process restart after tool execution, duplicate approval callbacks, queue-message replay after timeout, user cancellation after partial tool success, and ordering differences between checkpoints and event logs. Drill results should enter the Runtime ledger, stating which states can self-repair, which need human handling, and which tools still lack idempotency or compensation. Without drills, the team tests recovery for the first time during an incident. With drills, the state machine, event log, queue, and tool contracts stay aligned over time.
+
+## 22.12 Runtime Concurrency Control And Event Replay
+
+Concurrency control is easy to underestimate once Runtime enters production. A user may retry, refresh the page, add conditions, or cancel execution inside the same task. Several tools may return results in parallel. An approver may change state while the model is still generating. Late tokens or tool results may arrive after the Run has ended. Without event ordering, idempotency keys, and state locks, frontend task state, backend Run state, and actual tool execution state will drift apart.
+
+Concurrency control should be implemented in the event model. Each Run needs stable `run_id`, `event_id`, `seq`, state version, and idempotency key. Retry should create a traceable attempt. Cancellation should record source and confirmation result. Tool callbacks should check current Run state. Approval results should bind to waiting nodes. Late events should not write directly into the final answer; they should enter an auditable discard or compensation path. With this model, the frontend reducer in Chapter 47, Trace in Chapter 38, and Eval in Chapter 39 can reconstruct the task from the same event history.
+
+Event replay is the base for Runtime operations. During incident review, the team should rebuild Run state changes from the event log: when the task was created, when the tool was selected, when it entered waiting, when it failed or recovered, which events were discarded, and which actions were confirmed by a person. Replay does not have to execute tools again, and it should never replay write operations blindly. It should replay the state machine and decision evidence. Once event replay works, Runtime can support long tasks, reconnect recovery, human approval, and multi-device collaboration.
+
+## 22.13 Runtime Operating Ledger And Capacity Signals
+
+Runtime needs its own operating ledger. The ledger records Run type, state distribution, average step count, tool-call count, waiting duration, human takeover, cancellation reason, retry count, and failure phase. Without it, the platform sees model-call volume and tool error rate but cannot explain why tasks slow down, suspend, or execute repeatedly. Runtime is the task skeleton of an Agent, and its operating metrics should be tracked separately from models, tools, frontend, and Trace.
+
+Capacity signals should also come from Runtime. Long-task backlog, too many waiting approvals, queueing on the same tool, rising cancellation rate, and abnormal retries all indicate platform or process pressure. Model services may still have spare capacity while Runtime is congested by human approval, downstream rate limits, or tool timeouts. If teams only watch model and GPU metrics, they miss task-level congestion.
+
+The ledger should enter release review and incident review. After a new Planner strategy ships, did step count increase? After a new tool is connected, did waiting and retry rise? After a UI release, did cancellation or duplicate submission change? After a new approval rule, is suspension time acceptable? Runtime ledger puts these changes into one task view and helps teams judge whether Agent capability expansion is operable.
+
+## 22.14 Compatible evolution of the Runtime state model
+
+After the Runtime state model goes live, it should not change casually. Run states, event types, checkpoint fields, error codes, and recovery actions are consumed by frontend, Trace, Eval, HITL, and operations systems. If state-model changes lack compatibility rules, old tasks may become impossible to replay, the frontend may show the wrong state, and evaluation samples may no longer align with historical results. Runtime is the operating skeleton of the Agent platform, so state changes should be treated as interface evolution.
+
+Compatible evolution needs version fields. Each Run should record `runtime_schema_version`, and each event should identify the version that produced it. When a state is added, the platform should define how old clients display it. When a state is removed or merged, it should define how historical Runs are explained. When an error code is added, the team should state whether Planner, HITL, and frontend need new recovery actions. The model can then expand without breaking existing runtime evidence.
+
+A first platform version can keep the state set small and stable, placing detailed variation in reason codes and metadata. Add a new state only when existing states cannot express the real recovery action. This discipline makes Runtime easier to reuse across Agents and reduces cases where a Run looks successful while the business task failed.
+
+## 22.15 Runtime release changes and replay acceptance
+
+Runtime changes should pass more than interface tests. The state machine, event ordering, checkpoint fields, queue retry, and frontend event subscription depend on one another. A small change in one layer can affect recovery for old Runs and explanation for new Runs. A practical release process separates Runtime changes into three groups: internal implementation changes, changes to event or checkpoint contracts, and changes to user-visible state or recovery actions. The first group can move through unit tests and load tests. The second group needs replay against historical events. The third group also needs acceptance by frontend, support, operations, and audit views.
+
+Replay acceptance should use real failure samples alongside successful paths. The platform can extract Runs from Trace where tools timed out and recovered, approvals suspended and resumed, users cancelled and cleanup ran, queue messages were delivered twice, model output failed validation, or checkpoints missed fields. The new Runtime should produce the same state conclusion or a clearer one on those samples. If it changes error classification or recovery action, the release note should explain why and update the evaluation samples in Chapter 39 and the SLO definitions in Chapter 42. Runtime evolution then rests on evidence instead of developer intuition about the state machine.
+
+Canary release should watch task-level signals. After a new Runtime version ships, an increase in average Step count, waiting duration, cancellation rate, human takeover, or repeated tool calls may indicate a state-transition or frontend-feedback problem even when APIs return success. Rollback also needs advance design: whether running Runs continue with the old interpreter, whether new events can be read by the old version, and how the frontend displays intermediate states after rollback. Runtime is the source of operational facts for the platform, so its release discipline should resemble database schema evolution more than ordinary application deployment.
+
+## 22.16 Adjudication material for Runtime disputes
+
+After Runtime goes live, many disputes do not appear as code exceptions. They appear as disagreement over whether a task actually finished. A user may think the Agent answered, while the business system did not execute the action. The frontend may show success while the tool returned partial failure. An approver may click approve while Runtime has already cancelled the task after timeout. The model may say the work is complete while the final Step never wrote the artifact. The basis for adjudication cannot be one screen or model text. It must return to Runtime operating facts.
+
+Adjudication material should contain the complete evidence chain for a Run. At minimum it includes user input, Planner decisions, Step sequence, tool-call parameters, tool returns, checkpoints, approval events, cancellation events, error codes, final state, user-visible messages, and artifact writes. If the dispute involves business side effects, the package should also include confirmation from external systems such as order status, ticket status, report publication status, or permission-change records. Runtime's value is to place these materials in time order so the team can decide whether the task succeeded, failed, partially completed, is waiting for recovery, or needs human adjudication.
+
+Runtime disputes should also separate responsibility boundaries. If Planner selected the wrong tool, the repair path is policy and Tool Registry. If the tool returned inconsistent results, the repair path is tool contracts and idempotency. If the frontend misled the user, the repair path is event subscription and display text. If approval timeout cancelled the task, the repair path is HITL policy and notification flow. If the model claimed completion but Runtime did not finish, the repair path is state-machine and terminal-state judgment. Clear boundaries keep reviews from collapsing into vague claims about model instability.
+
+A first platform version can support dispute-package export for high-risk Runs. The package does not need to expose every internal log, but it should provide an auditable timeline, key inputs and outputs, state changes, evidence references, and masked error information. Support, business owners, audit, and platform teams then work from the same material and give users consistent explanations. Runtime is therefore more than an executor. It is the fact record for enterprise Agent disputes.
+
+## 22.17 Runtime resource isolation and concurrency control
+
+When Agent Runtime handles short Q&A, long reports, tool writes, file parsing, and evaluation batches at the same time, resource isolation determines platform stability. If every Run shares one queue and one worker pool, long tasks slow short tasks, high-cost jobs crowd out ordinary queries, and evaluation batches can affect online users. Runtime needs concurrency control by task type, tenant, risk level, and resource budget.
+
+Concurrency control is more than rate limiting. The platform should define which tasks can queue, which should be rejected immediately, which can move to async execution, and which require approval. Each Run should record estimated cost, queue, priority, timeout, cancellation policy, and recovery method. If users refresh the page or submit again, Runtime should use idempotency keys to recognize the same task instead of creating several expensive Runs.
+
+A first version can maintain four queues: interactive queries, async reports, high-risk approval tasks, and batch evaluation. Each queue has its own concurrency, timeout, and alerting. Trace records queue wait time and execution time, and cost governance can attribute them by business domain later. Runtime stability then comes from task classification and resource commitments instead of worker count alone.
+
+## 22.18 Cross-scenario reuse of Runtime operating evidence
+
+After Runtime reaches production, a successful demo is not enough evidence. The platform needs stable fields for Run state, event sequence, resource quota, recovery action, cancellation reason, and owner, and those fields should connect to release records, Trace, evaluation samples, and incident notes. When a production issue appears, teams can follow one set of facts to understand scope, ownership, and repair order instead of stitching together model logs, business logs, and verbal explanations.
+
+This evidence also connects the surrounding chapters. It links to Chapter 25 on Planner, Chapter 38 on Trace, and Chapter 42 on SLO: upstream capabilities provide assumptions, downstream capabilities consume the result, and governance capabilities preserve evidence and review decisions. If these materials do not share identifiers and versions, the production system splits apart. Business owners see user complaints, platform owners see system errors, and security or compliance teams see explanations written after the fact. That separation makes it hard to decide whether the issue came from data, model behavior, tool contracts, workflow state, or organizational ownership.
+
+Common production risks include each scenario defining its own states, cancellation without a record, recovery without idempotency proof, and queue backlog being mistaken for a model issue. These risks are less visible during demos because demos usually exercise the successful path. Production users bring boundary cases, repeated requests, permission changes, and long-running state. The platform team should turn such failures into release samples. Some samples should block launch, some can be handled by degradation, and some require the business owner to accept the remaining risk with a review date.
+
+Runtime evidence should become a shared platform asset for debugging, capacity planning, and release review. The record can stay compact, but it should include time, version, owner, sample, action, and the next review condition. Without those fields, review remains informal experience. With them, one production issue can become material for later releases, evaluation suites, and training.
+
+A first platform version can start with a small set of high-risk paths. Choose flows with high traffic, high business impact, or sensitive data, require an evidence package for each change, and then expand the practice to ordinary scenarios. This keeps the capability at the engineering level: runnable, explainable, and recoverable.
+## 22.19 Compatibility commitment for Runtime events
+
+Once Runtime events are used by frontend, Trace, Eval, billing, and compliance, fields cannot change casually. Adding, deleting, renaming, or changing event semantics affects downstream systems. The platform needs a compatibility commitment for the event model: which fields are stable, which are experimental, which will be deprecated in a given version, how old events are read, and how old and new fields coexist.
+
+Compatibility commitments reduce platform evolution cost. Without them, every upper-layer system guesses Runtime field meaning. Upgrades can break frontend timelines, prevent evaluation replay, lose cost attribution, or remove audit fields. With a commitment, the Runtime team can notify dependents before release and provide migration windows and replay samples.
+
+A first version can treat the event model as a public API. Each change states affected consumers, migration method, replay samples, and deprecation time. Runtime then becomes the source of platform facts in addition to executing tasks.
+
 ## Chapter Recap
 
 Runtime turns one Agent interaction into an observable, recoverable, and auditable Run. Run, Step, and Tool Call correspond to task, reasoning iteration, and actual tool execution, and they should not be mixed. The six-state machine is the platform's external contract, while orchestration graph states belong to Planner internals. `succeeded` can only be set by Runtime; model text or a Planner finish intent cannot decide the final state. Agent SSE should express the execution chain through `state`, `action`, `result`, and approval events instead of only token streams. Checkpoints need enough state, context, tool results, Memory references, and event positions to support recovery, reconnection, audit replay, and evaluation.
 
 ## References
 
-Wang, L., Ma, C., Feng, X., et al. (2024). A survey on large language model based autonomous agents. *Frontiers of Computer Science*, 18(6), 186345. [https://doi.org/10.1007/s11704-024-40231-1](https://doi.org/10.1007/s11704-024-40231-1)
-
-Yao, S., Zhao, J., Yu, D., et al. (2023). ReAct: Synergizing reasoning and acting in language models. *ICLR*. [https://arxiv.org/abs/2210.03629](https://arxiv.org/abs/2210.03629)
-
-OpenAI. (n.d.). *Streaming*. OpenAI Agents SDK. [https://openai.github.io/openai-agents-python/streaming/](https://openai.github.io/openai-agents-python/streaming/)
-
-WHATWG. (n.d.). *HTML Living Standard: Server-sent events*. [https://html.spec.whatwg.org/multipage/server-sent-events.html](https://html.spec.whatwg.org/multipage/server-sent-events.html)
-
-OpenTelemetry. (n.d.). *Tracing API*. [https://opentelemetry.io/docs/specs/otel/trace/api/](https://opentelemetry.io/docs/specs/otel/trace/api/)
-
-W3C. (2021). *Trace Context*. [https://www.w3.org/TR/trace-context/](https://www.w3.org/TR/trace-context/)
-
-LangChain. (n.d.). *Persistence*. LangGraph. [https://docs.langchain.com/oss/python/langgraph/persistence](https://docs.langchain.com/oss/python/langgraph/persistence)
+Wang, L., Ma, C., Feng, X., et al. (2024). A survey on large language model based autonomous agents. *Frontiers of Computer Science*, 18(6), 186345. [https://doi.org/10.1007/s11704-024-40231-1](https://doi.org/10.1007/s11704-024-40231-1) Yao, S., Zhao, J., Yu, D., et al. (2023). ReAct: Synergizing reasoning and acting in language models. *ICLR*. [https://arxiv.org/abs/2210.03629](https://arxiv.org/abs/2210.03629) OpenAI. (n.d.). *Streaming*. OpenAI Agents SDK. [https://openai.github.io/openai-agents-python/streaming/](https://openai.github.io/openai-agents-python/streaming/) WHATWG. (n.d.). *HTML Living Standard: Server-sent events*. [https://html.spec.whatwg.org/multipage/server-sent-events.html](https://html.spec.whatwg.org/multipage/server-sent-events.html) OpenTelemetry. (n.d.). *Tracing API*. [https://opentelemetry.io/docs/specs/otel/trace/api/](https://opentelemetry.io/docs/specs/otel/trace/api/) W3C. (2021). *Trace Context*. [https://www.w3.org/TR/trace-context/](https://www.w3.org/TR/trace-context/) LangChain. (n.d.). *Persistence*. LangGraph. [https://docs.langchain.com/oss/python/langgraph/persistence](https://docs.langchain.com/oss/python/langgraph/persistence)

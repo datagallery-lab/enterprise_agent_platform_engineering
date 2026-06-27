@@ -1,6 +1,7 @@
 # Chapter 23 Tool Registry & Function Calling
 
 ---
+
 Tool Registry and Function Calling sit at the boundary where model intent becomes platform execution. Tools are the exit points through which Agents produce side effects, so each tool needs a clear capability description, parameter schema, risk level, permission policy, version, and audit path. The model may propose a function call, but the platform must still decide whether that call exists, whether the parameters are valid, which version should run, and how errors are classified.
 
 Chapter 22 explained how Runtime drives a Run forward: Planner proposes the next step, Runtime emits an action, the tool executes, and the result returns to the Run. This chapter answers the next question. When the model says it wants to call `sql_executor`, how does the platform know that this tool exists? Who verifies `tenant_id`? Should the platform execute `v1` or `v2`? If execution fails, how should the error return to Planner?
@@ -10,6 +11,7 @@ If each Agent imports tools directly, validates parameters separately, and write
 Function Calling solves the model-side representation problem. It lets the model express which tool it wants and with what arguments, usually as JSON shaped by a schema. Tool Registry solves the platform-side execution problem. It validates the schema, chooses the handler, applies risk metadata, and records the call. These two roles meet in Runtime's `executing` state, and the model output never replaces platform validation.
 
 ---
+
 ## 23.1 Where Registry Sits in the Platform API Hierarchy
 
 Chapter 2 divides the platform API into three layers: **L1 Resource Management** (control plane for operations, configuration, and Console publishing), **L2 Runtime** (data plane), and **L3 Protocol Interoperability** (MCP, A2A, etc.). Registry spans L1 and L2: operations and the Console register tools through L1; the Runtime resolves tools by `(name, version)` and invokes them at L2. A simple rule to remember: **registration happens on the control plane; invocation happens at runtime**.
@@ -22,9 +24,7 @@ Without a platform-level Registry, each Agent project imports tool modules indep
 2. **Audit gaps**: Compliance requirements demand proof that a given Run invoked a specific version of the SQL tool and that the parameters included `tenant_id`. Hard-coded imports make it nearly impossible to capture unified call logs and audit evidence.
 3. **Version drift**: After the semantic layer is upgraded and `sql_executor` moves from `v1` to `v2`, some agents remain pinned to the old handler, causing metric definitions to diverge from the semantic layer described in Chapter 33.
 
-Registry turns tools into platform-managed **reusable tool capabilities**: each one carries a description, a schema, a version, and a single unified entry point, available for reuse across multiple agents and multiple `projects/`.
-
-The value of this unified entry point often becomes apparent only during post-incident reviews. If a sales-analysis agent bypasses the Registry and connects directly to a SQL client while a finance agent accesses the same table through a wrapped tool, the two paths may apply tenant filtering, field masking, and error codes inconsistently. When a query eventually returns customer details that should never have been exposed, the team must simultaneously examine application logs, database logs, model context, and frontend export records just to find which path missed the validation check. The purpose of Registry is to consolidate tool discovery, parameter contracts, version selection, and audit evidence at a single entry point.
+Registry turns tools into platform-managed **reusable tool capabilities**: each one carries a description, a schema, a version, and a single unified entry point, available for reuse across multiple agents and multiple `projects/`. The value of this unified entry point often becomes apparent only during post-incident reviews. If a sales-analysis agent bypasses the Registry and connects directly to a SQL client while a finance agent accesses the same table through a wrapped tool, the two paths may apply tenant filtering, field masking, and error codes inconsistently. When a query eventually returns customer details that should never have been exposed, the team must simultaneously examine application logs, database logs, model context, and frontend export records just to find which path missed the validation check. The purpose of Registry is to consolidate tool discovery, parameter contracts, version selection, and audit evidence at a single entry point.
 
 ### 23.1.2 Position in the Architecture
 
@@ -65,6 +65,7 @@ OpenAI's documentation is explicit: the API does not execute functions on the de
 Using `POST /tools` inside the Run main loop to register tools on demand will damage latency and make the running state hard to reproduce. Runtime should only perform L2 `get` and `invoke` operations. Registration belongs to the asynchronous control-plane flow.
 
 ---
+
 ## 23.2 ToolSpec and Capability Registration Model
 
 On the platform side, **ToolSpec** describes a callable capability. It corresponds one-to-one with the `tool` + `version` fields in the Tool Call records from Chapter 22: after the Runtime receives a Planner proposal, it uses these two fields to resolve via the Registry.
@@ -81,9 +82,7 @@ On the platform side, **ToolSpec** describes a callable capability. It correspon
 | `parameters_schema`  | JSON Schema object describing parameters | Aligns with OpenAI `strict` (OpenAI 2024) |
 | `handler`            | Callable object (Demo uses Python function) | HTTP/gRPC adapter                         |
 
-The `description` enters the Function Calling `tools` definitions and directly affects **when** the model chooses this tool (OpenAI n.d.); vague descriptions can lead to "calling email when SQL is needed."
-
-Tool descriptions should be written for both models and humans. Writing only "execute query" will cause the model to call it for any data-related question; writing only "send message" cannot distinguish notification, approval, or external contact. A better approach states applicable scenarios, forbidden scenarios, and side effects, for example: "Read-only query of sales summary, do not return customer phone numbers, no write operations." These constraints cannot be enforced by natural language alone but help reduce model tool misuse and assist reviewers in judging schema-policy consistency.
+The `description` enters the Function Calling `tools` definitions and directly affects **when** the model chooses this tool (OpenAI n.d.); vague descriptions can lead to "calling email when SQL is needed." Tool descriptions should be written for both models and humans. Writing only "execute query" will cause the model to call it for any data-related question; writing only "send message" cannot distinguish notification, approval, or external contact. A better approach states applicable scenarios, forbidden scenarios, and side effects, for example: "Read-only query of sales summary, do not return customer phone numbers, no write operations." These constraints cannot be enforced by natural language alone but help reduce model tool misuse and assist reviewers in judging schema-policy consistency.
 
 ### 23.2.2 Registration and Retrieval APIs
 
@@ -128,6 +127,7 @@ In enterprise practice, common L1 forms include: YAML stored in Git repositories
 The Registry only requires consistent `invoke` semantics: **parameter validation -> routing -> return structured output or throw RegistryError**.
 
 ---
+
 ## 23.3 Function Calling Schemas and Parameter Validation
 
 **Function Calling** (OpenAI n.d.) refers to declaring functions available for the model to call in the `tools` parameter of APIs like Chat Completions. The model outputs `tool_calls` in its response, where `function.arguments` is a JSON string. The platform must parse this JSON into a dict and then pass it to the Registry. **Parsing is not the same as validation, nor as execution. The Registry must still enforce schema validation on parameters before `invoke`.
@@ -150,13 +150,9 @@ The `mini-platform` provides `to_openai_tool(spec)`, which generates the above s
 
 ### 23.3.2 What Is JSON Schema
 
-**JSON Schema** is a specification that uses JSON to describe the structure of JSON documents (JSON Schema 2020): which fields exist, their types, and which are required. The `parameters` in Function Calling is essentially the schema for the "parameters object."
+**JSON Schema** is a specification that uses JSON to describe the structure of JSON documents (JSON Schema 2020): which fields exist, their types, and which are required. The `parameters` in Function Calling is essentially the schema for the "parameters object." The strict mode of OpenAI Structured Outputs further constrains the schema: objects usually must set `additionalProperties: false` and have `required` cover all properties (OpenAI 2024). This reduces the likelihood that the model generates extra or missing fields, but it still only constrains the **model's output format** and does not replace validation on the platform side.
 
-The strict mode of OpenAI Structured Outputs further constrains the schema: objects usually must set `additionalProperties: false` and have `required` cover all properties (OpenAI 2024). This reduces the likelihood that the model generates extra or missing fields, but it still only constrains the **model's output format** and does not replace validation on the platform side.
-
-The demo in this book's `to_openai_tool(spec, strict=True)` shows how to add `strict: true` in the OpenAI `tools` definition and supply `additionalProperties: false` if missing at the top level; it is **not** a complete production-grade strict schema generator. Production implementations should further check that `required` covers all properties, recursively handle nested objects, and continue to validate parameters in Registry before `invoke`.
-
-The demo's validator implements a **subset** of JSON Schema (`object` / scalar types / `required` / `additionalProperties`) without third-party dependencies. Production can switch to a full validator library, but the **timing of validation does not change**: it must happen before the handler.
+The demo in this book's `to_openai_tool(spec, strict=True)` shows how to add `strict: true` in the OpenAI `tools` definition and supply `additionalProperties: false` if missing at the top level; it is **not** a complete production-grade strict schema generator. Production implementations should further check that `required` covers all properties, recursively handle nested objects, and continue to validate parameters in Registry before `invoke`. The demo's validator implements a **subset** of JSON Schema (`object` / scalar types / `required` / `additionalProperties`) without third-party dependencies. Production can switch to a full validator library, but the **timing of validation does not change**: it must happen before the handler.
 
 Parameter validation is often underestimated because Function Calling seems to produce "valid JSON." In production, common errors are not JSON parsing failures but business-high-risk valid JSON such as missing tenant filters, excessively large time ranges, exporting PII fields, or setting `region` to unauthorized areas. JSON Schema ensures shape, Policy enforces permission, and handlers execute business logic. These three controls cannot substitute for one another. The Registry must at least block calls with incorrect shapes from reaching handlers and leave business-risk checks to Policy for further judgment.
 
@@ -184,18 +180,17 @@ Qu et al. (2025) summarize the tool learning process as four stages: **task plan
 
 ### 23.3.4 How Parameter Errors Are Reported Back to Planner (Relation to Chapter 22)
 
-The following concrete example ties together Chapter 22 and this section's responsibilities.
-
-If parameters generated by Planner for `sql_executor` lack the `tenant_id`, Registry throws `TOOL_ARGUMENT_INVALID` at `invoke` with a `validation_errors` list. Runtime writes this into a `result` event and **does not** mark the entire Run as `failed`. Instead, it **calls Planner again** in the same Step (feeding the error back as input to prompt the model to fix parameters). After more than 3 retries failing, it finally enters `failed` (Chapter 22 §5). This lets users see meaningful business-level correction prompts rather than low-level validation errors or Python exception stacks.
+The following concrete example ties together Chapter 22 and this section's responsibilities. If parameters generated by Planner for `sql_executor` lack the `tenant_id`, Registry throws `TOOL_ARGUMENT_INVALID` at `invoke` with a `validation_errors` list. Runtime writes this into a `result` event and **does not** mark the entire Run as `failed`. Instead, it **calls Planner again** in the same Step (feeding the error back as input to prompt the model to fix parameters). After more than 3 retries failing, it finally enters `failed` (Chapter 22 §5). This lets users see meaningful business-level correction prompts instead of low-level validation errors or Python exception stacks.
 
 ---
+
 ## 23.4 Version Governance and Multi-Version Coexistence
 
 Tools, like APIs, require version management. The **primary key** is `(name, version)`: different versions with the same name can coexist, and the Agent or Run configuration determines which version is actually resolved.
 
 ### 23.4.1 Why Multi-Version Is Needed
 
-Industry scenario example: `sql_executor@v1` directly queries an old wide table; `v2` queries semantic layer metrics from Chapter 33. The Finance and Supply Chain Agents migrate at different paces, so the platform must allow **v1 and v2 to be online simultaneously**, pinned by Agent configuration, rather than enforcing a global latest version.
+Industry scenario example: `sql_executor@v1` directly queries an old wide table; `v2` queries semantic layer metrics from Chapter 33. The Finance and Supply Chain Agents migrate at different paces, so the platform must allow **v1 and v2 to be online simultaneously**, pinned by Agent configuration, instead of enforcing a global latest version.
 
 In the practical project `registry_setup.py`, both **`sql_executor`** (builtin read-only demo handler) and **`mcp_db_query_sales`** (Chapter 24 MCP bridge tool) are registered at the same time. This contrast separates platform-builtin tools from L3 protocol access tools in naming, versioning, and audit records. The two tools have similar business semantics, but their origins and governance paths differ and should not be mixed in production.
 
@@ -224,6 +219,7 @@ Exposing **multiple versions** simultaneously to the model (e.g., two `name`s `s
 - Registration info includes `owner` and `risk_level` (write/read operations) for Policy use (Chapter 50, demo in this chapter ☐).
 
 ---
+
 ## 23.5 Runtime Invocation Chain: From Runtime to Handler
 
 This section connects Chapter 22 and this chapter: how a Tool Call in the `executing` state flows from `action` through the handler and then becomes a `result`.
@@ -261,9 +257,10 @@ Masterman et al. (2024) emphasize in their overview of Agent architectures that 
 
 ### 23.5.4 Relationship to Chapter 24 MCP
 
-The MCP Server exposes `tools/list` and `tools/call` externally (Model Context Protocol 2024). The platform approach is: at Level 1, MCP tools are **registered** as ToolSpecs (storing specs and routing info without copying the Server implementation). Internally, handlers invoke MCP clients rather than having Runtime directly call MCP Servers everywhere. This way, the Tool Call record and trace in Chapter 22 remain a single `invoke` semantic.
+The MCP Server exposes `tools/list` and `tools/call` externally (Model Context Protocol 2024). The platform approach is: at Level 1, MCP tools are **registered** as ToolSpecs (storing specs and routing info without copying the Server implementation). Internally, handlers invoke MCP clients instead of having Runtime directly call MCP Servers everywhere. This way, the Tool Call record and trace in Chapter 22 remain a single `invoke` semantic.
 
 ---
+
 ## 23.6 Practical Project: Tool Registry and RunLoop Invocation
 
 Part V unified practical project **`projects/multi-agent-workflow/`** is invoked via RunLoop calling the Registry: Handoff, SQL, MCP, and Reporting tools are all registered within `build_workflow_registry()`. Independent unit tests for Registry error codes and schema validation are in `tests/test_registry.py`. The subsection numbering **3.1-3.4** below follows the engineering section convention used throughout this book.
@@ -333,9 +330,7 @@ cd mini-platform
 python3 projects/multi-agent-workflow/run.py start
 ```
 
-SSE output will show Tool Call records like `"tool": "handoff"`, `"tool": "mcp_db_query_sales"`, `"tool": "render_report"`. The Registry also registers `sql_executor`, but the Part V main Data phase uses the MCP bridge tool **`mcp_db_query_sales`** for convenient comparison with Chapter 24 registration path; `sql_executor` can be individually verified through `tests/test_registry.py`.
-
-**Registry error code unit tests** (RunLoop-independent):
+SSE output will show Tool Call records like `"tool": "handoff"`, `"tool": "mcp_db_query_sales"`, `"tool": "render_report"`. The Registry registers `sql_executor` as well. The Part V main Data phase uses the MCP bridge tool **`mcp_db_query_sales`** so readers can compare it with the Chapter 24 registration path; `sql_executor` can be verified separately through `tests/test_registry.py`. **Registry error code unit tests** (RunLoop-independent):
 
 ```bash
 pytest tests/test_registry.py -q
@@ -380,6 +375,7 @@ Symptom: after Function Calling is enabled, Registry validation is skipped, lett
 Symptom: the model randomly chooses between `v1` and `v2`, causing daily comparative metrics to mismatch. Fix: expose stable logical names to the model; version is pinned by Agent config or explicitly parsed by Planner before `invoke`.
 
 ---
+
 ## 23.7 Governance Operations for Tool Registry
 
 After Tool Registry goes online, the platform is no longer managing a list of functions. It is managing the lifecycle of executable capabilities. A tool usually moves through registration, review, canary rollout, version upgrade, deprecation, and removal. Each stage needs the schema, handler, permission policy, risk level, owner, and test samples to remain traceable. If these fields are missing, Planner sees a growing set of similar names with unclear behavior, and reviewers cannot tell which capability was safe to expose.
@@ -419,6 +415,69 @@ The tool catalog should also record business ownership and supplier risk. Techni
 Tool cleanup must include successful calls, blocked calls, and missing capabilities. A high-risk tool proposed by Planner but rejected by Policy is useful governance evidence. Frequent user requests that force Planner to chain several weak tools may indicate that the platform needs a better composite capability. Tool governance is therefore both risk control and capability planning.
 
 ---
+
+## 23.11 Tool Catalog Review And Low-Value Tool Cleanup
+
+Tool Registry tends to grow quickly during business pilots. To validate scenarios, teams may register many similar tools: several query tools, several export tools, several notification tools, and several read-only wrappers. Once production begins, the catalog needs periodic review. Otherwise Planner faces a growing set of tools with similar meanings, different permissions, and unclear maintenance state. Too many tools increase selection cost and raise the risk of overreach or mistaken invocation.
+
+Review should inspect real call records, error rate, owner, permission scope, schema stability, audit fields, and downstream dependency. Tools with no active calls can first stop accepting new traffic, then be reviewed with the business owner for retirement. Overlapping tools should be merged or given clearer boundaries. High-error tools should stop entering new Agents. Write tools without audit fields or rollback paths should not expand to more scenarios. Cleanup should not chase fewer tools for its own sake; it should leave tools with clearer semantics, ownership, and recovery paths.
+
+Low-value tool cleanup should feed Planner and evaluation. After a tool is merged or retired, Planner tool views, examples, evaluation samples, and failure-recovery strategies need updates. Otherwise the model may keep learning from obsolete tool descriptions. Registry is the entry point for Agent capability, and catalog quality directly affects planning quality and security boundaries. Regular review prevents a rich tool ecosystem from becoming a confusing one.
+
+## 23.12 ToolSpec Example Library And Reuse Governance
+
+ToolSpec needs an example library. A schema alone often fails to help Planner choose tools consistently. An API note alone also fails to help business teams understand tool boundaries. The example library should include typical calls, wrong calls, permission denial, missing parameters, write-operation approval, degradation paths, and rollback results. The closer examples are to real tasks, the easier it is for both models and humans to understand tool scope.
+
+The example library also needs reuse governance. When a tool moves from customer service to finance, parameters, permissions, and risk level may change. When a read-only tool grows into a write tool, approval and audit requirements change. Business teams should not copy an old example and launch a new scenario directly. Reuse should confirm ToolSpec version, suitable tasks, unsuitable scenarios, sample coverage, and owner.
+
+The example library feeds evaluation. Wrong tool selection, wrong parameters, and permission mistakes can all become new examples. Tool Registry then becomes more than a registration table. It accumulates operational knowledge about tool use. Over time, a strong ToolSpec example library reduces prompt explanation and reduces Planner oscillation among similar tools.
+
+## 23.13 Evidence tiers for tool-call results
+
+Tool Registry should manage the evidence level of tool results together with the tool entry point. Some tools return factual records, such as order status, inventory quantity, or approval result. Some return candidates, such as search lists, recommended actions, or similar documents. Others return execution state, such as submitted, waiting for approval, or cancelled. These results should not be treated as equally trusted facts by the model. Otherwise the Agent may treat a candidate as a conclusion or an in-progress state as a completed action.
+
+Tool response schemas should mark result type, data time, permission scope, whether the result can be cited, whether it can enter a report, and whether human confirmation is required. Runtime writes these fields into Trace and Artifact. Planner then chooses the next action: explain, verify further, ask for confirmation, enter approval, or stop. Tool results become part of the platform evidence chain instead of plain text for the model to interpret.
+
+A first version can distinguish three result classes: authoritative, candidate, and status. Authoritative results can enter factual report paragraphs. Candidate results need selection or review. Status results can only drive task state. This small tiering rule reduces many misinterpretations after tool calls.
+
+## 23.14 Compatible release of tool changes
+
+Tool changes are more sensitive than ordinary API changes because the model selects actions from tool descriptions, parameter schemas, and historical examples. A renamed field, a changed default, a unit change in the return value, or a different error code can still leave the Planner with a syntactically valid call while producing a different business result. Tool Registry should classify changes as compatible or breaking. Adding optional fields, clarifying descriptions, or introducing more specific error codes can usually enter canary. Removing fields, changing meaning, expanding permission scope, or turning a read-only tool into a write tool should create a new version and rerun tool-selection and approval samples.
+
+Compatible release should preserve old execution paths. Running Runs should keep using the tool version bound at creation time, and historical Trace replay should still find the schema and return interpretation used at that time. Before a new version executes production traffic, it can enter shadow mode: Planner records in Trace whether it would select the new tool and which parameters it would pass, while real execution stays on the old version. Shadow records reveal two practical risks: whether the model over-selects the new tool because of changed wording, and whether the new schema shifts business constraints in subtle ways. Real canary should start only after those samples are stable.
+
+Retiring an old version also needs evidence. The platform should confirm that no active Agent remains pinned to the version, historical Runs can still be explained, evaluation samples have migrated, approval pages can show the behavior difference, and the business owner has accepted the change. If retirement only checks call volume, it may miss long-running tasks, audit replay, and case reviews. As the capability entry point, Registry needs enough version history for tools to evolve while preserving an explanation of past actions.
+
+## 23.15 Tool retirement and replacement routes
+
+Tool governance covers retirement as well as registration and invocation. In enterprises, tools expire as business systems upgrade, permission policies change, vendor APIs move, or data contracts evolve. If Registry only adds tools and never retires them, Planner sees more and more similar entries, and users may trigger old interfaces without knowing it. Retiring a tool is not a record deletion. It must handle historical Runs, evaluation samples, prompt examples, permission policies, and replacement routes.
+
+Before retirement, the platform should check whether the tool is still used in runtime paths. It can inspect recent call volume, failure rate, tenant usage, linked Agents, evaluation samples, historical artifacts, and audit records. If a tool is still referenced by historical evidence, new calls can stop while the description and return examples remain. If a tool is used in high-risk flows, the replacement tool should pass shadow validation first. If the tool is a low-value duplicate, catalog review can retire it directly. Each retirement mode needs a different notice and observation window.
+
+Replacement routes should be written into ToolSpec and Planner policy. After the old tool shuts down, Planner needs to know which tasks move to the new tool, which parameters were renamed, which error codes changed, and which permissions must be requested again. Runtime must also handle in-flight tasks: whether calls already in `executing` continue, whether queued calls reroute, and whether a failed call can retry through the new tool. Without these rules, tool retirement becomes a hidden business-process change.
+
+A first version can give every tool a lifecycle state: candidate, available, restricted, frozen, and retired. State changes should enter Trace and evaluation samples. The tool catalog then stays readable over time, and Planner does not oscillate between old and new interfaces. Tool Registry helps models call tools, but it also gives the platform a way to govern tool lifecycle.
+
+## 23.16 Compensation and user commitments for tool failures
+
+Once a tool call has side effects, error handling cannot stop at returning a failure message. Creating tickets, sending email, updating CRM, submitting approvals, exporting reports, and changing configuration may partially change an external system before failing. ToolSpec should declare side-effect level, idempotency key, compensation action, retry condition, and user-visible commitment. Without these fields, Runtime cannot decide whether to retry, roll back, route to a human, or ask the user to inspect the external system.
+
+Compensation design should follow action type. Read failures can retry or degrade. Idempotent writes can replay with the same key. Non-idempotent writes need to query external state before deciding whether compensation is safe. Notification actions should record recipients and delivery results. Approval actions need approval state and withdrawal path. Tool developers should provide failure semantics along with the handler. Otherwise every error becomes a generic exception and the user-visible state becomes misleading.
+
+User commitments must match tool state. If the system says an approval has been submitted, the platform should prove that an approval record exists. If only a draft was saved, the message should not claim submission. Frontend, report layer, and Trace should refer to the same tool-result state. A first version can use a small state set: succeeded, partially succeeded, retryable failure, terminal failure, waiting for human confirmation, and compensating. This turns tool calls from black-box actions into governable business processes.
+
+## 23.17 Change review for tool contracts
+
+When change review for tool contracts reaches production, the platform needs a shared evidence standard for ToolSpec, parameter schema, idempotency key, permission scope, error code, compensation action, and call samples. This standard is not paperwork for its own sake. It lets business, platform, data, security, and operations teams discuss the same facts. Without this material, incident review depends on memory and personal judgment. With it, the team can see which inputs were valid, which actions executed, which artifacts can still be used, and which results need correction or withdrawal.
+
+This evidence should connect to Chapter 24 on MCP, Chapter 25 on Planner, and Chapter 50 on security. The upstream chapters provide the capability base, downstream chapters consume the runtime result, and this chapter explains how the middle layer is verified. If a capability looks complete inside one chapter but cannot enter Trace, Eval, release records, or the compliance evidence package, the production system still has a break in the chain. Readers should treat cross-chapter interfaces as engineering contracts, not as a reading order.
+
+Common risks include tool field renames while the model still sends old parameters, write actions without compensation, and coarse error codes that cannot support recovery. A successful demo rarely exposes these problems because demo samples are usually clean, short, and direct. Real business traffic brings stale data, abnormal input, permission changes, user withdrawal, budget limits, and long-running state. If the platform does not turn those situations into samples and ledgers, later scenarios will hit the same class of issues again.
+
+Tool field renames while the model still sends old parameters should be turned into a tracked review item when it appears repeatedly. The operating record should at least state owner, version, sample, affected scope, action, and review time. It does not need to become a long process report, but it must be clear enough for a later maintainer to understand the decision. For high-risk capability, the record should also state which conditions allow wider use and which failures require degradation or withdrawal.
+
+A first version can build this habit in a few representative scenarios. It is better to make high-traffic, high-risk, externally visible paths solid first, then copy the sample, ledger, and review method to related capabilities in other chapters. This makes the chapter read like engineering guidance: it explains how the capability is integrated, validated, operated, and retired.
+
 ## Chapter Recap
 
 1. **Tool Registry** is the central hub for L1 registration and L2 `get` / `invoke` capabilities; tool implementations can be distributed, but contracts must be unified in the Registry.
@@ -441,24 +500,9 @@ Tool cleanup must include successful calls, blocked calls, and missing capabilit
 - `mini-platform/tests/test_registry.py`
 
 ---
+
 ## References
 
-OpenAI. (n.d.). *Function calling*. OpenAI API documentation. [https://developers.openai.com/api/docs/guides/function-calling](https://developers.openai.com/api/docs/guides/function-calling)
+OpenAI. (n.d.). *Function calling*. OpenAI API documentation. [https://developers.openai.com/api/docs/guides/function-calling](https://developers.openai.com/api/docs/guides/function-calling) OpenAI. (n.d.). *How to call functions with chat models*. OpenAI Cookbook. [https://developers.openai.com/cookbook/examples/how_to_call_functions_with_chat_models](https://developers.openai.com/cookbook/examples/how_to_call_functions_with_chat_models) OpenAI. (2024). *Introducing Structured Outputs in the API*. [https://openai.com/index/introducing-structured-outputs-in-the-api/](https://openai.com/index/introducing-structured-outputs-in-the-api/) JSON Schema. (2020). *JSON Schema: A Media Type for Describing JSON Documents*. Draft 2020-12. [https://json-schema.org/draft/2020-12/json-schema-core](https://json-schema.org/draft/2020-12/json-schema-core) Li, X. (2025). A review of prominent paradigms for LLM-based agents: Tool use, planning (including RAG), and feedback learning. In *Proceedings of COLING 2025*. arXiv:2406.05804. [https://arxiv.org/abs/2406.05804](https://arxiv.org/abs/2406.05804)
 
-OpenAI. (n.d.). *How to call functions with chat models*. OpenAI Cookbook. [https://developers.openai.com/cookbook/examples/how_to_call_functions_with_chat_models](https://developers.openai.com/cookbook/examples/how_to_call_functions_with_chat_models)
-
-OpenAI. (2024). *Introducing Structured Outputs in the API*. [https://openai.com/index/introducing-structured-outputs-in-the-api/](https://openai.com/index/introducing-structured-outputs-in-the-api/)
-
-JSON Schema. (2020). *JSON Schema: A Media Type for Describing JSON Documents*. Draft 2020-12. [https://json-schema.org/draft/2020-12/json-schema-core](https://json-schema.org/draft/2020-12/json-schema-core)
-
-Li, X. (2025). A review of prominent paradigms for LLM-based agents: Tool use, planning (including RAG), and feedback learning. In *Proceedings of COLING 2025*. arXiv:2406.05804. [https://arxiv.org/abs/2406.05804](https://arxiv.org/abs/2406.05804)
-
-Qu, C., Dai, S., Wei, X., Cai, H., Wang, S., Yin, D., Xu, J., & Wen, J.-R. (2025). Tool learning with large language models: A survey. *Frontiers of Computer Science*, 19(8), 198343. [https://doi.org/10.1007/s11704-024-40678-2](https://doi.org/10.1007/s11704-024-40678-2) (Preprint: [https://arxiv.org/abs/2405.17935](https://arxiv.org/abs/2405.17935))
-
-Shen, Z. (2024). LLM with tools: A survey. arXiv:2409.18807. [https://arxiv.org/abs/2409.18807](https://arxiv.org/abs/2409.18807)
-
-Masterman, T., Besen, S., Sawtell, M., & Chao, A. (2024). The landscape of emerging AI agent architectures for reasoning, planning, and tool calling: A survey. arXiv:2404.11584. [https://arxiv.org/abs/2404.11584](https://arxiv.org/abs/2404.11584)
-
-Model Context Protocol. (2024). *Specification* (2024-11-05). [https://modelcontextprotocol.io/specification/2024-11-05](https://modelcontextprotocol.io/specification/2024-11-05)
-
-Patil, S. G., Zhang, T., Kulkarni, N., & Leask, M. (2023). Gorilla: Large language model connected with massive APIs. arXiv:2305.15334. [https://arxiv.org/abs/2305.15334](https://arxiv.org/abs/2305.15334)
+Qu, C., Dai, S., Wei, X., Cai, H., Wang, S., Yin, D., Xu, J., & Wen, J.-R. (2025). Tool learning with large language models: A survey. *Frontiers of Computer Science*, 19(8), 198343. [https://doi.org/10.1007/s11704-024-40678-2](https://doi.org/10.1007/s11704-024-40678-2) (Preprint: [https://arxiv.org/abs/2405.17935](https://arxiv.org/abs/2405.17935)) Shen, Z. (2024). LLM with tools: A survey. arXiv:2409.18807. [https://arxiv.org/abs/2409.18807](https://arxiv.org/abs/2409.18807) Masterman, T., Besen, S., Sawtell, M., & Chao, A. (2024). The landscape of emerging AI agent architectures for reasoning, planning, and tool calling: A survey. arXiv:2404.11584. [https://arxiv.org/abs/2404.11584](https://arxiv.org/abs/2404.11584) Model Context Protocol. (2024). *Specification* (2024-11-05). [https://modelcontextprotocol.io/specification/2024-11-05](https://modelcontextprotocol.io/specification/2024-11-05) Patil, S. G., Zhang, T., Kulkarni, N., & Leask, M. (2023). Gorilla: Large language model connected with massive APIs. arXiv:2305.15334. [https://arxiv.org/abs/2305.15334](https://arxiv.org/abs/2305.15334)
