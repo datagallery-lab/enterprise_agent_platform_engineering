@@ -492,4 +492,10 @@ A first version can build this habit in a few representative scenarios. It is be
 5. Affinity and taints enforce "pool discipline"; Device Plugin alone is not sufficient.
 ## References
 
-Kubernetes. (n.d.). [Device Plugins documentation](https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/device-plugins/). NVIDIA. (n.d.). [GPU Operator documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/). Kubernetes. (n.d.). [Kueue documentation](https://kueue.sigs.k8s.io/docs/). Volcano. (n.d.). [Documentation](https://volcano.sh/en/docs/).
+Kubernetes. (n.d.). [Device Plugins documentation](https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/device-plugins/).
+
+NVIDIA. (n.d.). [GPU Operator documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/).
+
+Kubernetes. (n.d.). [Kueue documentation](https://kueue.sigs.k8s.io/docs/).
+
+Volcano. (n.d.). [Documentation](https://volcano.sh/en/docs/).

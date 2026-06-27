@@ -239,4 +239,8 @@ Generative UI is valuable when it turns Agent output into governed workspaces, n
 
 ## References
 
-Vercel. (n.d.). [AI SDK documentation](https://sdk.vercel.ai/docs). Open Web Application Security Project. (n.d.). [Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/). C2PA. (n.d.). [Technical specification](https://c2pa.org/specifications/).
+Vercel. (n.d.). [AI SDK documentation](https://sdk.vercel.ai/docs).
+
+Open Web Application Security Project. (n.d.). [Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/).
+
+C2PA. (n.d.). [Technical specification](https://c2pa.org/specifications/).

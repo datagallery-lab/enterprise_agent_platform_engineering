@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Enterprise Agent Platform Engineering Book Architecture</title>
+  <desc id="desc">The enterprise Agent platform starts from business interfaces, flows through Agent Runtime, connects data and knowledge foundations with model infrastructure, and is governed by Trace, Eval, safety, cost, and organizational mechanisms.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7fbff"/>
+      <stop offset="1" stop-color="#eef4f8"/>
+    </linearGradient>
+    <linearGradient id="runtime" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0f766e"/>
+      <stop offset="1" stop-color="#2563eb"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+    </marker>
+    <style>
+      .title { font: 700 34px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 17px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; }
+      .section-title { font: 700 22px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+      .section-note { font: 400 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748b; }
+      .box-title { font: 700 17px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+      .box-text { font: 400 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; }
+      .white-title { font: 700 18px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #ffffff; }
+      .white-text { font: 400 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #e0f2fe; }
+      .governance-title { font: 700 18px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #7c2d12; }
+      .governance-text { font: 400 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #9a3412; }
+      .part { font: 700 12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748b; letter-spacing: 0.6px; }
+      .line { stroke: #334155; stroke-width: 2.2; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect x="48" y="42" width="1504" height="816" rx="22" fill="#ffffff" stroke="#d7e2ea" filter="url(#shadow)"/>
+
+  <text x="92" y="96" class="title">Enterprise Agent Platform Engineering</text>
+  <text x="92" y="128" class="subtitle">Business interfaces, Agent Runtime, data foundation, model infrastructure, governance, and organizational rollout</text>
+
+  <rect x="1090" y="72" width="398" height="74" rx="14" fill="#fff7ed" stroke="#fdba74"/>
+  <text x="1118" y="103" class="governance-title">Engineering judgment</text>
+  <text x="1118" y="128" class="governance-text">Interfaces · State · Evidence · Cost</text>
+
+  <text x="92" y="188" class="part">BUSINESS INTERFACES · Part I / IX / XI</text>
+  <text x="92" y="218" class="section-title">Business interfaces and application forms</text>
+  <text x="92" y="244" class="section-note">Readers first see how Agents are delivered in business systems, then trace the platform capabilities underneath.</text>
+
+  <g transform="translate(90 270)">
+    <rect width="250" height="92" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="22" y="32" class="box-title">Chat / Copilot</text>
+    <text x="22" y="58" class="box-text">Conversational entry</text>
+    <text x="22" y="78" class="box-text">Streaming and task context</text>
+  </g>
+  <g transform="translate(370 270)">
+    <rect width="250" height="92" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="22" y="32" class="box-title">DataAgent</text>
+    <text x="22" y="58" class="box-text">Questions, analysis, reports</text>
+    <text x="22" y="78" class="box-text">EvidenceRef and permission proof</text>
+  </g>
+  <g transform="translate(650 270)">
+    <rect width="250" height="92" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="22" y="32" class="box-title">Workflow Agent</text>
+    <text x="22" y="58" class="box-text">Multi-step tasks</text>
+    <text x="22" y="78" class="box-text">Approval and state progress</text>
+  </g>
+  <g transform="translate(930 270)">
+    <rect width="250" height="92" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="22" y="32" class="box-title">Generative UI</text>
+    <text x="22" y="58" class="box-text">Artifacts and rich interaction</text>
+    <text x="22" y="78" class="box-text">Frontend state and publishing</text>
+  </g>
+  <g transform="translate(1210 270)">
+    <rect width="250" height="92" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="22" y="32" class="box-title">Multimodal Agent</text>
+    <text x="22" y="58" class="box-text">Documents, images, voice</text>
+    <text x="22" y="78" class="box-text">Input and feedback channels</text>
+  </g>
+
+  <path class="line" d="M 800 378 L 800 428"/>
+
+  <rect x="90" y="430" width="1370" height="150" rx="18" fill="url(#runtime)" filter="url(#shadow)"/>
+  <text x="122" y="470" class="white-title">Agent Runtime and capability chain</text>
+  <text x="122" y="497" class="white-text">Execution semantics, planning, tool invocation, context, human review, and protocol interoperability form the platform core.</text>
+
+  <g transform="translate(130 520)">
+    <rect width="170" height="38" rx="8" fill="#ecfeff" opacity="0.95"/>
+    <text x="22" y="25" class="box-title">Run State</text>
+  </g>
+  <g transform="translate(330 520)">
+    <rect width="170" height="38" rx="8" fill="#ecfeff" opacity="0.95"/>
+    <text x="22" y="25" class="box-title">Planner</text>
+  </g>
+  <g transform="translate(530 520)">
+    <rect width="170" height="38" rx="8" fill="#ecfeff" opacity="0.95"/>
+    <text x="22" y="25" class="box-title">Memory</text>
+  </g>
+  <g transform="translate(730 520)">
+    <rect width="170" height="38" rx="8" fill="#ecfeff" opacity="0.95"/>
+    <text x="22" y="25" class="box-title">Tool Registry</text>
+  </g>
+  <g transform="translate(930 520)">
+    <rect width="170" height="38" rx="8" fill="#ecfeff" opacity="0.95"/>
+    <text x="22" y="25" class="box-title">MCP / A2A</text>
+  </g>
+  <g transform="translate(1130 520)">
+    <rect width="170" height="38" rx="8" fill="#ecfeff" opacity="0.95"/>
+    <text x="22" y="25" class="box-title">HITL</text>
+  </g>
+  <g transform="translate(1330 520)">
+    <rect width="90" height="38" rx="8" fill="#ecfeff" opacity="0.95"/>
+    <text x="22" y="25" class="box-title">Eval</text>
+  </g>
+
+  <path class="line" d="M 560 594 L 430 638"/>
+  <path class="line" d="M 1040 594 L 1170 638"/>
+
+  <g transform="translate(90 640)">
+    <rect width="650" height="134" rx="16" fill="#eefcf6" stroke="#86efac"/>
+    <text x="28" y="38" class="section-title">Data and knowledge foundation</text>
+    <text x="28" y="66" class="section-note">Part III / IV / VI: ingestion, semantic layer, retrieval, RAG, OCR, NL2SQL, and analysis execution.</text>
+    <text x="28" y="104" class="box-text">Semantic Layer · NL2SQL · Vector Store · RAG · OCR · Python Sandbox · Lineage</text>
+  </g>
+
+  <g transform="translate(810 640)">
+    <rect width="650" height="134" rx="16" fill="#eff6ff" stroke="#93c5fd"/>
+    <text x="28" y="38" class="section-title">Models and infrastructure</text>
+  <text x="28" y="66" class="section-note">Part II / VIII: model access, structured output, embeddings, gateways, multi-tenancy, GPU, and GitOps.</text>
+    <text x="28" y="104" class="box-text">Model Gateway · Structured Output · Embedding · Reranker · GPU / K8s · IaC · Edge</text>
+  </g>
+
+  <rect x="90" y="802" width="1370" height="42" rx="12" fill="#fff7ed" stroke="#fdba74"/>
+  <text x="122" y="829" class="governance-title">Governance</text>
+  <text x="282" y="829" class="governance-text">Trace · Benchmark · Guardrails · Permission · Audit Evidence · Cost / SLO · Compliance · Organization</text>
+</svg>

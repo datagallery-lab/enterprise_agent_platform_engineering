@@ -266,8 +266,23 @@ The key conclusion of this chapter is: online evaluation is not about chasing an
 - Does the judge output dimension scores, confidence, failure labels, and explanations instead of only a total score?
 - Does the online experiment set main metrics, guardrail metrics, rollback conditions, traffic exposure ranges, and bucketing strategies?
 - Can online failure samples be consolidated into the Regression Set or Safety Set described in Chapter 39?
+
+Related chapters: [Chapter 38 Agent Observability and Operational Diagnostics](ch38-trace.md), [Chapter 39 Enterprise-Level DataAgent Evaluation System Design and Benchmark Construction](ch39-dataagent-eval-benchmark.md), [Chapter 41 Cost Governance and Cache Optimization](ch41-cost-governance-cache.md), [Chapter 42 SLO Management, Rate Limiting, and System Resilience](ch42-slo.md).
+
+Methods and tools include A/B Testing, Interleaving, LLM-as-Judge, Ragas, DeepEval, Promptfoo, Langfuse, and Phoenix. Related research and practice can also refer to MT-Bench / Chatbot Arena, G-Eval, and studies on judge bias and consistency.
+
 ## References
 
-Related chapters: [Chapter 38 Agent Observability and Operational Diagnostics](ch38-trace.md), [Chapter 39 Enterprise-Level DataAgent Evaluation System Design and Benchmark Construction](ch39-dataagent-eval-benchmark.md), [Chapter 41 Cost Governance and Cache Optimization](ch41-cost-governance-cache.md), [Chapter 42 SLO Management, Rate Limiting, and System Resilience](ch42-slo.md). References related to public benchmarks and model adjudication referenced in this chapter are listed in order of first appearance in the main text. Lei, F. et al. (2025). [*DAComp: Benchmarking Data Agents across the Full Data Intelligence Lifecycle*](https://arxiv.org/abs/2512.04324). arXiv. Tang, Z. et al. (2026). [*Workspace-Bench 1.0: Benchmarking AI Agents on Workspace Tasks with Large-Scale File Dependencies*](https://arxiv.org/abs/2605.03596). arXiv. Sharma, M. et al. (2025). [*ResearchRubrics: A Benchmark of Prompts and Rubrics For Evaluating Deep Research Agents*](https://arxiv.org/abs/2511.07685). arXiv. Li, R. et al. (2026). [*DeepResearch Bench II: Diagnosing Deep Research Agents via Rubrics from Expert Report*](https://arxiv.org/abs/2601.08536). arXiv.
+References related to public benchmarks and model adjudication referenced in this chapter are listed in order of first appearance in the main text.
 
-Pan, T. et al. (2026). [*RubricEval: A Rubric-Level Meta-Evaluation Benchmark for LLM Judges in Instruction Following*](https://arxiv.org/abs/2603.25133). arXiv. Hashemi, H. et al. (2025). [*LLM-Rubric: A Multidimensional, Calibrated Approach to Automated Evaluation of Natural Language Texts*](https://arxiv.org/abs/2501.00274). arXiv. Methods and tools: A/B Testing, Interleaving, LLM-as-Judge, Ragas, DeepEval, Promptfoo, Langfuse, Phoenix. Related research and practice can also refer to MT-Bench / Chatbot Arena, G-Eval, and studies on evaluation bias and consistency around model adjudicators.
+Lei, F. et al. (2025). [*DAComp: Benchmarking Data Agents across the Full Data Intelligence Lifecycle*](https://arxiv.org/abs/2512.04324). arXiv.
+
+Tang, Z. et al. (2026). [*Workspace-Bench 1.0: Benchmarking AI Agents on Workspace Tasks with Large-Scale File Dependencies*](https://arxiv.org/abs/2605.03596). arXiv.
+
+Sharma, M. et al. (2025). [*ResearchRubrics: A Benchmark of Prompts and Rubrics For Evaluating Deep Research Agents*](https://arxiv.org/abs/2511.07685). arXiv.
+
+Li, R. et al. (2026). [*DeepResearch Bench II: Diagnosing Deep Research Agents via Rubrics from Expert Report*](https://arxiv.org/abs/2601.08536). arXiv.
+
+Pan, T. et al. (2026). [*RubricEval: A Rubric-Level Meta-Evaluation Benchmark for LLM Judges in Instruction Following*](https://arxiv.org/abs/2603.25133). arXiv.
+
+Hashemi, H. et al. (2025). [*LLM-Rubric: A Multidimensional, Calibrated Approach to Automated Evaluation of Natural Language Texts*](https://arxiv.org/abs/2501.00274). arXiv.

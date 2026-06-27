@@ -382,4 +382,10 @@ Response:
 
 ## 参考文献
 
-Radford, A. et al. (2023). [*Robust Speech Recognition via Large-Scale Weak Supervision*](https://arxiv.org/abs/2212.04356). ICML.W3C. (n.d.). [WebRTC 1.0: Real-Time Communication Between Browsers](https://www.w3.org/TR/webrtc/).Web Speech API. (n.d.). [Specification](https://webaudio.github.io/web-speech-api/).OpenAI. (n.d.). [Realtime API documentation](https://platform.openai.com/docs/guides/realtime).
+Radford, A. et al. (2023). [*Robust Speech Recognition via Large-Scale Weak Supervision*](https://arxiv.org/abs/2212.04356). ICML.
+
+W3C. (n.d.). [WebRTC 1.0: Real-Time Communication Between Browsers](https://www.w3.org/TR/webrtc/).
+
+Web Speech API. (n.d.). [Specification](https://webaudio.github.io/web-speech-api/).
+
+OpenAI. (n.d.). [Realtime API documentation](https://platform.openai.com/docs/guides/realtime).

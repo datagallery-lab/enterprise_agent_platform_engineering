@@ -290,4 +290,10 @@ This chapter keeps a case-writing framework without providing business cases wit
 
 ## References
 
-Yin, R. K. (2018). *Case Study Research and Applications: Design and Methods*. SAGE. NIST. (2023). [*AI RMF 1.0*](https://www.nist.gov/itl/ai-risk-management-framework). OWASP. (n.d.). [*Top 10 for Large Language Model Applications*](https://owasp.org/www-project-top-10-for-large-language-model-applications/). Model Context Protocol. (n.d.). [Specification and documentation](https://modelcontextprotocol.io/).
+Yin, R. K. (2018). *Case Study Research and Applications: Design and Methods*. SAGE.
+
+NIST. (2023). [*AI RMF 1.0*](https://www.nist.gov/itl/ai-risk-management-framework).
+
+OWASP. (n.d.). [*Top 10 for Large Language Model Applications*](https://owasp.org/www-project-top-10-for-large-language-model-applications/).
+
+Model Context Protocol. (n.d.). [Specification and documentation](https://modelcontextprotocol.io/).

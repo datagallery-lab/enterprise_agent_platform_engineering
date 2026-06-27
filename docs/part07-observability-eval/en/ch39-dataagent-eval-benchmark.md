@@ -300,10 +300,44 @@ Continuous evaluation platforms turn benchmarks into daily quality infrastructur
 
 ## References
 
-Relevant chapters: [Chapter 33 Semantic Layer Engineering](../../part06-dataagent/en/ch33.md), [Chapter 34 NL2SQL Engineering](../../part06-dataagent/en/ch34-nl2sql.md), [Chapter 38 Agent Observability and Run-time Diagnostics](ch38-trace.md), [Chapter 40 Online Evaluation, LLM-as-Judge, and Continuous Optimization](ch40-llm-as-judge.md). Listed public benchmarks citation order follows first mentions. Hendrycks, D. et al. (2021). [*Measuring Massive Multitask Language Understanding*](https://arxiv.org/abs/2009.03300). ICLR. Srivastava, A. et al. (2023). [*Beyond the Imitation Game: Quantifying and Extrapolating the Capabilities of Language Models*](https://arxiv.org/abs/2206.04615). TMLR. Liang, P. et al. (2023). [*end-to-end Evaluation of Language Models*](https://arxiv.org/abs/2211.09110). TMLR. Huang, Y. et al. (2023). [*C-Eval: A Multi-Level Multi-Discipline Chinese Evaluation Suite for Foundation Models*](https://arxiv.org/abs/2305.08322). arXiv. Li, H. et al. (2023). [*CMMLU: Measuring Massive Multitask Language Understanding in Chinese*](https://arxiv.org/abs/2306.09212). arXiv. Jimenez, C. E. et al. (2024). [*SWE-bench: Can Language Models Resolve Real-World GitHub Issues?*](https://arxiv.org/abs/2310.06770). ICLR.
+Relevant chapters: [Chapter 33 Semantic Layer Engineering](../../part06-dataagent/en/ch33.md), [Chapter 34 NL2SQL Engineering](../../part06-dataagent/en/ch34-nl2sql.md), [Chapter 38 Agent Observability and Run-time Diagnostics](ch38-trace.md), [Chapter 40 Online Evaluation, LLM-as-Judge, and Continuous Optimization](ch40-llm-as-judge.md).
 
-Liu, X. et al. (2024). [*AgentBench: Evaluating LLMs as Agents*](https://arxiv.org/abs/2308.03688). ICLR. Zhou, S. et al. (2024). [*WebArena: A Realistic Web Environment for Building Autonomous Agents*](https://arxiv.org/abs/2307.13854). ICLR. Xie, T. et al. (2024). [*OSWorld: Benchmarking Multimodal Agents for Open-Ended Tasks in Real Computer Environments*](https://arxiv.org/abs/2404.07972). arXiv. Zhong, V., Xiong, C., & Socher, R. (2017). [*Seq2SQL: Generating Structured Queries from Natural Language using Reinforcement Learning*](https://arxiv.org/abs/1709.00103). arXiv. Yu, T. et al. (2018). [*Spider: A Large-Scale Human-Labeled Dataset for Complex and Cross-Domain Semantic Parsing and Text-to-SQL Task*](https://arxiv.org/abs/1809.08887). EMNLP. Li, J. et al. (2023). [*Can LLM Already Serve as A Database Interface? A BIg Bench for Large-Scale Database Grounded Text-to-SQLs*](https://arxiv.org/abs/2305.03111). NeurIPS Datasets and Benchmarks. Lei, F. et al. (2024). [*Spider 2.0: Evaluating Language Models on Real-World Enterprise Text-to-SQL Workflows*](https://arxiv.org/abs/2411.07763). arXiv. Du, M. et al. (2025). [*DeepResearch Bench: A Comprehensive Benchmark for Deep Research Agents*](https://arxiv.org/abs/2506.11763). arXiv.
+Maintained leaderboards include [Spider](https://yale-lily.github.io/spider), [BIRD](https://bird-bench.github.io/), [BEAVER](https://beaverbench.github.io/), [HELM](https://crfm.stanford.edu/helm/), [MTEB](https://huggingface.co/spaces/mteb/leaderboard), and [SWE-bench](https://www.swebench.com/). Evaluation tools include Ragas, TruLens, DeepEval, Promptfoo, OpenTelemetry, Langfuse, and Phoenix.
 
-Sharma, T. et al. (2025). [*ResearchRubrics: A Benchmark of Prompts and Rubrics For Evaluating Deep Research Agents*](https://arxiv.org/abs/2511.07685). arXiv. Chen, P. B. et al. (2024). [*BEAVER: An Enterprise Benchmark for Text-to-SQL*](https://arxiv.org/abs/2409.02038). arXiv. Tang, Z. et al. (2026). [*Workspace-Bench 1.0: Benchmarking AI Agents on Workspace Tasks with Large-Scale File Dependencies*](https://arxiv.org/abs/2605.03596). arXiv. Muennighoff, N. et al. (2023). [*MTEB: Massive Text Embedding Benchmark*](https://arxiv.org/abs/2210.07316). EACL.
+Listed public benchmark references follow first mention in the chapter.
 
-Long-term maintained leaderboards include: [Spider](https://yale-lily.github.io/spider) (Yu et al. 2018), [BIRD](https://bird-bench.github.io/) (Li et al. 2023), [BEAVER](https://beaverbench.github.io/) (Chen et al. 2024), [HELM](https://crfm.stanford.edu/helm/) (Liang et al. 2023), [MTEB](https://huggingface.co/spaces/mteb/leaderboard) (Muennighoff et al. 2023), [SWE-bench](https://www.swebench.com/) (Jimenez et al. 2024). Evaluation tools include Ragas, TruLens, DeepEval, Promptfoo, OpenTelemetry, Langfuse, and Phoenix.
+Hendrycks, D. et al. (2021). [*Measuring Massive Multitask Language Understanding*](https://arxiv.org/abs/2009.03300). ICLR.
+
+Srivastava, A. et al. (2023). [*Beyond the Imitation Game: Quantifying and Extrapolating the Capabilities of Language Models*](https://arxiv.org/abs/2206.04615). TMLR.
+
+Liang, P. et al. (2023). [*end-to-end Evaluation of Language Models*](https://arxiv.org/abs/2211.09110). TMLR.
+
+Huang, Y. et al. (2023). [*C-Eval: A Multi-Level Multi-Discipline Chinese Evaluation Suite for Foundation Models*](https://arxiv.org/abs/2305.08322). arXiv.
+
+Li, H. et al. (2023). [*CMMLU: Measuring Massive Multitask Language Understanding in Chinese*](https://arxiv.org/abs/2306.09212). arXiv.
+
+Jimenez, C. E. et al. (2024). [*SWE-bench: Can Language Models Resolve Real-World GitHub Issues?*](https://arxiv.org/abs/2310.06770). ICLR.
+
+Liu, X. et al. (2024). [*AgentBench: Evaluating LLMs as Agents*](https://arxiv.org/abs/2308.03688). ICLR.
+
+Zhou, S. et al. (2024). [*WebArena: A Realistic Web Environment for Building Autonomous Agents*](https://arxiv.org/abs/2307.13854). ICLR.
+
+Xie, T. et al. (2024). [*OSWorld: Benchmarking Multimodal Agents for Open-Ended Tasks in Real Computer Environments*](https://arxiv.org/abs/2404.07972). arXiv.
+
+Zhong, V., Xiong, C., & Socher, R. (2017). [*Seq2SQL: Generating Structured Queries from Natural Language using Reinforcement Learning*](https://arxiv.org/abs/1709.00103). arXiv.
+
+Yu, T. et al. (2018). [*Spider: A Large-Scale Human-Labeled Dataset for Complex and Cross-Domain Semantic Parsing and Text-to-SQL Task*](https://arxiv.org/abs/1809.08887). EMNLP.
+
+Li, J. et al. (2023). [*Can LLM Already Serve as A Database Interface? A BIg Bench for Large-Scale Database Grounded Text-to-SQLs*](https://arxiv.org/abs/2305.03111). NeurIPS Datasets and Benchmarks.
+
+Lei, F. et al. (2024). [*Spider 2.0: Evaluating Language Models on Real-World Enterprise Text-to-SQL Workflows*](https://arxiv.org/abs/2411.07763). arXiv.
+
+Du, M. et al. (2025). [*DeepResearch Bench: A Comprehensive Benchmark for Deep Research Agents*](https://arxiv.org/abs/2506.11763). arXiv.
+
+Sharma, T. et al. (2025). [*ResearchRubrics: A Benchmark of Prompts and Rubrics For Evaluating Deep Research Agents*](https://arxiv.org/abs/2511.07685). arXiv.
+
+Chen, P. B. et al. (2024). [*BEAVER: An Enterprise Benchmark for Text-to-SQL*](https://arxiv.org/abs/2409.02038). arXiv.
+
+Tang, Z. et al. (2026). [*Workspace-Bench 1.0: Benchmarking AI Agents on Workspace Tasks with Large-Scale File Dependencies*](https://arxiv.org/abs/2605.03596). arXiv.
+
+Muennighoff, N. et al. (2023). [*MTEB: Massive Text Embedding Benchmark*](https://arxiv.org/abs/2210.07316). EACL.

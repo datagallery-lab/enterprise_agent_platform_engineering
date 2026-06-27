@@ -229,4 +229,6 @@ Guardrails are executable platform controls. They combine classifiers, policies,
 
 ## References
 
-OWASP. (n.d.). [Top 10 for Large Language Model Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/). NIST. (2023). [AI Risk Management Framework](https://www.nist.gov/itl/ai-risk-management-framework).
+OWASP. (n.d.). [Top 10 for Large Language Model Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/).
+
+NIST. (2023). [AI Risk Management Framework](https://www.nist.gov/itl/ai-risk-management-framework).

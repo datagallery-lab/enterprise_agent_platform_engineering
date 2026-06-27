@@ -243,4 +243,8 @@ Multimodal and voice Agents need admission control, parser evidence, permission 
 
 ## References
 
-WebRTC. (n.d.). [WebRTC documentation](https://webrtc.org/). OpenTelemetry. (n.d.). [Documentation](https://opentelemetry.io/docs/). OWASP. (n.d.). [Top 10 for Large Language Model Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/).
+WebRTC. (n.d.). [WebRTC documentation](https://webrtc.org/).
+
+OpenTelemetry. (n.d.). [Documentation](https://opentelemetry.io/docs/).
+
+OWASP. (n.d.). [Top 10 for Large Language Model Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/).

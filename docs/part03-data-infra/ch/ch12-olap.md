@@ -399,4 +399,10 @@ OLAP 查询层进入生产后，平台需要把查询模板、物化视图、指
 
 ## 参考文献
 
-DuckDB. (n.d.). [Documentation](https://duckdb.org/docs/).Trino. (n.d.). [Documentation](https://trino.io/docs/current/).ClickHouse. (n.d.). [Documentation](https://clickhouse.com/docs/).Apache Doris. (n.d.). [Documentation](https://doris.apache.org/docs/).
+DuckDB. (n.d.). [Documentation](https://duckdb.org/docs/).
+
+Trino. (n.d.). [Documentation](https://trino.io/docs/current/).
+
+ClickHouse. (n.d.). [Documentation](https://clickhouse.com/docs/).
+
+Apache Doris. (n.d.). [Documentation](https://doris.apache.org/docs/).

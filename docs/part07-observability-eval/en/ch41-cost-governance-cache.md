@@ -367,4 +367,10 @@ Related chapters: [Chapter 7 Inference Optimization](../../part02-model-inferenc
 
 ## References
 
-LiteLLM. (n.d.). [Documentation](https://docs.litellm.ai/). GPTCache. (n.d.). [Documentation](https://gptcache.readthedocs.io/). FinOps Foundation. (n.d.). [Framework](https://www.finops.org/framework/). OpenTelemetry. (n.d.). [Metrics documentation](https://opentelemetry.io/docs/concepts/signals/metrics/).
+LiteLLM. (n.d.). [Documentation](https://docs.litellm.ai/).
+
+GPTCache. (n.d.). [Documentation](https://gptcache.readthedocs.io/).
+
+FinOps Foundation. (n.d.). [Framework](https://www.finops.org/framework/).
+
+OpenTelemetry. (n.d.). [Metrics documentation](https://opentelemetry.io/docs/concepts/signals/metrics/).

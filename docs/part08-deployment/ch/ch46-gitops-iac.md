@@ -466,4 +466,10 @@ GitOps 把 Agent 平台交付从手工操作改为 PR 驱动的声明式 reconci
 
 ## 参考文献
 
-HashiCorp. (n.d.). [Terraform documentation](https://developer.hashicorp.com/terraform/docs).Helm. (n.d.). [Documentation](https://helm.sh/docs/).Argo CD. (n.d.). [Documentation](https://argo-cd.readthedocs.io/).ONNX Runtime. (n.d.). [Documentation](https://onnxruntime.ai/docs/).
+HashiCorp. (n.d.). [Terraform documentation](https://developer.hashicorp.com/terraform/docs).
+
+Helm. (n.d.). [Documentation](https://helm.sh/docs/).
+
+Argo CD. (n.d.). [Documentation](https://argo-cd.readthedocs.io/).
+
+ONNX Runtime. (n.d.). [Documentation](https://onnxruntime.ai/docs/).

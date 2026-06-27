@@ -369,4 +369,10 @@ Generative UI 的生产路径是受控组件渲染，不是任意代码生成。
 
 ## 参考文献
 
-Vercel. (n.d.). [AI SDK documentation](https://sdk.vercel.ai/docs).Model Context Protocol. (n.d.). [Specification and documentation](https://modelcontextprotocol.io/).JSON Schema. (n.d.). [Specification](https://json-schema.org/).W3C. (n.d.). [Web Content Accessibility Guidelines (WCAG) 2.2](https://www.w3.org/TR/WCAG22/).
+Vercel. (n.d.). [AI SDK documentation](https://sdk.vercel.ai/docs).
+
+Model Context Protocol. (n.d.). [Specification and documentation](https://modelcontextprotocol.io/).
+
+JSON Schema. (n.d.). [Specification](https://json-schema.org/).
+
+W3C. (n.d.). [Web Content Accessibility Guidelines (WCAG) 2.2](https://www.w3.org/TR/WCAG22/).

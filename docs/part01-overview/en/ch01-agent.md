@@ -245,4 +245,10 @@ Agent is not a general name for large-model applications. It is a system that or
 
 ## References
 
-Yao, S. et al. (2023). [*ReAct: Synergizing Reasoning and Acting in Language Models*](https://arxiv.org/abs/2210.03629). ICLR. Schick, T. et al. (2023). [*Toolformer: Language Models Can Teach Themselves to Use Tools*](https://arxiv.org/abs/2302.04761). NeurIPS. Russell, S. & Norvig, P. (2020). *Artificial Intelligence: A Modern Approach*. Pearson. OpenAI. (n.d.). [Function calling guide](https://platform.openai.com/docs/guides/function-calling).
+Yao, S. et al. (2023). [*ReAct: Synergizing Reasoning and Acting in Language Models*](https://arxiv.org/abs/2210.03629). ICLR.
+
+Schick, T. et al. (2023). [*Toolformer: Language Models Can Teach Themselves to Use Tools*](https://arxiv.org/abs/2302.04761). NeurIPS.
+
+Russell, S. & Norvig, P. (2020). *Artificial Intelligence: A Modern Approach*. Pearson.
+
+OpenAI. (n.d.). [Function calling guide](https://platform.openai.com/docs/guides/function-calling).

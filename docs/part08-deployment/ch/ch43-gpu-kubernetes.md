@@ -467,4 +467,10 @@ GPU 调度层是算力底座，与第44章的模型服务和第45章的网关入
 
 ## 参考文献
 
-Kubernetes. (n.d.). [Device Plugins documentation](https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/device-plugins/).NVIDIA. (n.d.). [GPU Operator documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/).Kubernetes. (n.d.). [Kueue documentation](https://kueue.sigs.k8s.io/docs/).Volcano. (n.d.). [Documentation](https://volcano.sh/en/docs/).
+Kubernetes. (n.d.). [Device Plugins documentation](https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/device-plugins/).
+
+NVIDIA. (n.d.). [GPU Operator documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/).
+
+Kubernetes. (n.d.). [Kueue documentation](https://kueue.sigs.k8s.io/docs/).
+
+Volcano. (n.d.). [Documentation](https://volcano.sh/en/docs/).

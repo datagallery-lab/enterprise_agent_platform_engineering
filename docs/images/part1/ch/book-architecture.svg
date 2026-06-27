@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">企业级 Agent 平台工程全书架构</title>
+  <desc id="desc">企业级 Agent 平台从业务入口进入 Agent Runtime，连接数据与知识底座、模型与基础设施，并由 Trace、Eval、安全、成本和组织治理贯穿。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7fbff"/>
+      <stop offset="1" stop-color="#eef4f8"/>
+    </linearGradient>
+    <linearGradient id="runtime" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0f766e"/>
+      <stop offset="1" stop-color="#2563eb"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+    </marker>
+    <style>
+      .title { font: 700 34px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 17px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; }
+      .section-title { font: 700 22px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+      .section-note { font: 400 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748b; }
+      .box-title { font: 700 17px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+      .box-text { font: 400 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; }
+      .white-title { font: 700 18px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #ffffff; }
+      .white-text { font: 400 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #e0f2fe; }
+      .governance-title { font: 700 18px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #7c2d12; }
+      .governance-text { font: 400 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #9a3412; }
+      .part { font: 700 12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748b; letter-spacing: 0.6px; }
+      .line { stroke: #334155; stroke-width: 2.2; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect x="48" y="42" width="1504" height="816" rx="22" fill="#ffffff" stroke="#d7e2ea" filter="url(#shadow)"/>
+
+  <text x="92" y="96" class="title">企业级 Agent 平台工程全书架构</text>
+  <text x="92" y="128" class="subtitle">从业务入口、Agent Runtime、数据与知识底座，到模型基础设施、治理体系和组织落地</text>
+
+  <rect x="1090" y="72" width="398" height="74" rx="14" fill="#fff7ed" stroke="#fdba74"/>
+  <text x="1118" y="103" class="governance-title">贯穿全书的工程判断</text>
+  <text x="1118" y="128" class="governance-text">接口是否清晰 · 状态是否可恢复 · 证据是否可审计 · 成本是否可治理</text>
+
+  <text x="92" y="188" class="part">BUSINESS INTERFACES · Part I / IX / XI</text>
+  <text x="92" y="218" class="section-title">业务入口与应用形态</text>
+  <text x="92" y="244" class="section-note">读者先看到 Agent 在企业业务中的交付形态，再进入平台能力拆解。</text>
+
+  <g transform="translate(90 270)">
+    <rect width="250" height="92" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="22" y="32" class="box-title">Chat / Copilot</text>
+    <text x="22" y="58" class="box-text">对话入口、流式输出</text>
+    <text x="22" y="78" class="box-text">用户意图与任务上下文</text>
+  </g>
+  <g transform="translate(370 270)">
+    <rect width="250" height="92" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="22" y="32" class="box-title">DataAgent</text>
+    <text x="22" y="58" class="box-text">问数、分析、报告</text>
+    <text x="22" y="78" class="box-text">EvidenceRef 与权限证据</text>
+  </g>
+  <g transform="translate(650 270)">
+    <rect width="250" height="92" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="22" y="32" class="box-title">Workflow Agent</text>
+    <text x="22" y="58" class="box-text">多步骤任务与审批</text>
+    <text x="22" y="78" class="box-text">业务流程状态推进</text>
+  </g>
+  <g transform="translate(930 270)">
+    <rect width="250" height="92" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="22" y="32" class="box-title">Generative UI</text>
+    <text x="22" y="58" class="box-text">Artifact、富交互</text>
+    <text x="22" y="78" class="box-text">前端状态与产物发布</text>
+  </g>
+  <g transform="translate(1210 270)">
+    <rect width="250" height="92" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="22" y="32" class="box-title">Multimodal Agent</text>
+    <text x="22" y="58" class="box-text">文档、图像、语音</text>
+    <text x="22" y="78" class="box-text">多模态输入与反馈</text>
+  </g>
+
+  <path class="line" d="M 800 378 L 800 428"/>
+
+  <rect x="90" y="430" width="1370" height="150" rx="18" fill="url(#runtime)" filter="url(#shadow)"/>
+  <text x="122" y="470" class="white-title">Agent Runtime 与能力链</text>
+  <text x="122" y="497" class="white-text">运行语义、任务规划、工具调用、上下文管理、人工介入和协议互操作构成平台中枢。</text>
+
+  <g transform="translate(130 520)">
+    <rect width="170" height="38" rx="8" fill="#ecfeff" opacity="0.95"/>
+    <text x="22" y="25" class="box-title">Run 状态机</text>
+  </g>
+  <g transform="translate(330 520)">
+    <rect width="170" height="38" rx="8" fill="#ecfeff" opacity="0.95"/>
+    <text x="22" y="25" class="box-title">Planner</text>
+  </g>
+  <g transform="translate(530 520)">
+    <rect width="170" height="38" rx="8" fill="#ecfeff" opacity="0.95"/>
+    <text x="22" y="25" class="box-title">Memory</text>
+  </g>
+  <g transform="translate(730 520)">
+    <rect width="170" height="38" rx="8" fill="#ecfeff" opacity="0.95"/>
+    <text x="22" y="25" class="box-title">Tool Registry</text>
+  </g>
+  <g transform="translate(930 520)">
+    <rect width="170" height="38" rx="8" fill="#ecfeff" opacity="0.95"/>
+    <text x="22" y="25" class="box-title">MCP / A2A</text>
+  </g>
+  <g transform="translate(1130 520)">
+    <rect width="170" height="38" rx="8" fill="#ecfeff" opacity="0.95"/>
+    <text x="22" y="25" class="box-title">HITL</text>
+  </g>
+  <g transform="translate(1330 520)">
+    <rect width="90" height="38" rx="8" fill="#ecfeff" opacity="0.95"/>
+    <text x="22" y="25" class="box-title">Eval</text>
+  </g>
+
+  <path class="line" d="M 560 594 L 430 638"/>
+  <path class="line" d="M 1040 594 L 1170 638"/>
+
+  <g transform="translate(90 640)">
+    <rect width="650" height="134" rx="16" fill="#eefcf6" stroke="#86efac"/>
+    <text x="28" y="38" class="section-title">数据与知识底座</text>
+    <text x="28" y="66" class="section-note">Part III / IV / VI：数据接入、语义层、向量检索、RAG、OCR、NL2SQL 与分析执行。</text>
+    <text x="28" y="104" class="box-text">Semantic Layer · NL2SQL · Vector Store · RAG · OCR · Python Sandbox · Lineage</text>
+  </g>
+
+  <g transform="translate(810 640)">
+    <rect width="650" height="134" rx="16" fill="#eff6ff" stroke="#93c5fd"/>
+    <text x="28" y="38" class="section-title">模型与基础设施</text>
+    <text x="28" y="66" class="section-note">Part II / VIII：模型接入、结构化输出、Embedding、网关、多租户、GPU 调度与 GitOps。</text>
+    <text x="28" y="104" class="box-text">Model Gateway · Structured Output · Embedding · Reranker · GPU / K8s · IaC · Edge</text>
+  </g>
+
+  <rect x="90" y="802" width="1370" height="42" rx="12" fill="#fff7ed" stroke="#fdba74"/>
+  <text x="122" y="829" class="governance-title">横向治理层</text>
+  <text x="282" y="829" class="governance-text">Trace · Benchmark · Guardrails · Permission · Audit Evidence · Cost / SLO · Compliance · Organization</text>
+</svg>

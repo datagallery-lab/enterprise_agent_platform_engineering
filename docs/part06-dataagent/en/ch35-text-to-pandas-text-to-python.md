@@ -296,4 +296,14 @@ Python artifacts are trustworthy only within the current Run, input, metric vers
 
 ## References
 
-Tang, Z., et al. (2025). LLM/Agent-as-Data-Analyst: A Survey. arXiv:2509.23988. [https://arxiv.org/abs/2509.23988](https://arxiv.org/abs/2509.23988) OpenAI. (2023). *Introducing ChatGPT Code Interpreter*. OpenAI Blog. [https://openai.com/index/chatgpt-code-interpreter/](https://openai.com/index/chatgpt-code-interpreter/) PandasAI. (2024). *PandasAI Documentation*. [https://docs.pandas-ai.com/](https://docs.pandas-ai.com/) WebAssembly Community. (2024). *WebAssembly System Interface (WASI)*. [https://github.com/WebAssembly/WASI](https://github.com/WebAssembly/WASI) Jupyter Development Team. (2024). *Jupyter Kernel Gateway*. [https://jupyter-kernel-gateway.readthedocs.io/](https://jupyter-kernel-gateway.readthedocs.io/) Li, J., et al. (2023). Chain-of-code: Reasoning with Language Model-Generated Programs. arXiv:2312.05567.
+Tang, Z., et al. (2025). LLM/Agent-as-Data-Analyst: A Survey. arXiv:2509.23988. [https://arxiv.org/abs/2509.23988](https://arxiv.org/abs/2509.23988)
+
+OpenAI. (2023). *Introducing ChatGPT Code Interpreter*. OpenAI Blog. [https://openai.com/index/chatgpt-code-interpreter/](https://openai.com/index/chatgpt-code-interpreter/)
+
+PandasAI. (2024). *PandasAI Documentation*. [https://docs.pandas-ai.com/](https://docs.pandas-ai.com/)
+
+WebAssembly Community. (2024). *WebAssembly System Interface (WASI)*. [https://github.com/WebAssembly/WASI](https://github.com/WebAssembly/WASI)
+
+Jupyter Development Team. (2024). *Jupyter Kernel Gateway*. [https://jupyter-kernel-gateway.readthedocs.io/](https://jupyter-kernel-gateway.readthedocs.io/)
+
+Li, J., et al. (2023). Chain-of-code: Reasoning with Language Model-Generated Programs. arXiv:2312.05567.

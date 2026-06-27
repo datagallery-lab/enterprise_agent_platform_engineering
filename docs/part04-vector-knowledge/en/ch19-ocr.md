@@ -278,7 +278,11 @@ Document parsing is the foundation of RAG and knowledge engineering. Enterprises
 ## References
 
 - unstructured partitioning: https://docs.unstructured.io/open-source/core-functionality/partitioning
+
 - LlamaParse documentation: https://docs.llamaindex.ai/en/stable/llama_cloud/llama_parse/
+
 - PyMuPDF documentation: https://pymupdf.readthedocs.io/
+
 - PaddleOCR documentation: https://paddlepaddle.github.io/PaddleOCR/
+
 - ColPali paper: https://arxiv.org/abs/2407.01449

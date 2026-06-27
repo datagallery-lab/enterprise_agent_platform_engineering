@@ -487,4 +487,10 @@ A first platform version can start with a small set of high-risk paths. Choose f
 
 ## References
 
-HashiCorp. (n.d.). [Terraform documentation](https://developer.hashicorp.com/terraform/docs). Helm. (n.d.). [Documentation](https://helm.sh/docs/). Argo CD. (n.d.). [Documentation](https://argo-cd.readthedocs.io/). ONNX Runtime. (n.d.). [Documentation](https://onnxruntime.ai/docs/).
+HashiCorp. (n.d.). [Terraform documentation](https://developer.hashicorp.com/terraform/docs).
+
+Helm. (n.d.). [Documentation](https://helm.sh/docs/).
+
+Argo CD. (n.d.). [Documentation](https://argo-cd.readthedocs.io/).
+
+ONNX Runtime. (n.d.). [Documentation](https://onnxruntime.ai/docs/).

@@ -251,7 +251,11 @@ RAG 工程可以按证据工程建设。Chunk、混合检索、RRF、reranker、
 ## 参考文献
 
 - Azure AI Search Hybrid Search: https://learn.microsoft.com/en-us/azure/search/hybrid-search-overview
+
 - Azure AI Search Reciprocal Rank Fusion: https://learn.microsoft.com/en-us/azure/search/hybrid-search-ranking
+
 - LangChain Parent Document Retriever: https://python.langchain.com/docs/how_to/parent_document_retriever/
+
 - LlamaIndex Query Transformations: https://docs.llamaindex.ai/
+
 - Ragas Metrics: https://docs.ragas.io/

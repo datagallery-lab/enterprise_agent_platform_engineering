@@ -421,4 +421,10 @@ A first version can build this habit in a few representative scenarios. It is be
 
 ## References
 
-DuckDB. (n.d.). [Documentation](https://duckdb.org/docs/). Trino. (n.d.). [Documentation](https://trino.io/docs/current/). ClickHouse. (n.d.). [Documentation](https://clickhouse.com/docs/). Apache Doris. (n.d.). [Documentation](https://doris.apache.org/docs/).
+DuckDB. (n.d.). [Documentation](https://duckdb.org/docs/).
+
+Trino. (n.d.). [Documentation](https://trino.io/docs/current/).
+
+ClickHouse. (n.d.). [Documentation](https://clickhouse.com/docs/).
+
+Apache Doris. (n.d.). [Documentation](https://doris.apache.org/docs/).

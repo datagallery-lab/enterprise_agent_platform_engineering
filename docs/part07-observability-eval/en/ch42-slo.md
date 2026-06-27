@@ -378,4 +378,10 @@ Related chapters: [Chapter 22 Agent Runtime](../../part05-agent-capabilities/en/
 
 ## References
 
-Beyer, B. et al. (2016). [*Site Reliability Engineering*](https://sre.google/sre-book/table-of-contents/). O'Reilly. Beyer, B. et al. (2018). [*The Site Reliability Workbook*](https://sre.google/workbook/table-of-contents/). O'Reilly. Envoy Proxy. (n.d.). [Rate limit filter documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/rate_limit_filter). Kubernetes. (n.d.). [Horizontal Pod Autoscaling documentation](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/).
+Beyer, B. et al. (2016). [*Site Reliability Engineering*](https://sre.google/sre-book/table-of-contents/). O'Reilly.
+
+Beyer, B. et al. (2018). [*The Site Reliability Workbook*](https://sre.google/workbook/table-of-contents/). O'Reilly.
+
+Envoy Proxy. (n.d.). [Rate limit filter documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/rate_limit_filter).
+
+Kubernetes. (n.d.). [Horizontal Pod Autoscaling documentation](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/).

@@ -249,4 +249,10 @@ Dialogue UI is part of the enterprise Agent platform contract. It should expose 
 
 ## References
 
-Vercel. (n.d.). [AI SDK documentation](https://sdk.vercel.ai/docs). assistant-ui. (n.d.). [Documentation](https://www.assistant-ui.com/). CopilotKit. (n.d.). [Documentation](https://docs.copilotkit.ai/). AG-UI. (n.d.). [Protocol documentation](https://docs.ag-ui.com/).
+Vercel. (n.d.). [AI SDK documentation](https://sdk.vercel.ai/docs).
+
+assistant-ui. (n.d.). [Documentation](https://www.assistant-ui.com/).
+
+CopilotKit. (n.d.). [Documentation](https://docs.copilotkit.ai/).
+
+AG-UI. (n.d.). [Protocol documentation](https://docs.ag-ui.com/).

@@ -530,4 +530,10 @@ A first version can build this habit in a few representative scenarios. It is be
 
 ## References
 
-LiteLLM. (n.d.). [Documentation](https://docs.litellm.ai/). Portkey. (n.d.). [AI Gateway documentation](https://portkey.ai/docs). Kong. (n.d.). [AI Gateway documentation](https://docs.konghq.com/gateway/latest/ai-gateway/). Envoy Proxy. (n.d.). [Documentation](https://www.envoyproxy.io/docs/envoy/latest/).
+LiteLLM. (n.d.). [Documentation](https://docs.litellm.ai/).
+
+Portkey. (n.d.). [AI Gateway documentation](https://portkey.ai/docs).
+
+Kong. (n.d.). [AI Gateway documentation](https://docs.konghq.com/gateway/latest/ai-gateway/).
+
+Envoy Proxy. (n.d.). [Documentation](https://www.envoyproxy.io/docs/envoy/latest/).
