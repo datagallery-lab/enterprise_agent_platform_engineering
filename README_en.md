@@ -36,7 +36,7 @@ The book follows the construction order of an enterprise Agent platform: platfor
 ├── Part VIII Deployment and infrastructure (Ch. 43-46)
 ├── Part IX  Frontend, interaction, and multimodality (Ch. 47-49)
 ├── Part X   Security, compliance, and organization (Ch. 50-53)
-├── Part XI  Case methodology and future case admission (TODO)
+├── Part XI  Case methodology and case admission
 └── Appendices A-H
 ```
 

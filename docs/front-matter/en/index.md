@@ -2,7 +2,7 @@
 
 This book is for teams building enterprise-grade Agent platforms. It covers the engineering system behind production Agents: data foundations, model inference, knowledge engineering, Agent Runtime, tool ecosystems, evaluation, deployment, frontend interaction, security, compliance, and organizational governance.
 
-The first English edition follows the same structure as the current Chinese draft. Stable technical chapters are published first. Case chapters, acknowledgements, and project-closure material remain placeholders until they have verified source material.
+The English edition follows the same structure as the Chinese edition and focuses on stable technical chapters and case-review methods backed by explicit evidence standards.
 
 ## Edition Entry Points
 
@@ -17,9 +17,9 @@ The first English edition follows the same structure as the current Chinese draf
 | --- | --- |
 | [Abbreviations](abbreviations.md) | Defines common abbreviations and the terminology used in this book |
 | [Preface](preface.md) | Explains the platform-engineering viewpoint and release boundary |
-| [Acknowledgements](acknowledgements.md) | Reserved for the formal release |
+| [Acknowledgements](acknowledgements.md) | Acknowledgements page |
 | [Front Matter Guide](front-matter-guide.md) | Gives reading paths by role and problem type |
-| [Contributors](contributors.md) | Reserved for confirmed contributor records |
+| [Contributors](contributors.md) | Contributors page |
 
 ## Quick Navigation
 

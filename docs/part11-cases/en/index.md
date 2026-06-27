@@ -1,14 +1,14 @@
-# Part XI Case Methodology and Later Case Admission (TODO)
+# Part XI Case Methodology and Case Admission
 
-Part XI is intentionally conservative in the first edition. It does not fabricate company stories, production numbers, screenshots, or business benefits. Instead, it defines how later cases should be admitted, reviewed, sanitized, and tied back to platform capabilities.
+Part XI explains how a case should enter an engineering book: what evidence supports public narration, what should remain a method sample, and what must be downgraded or deferred. Production numbers, company background, screenshots, and business benefits need evidence before they can be stated as facts.
 
 ## Goals of this part
 
 The goal is to protect the book's evidence standard. A case should show a reproducible task chain, data and tool topology, permission boundary, evaluation record, human-confirmation point, and reviewable Trace. Material that cannot support those claims should remain a later candidate.
 
-## Later supplement scope
+## Case admission scope
 
-Later editions can add DataAgent analysis, ticketing or customer service Agents, sales quotation, operations response, and legal review cases. Each case must state what is automated, what requires human confirmation, what is rejected, and which platform chapters it validates.
+Candidate cases may cover DataAgent analysis, ticketing or customer service Agents, sales quotation, operations response, and legal review. Each case must state what is automated, what requires human confirmation, what is rejected, and which platform chapters it validates.
 
 ## Reading path
 

@@ -1,6 +1,6 @@
 # 《企业级 Agent 平台工程：从数据智能底座到 AI 原生业务系统》
 
-本书面向企业级 Agent 平台建设，讨论从数据智能底座、模型推理、知识工程、Agent Runtime、工具生态到评估、部署、前端、安全和组织治理的完整工程体系。中文第一版以“可读、可验证、可发布”为整理目标：已有正文按正式技术书标准修订，尚未形成可靠内容的案例和附录只保留后续版本说明。
+本书面向企业级 Agent 平台建设，讨论从数据智能底座、模型推理、知识工程、Agent Runtime、工具生态到评估、部署、前端、安全和组织治理的完整工程体系。当前版本聚焦已经形成稳定论证的技术主线、可验证的图表和代码引用，以及可本地构建的网页电子书工程。
 
 ## 版本入口
 
@@ -15,9 +15,9 @@
 | --- | --- |
 | [缩写表](abbreviations.md) | 统一英文缩写、中文译名和本书采用的工程口径 |
 | [序言](preface.md) | 说明本书的问题意识、平台工程视角和版本边界 |
-| [致谢](acknowledgements.md) | 正式版本补齐，目前不预填未确认贡献 |
+| [致谢](acknowledgements.md) | 致谢页面 |
 | [卷前导读](front_matter_guide.md) | 按角色、问题类型和全书层次给出阅读路径 |
-| [贡献者](contributors.md) | 正式版本补齐，目前不预填姓名或机构 |
+| [贡献者](contributors.md) | 贡献者页面 |
 
 ## 快速导航
 
@@ -33,8 +33,8 @@
 | [Part VIII 部署与基础设施](part08-deployment/ch/index.md) | GPU 调度、模型部署、LLM 网关、GitOps 和边缘推理 |
 | [Part IX 前端、交互与多模态](part09-frontend-multimodal/ch/index.md) | 对话 UI、Generative UI、多模态输入和语音 Agent |
 | [Part X 安全、合规与组织](part10-security-org/ch/index.md) | 攻防、Guardrails、法规合规、组织和平台演进 |
-| [Part XI 案例方法论与后续案例准入](part11-cases/ch/index.md) | 定义案例纳入、复审和平台化收束标准，不在第一版中编造案例 |
-| [附录](appendix/index.md) | 安装、术语、API、评测、写作规范和延伸阅读的后续补充区 |
+| [Part XI 案例方法论与案例准入](part11-cases/ch/index.md) | 定义案例纳入、复审和平台化收束标准 |
+| [附录](appendix/index.md) | 安装、术语、API、评测、写作规范和延伸阅读 |
 
 ## 阅读路径
 

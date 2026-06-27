@@ -4,7 +4,7 @@
 
 This book covers model inference, data infrastructure, knowledge engineering, Agent Runtime, DataAgent, evaluation, deployment, frontend interaction, security, and organizational governance. It should not be read only as a linear textbook. A better approach is to identify the problem you are facing, then enter the matching part of the book.
 
-This guide explains the main line of the book, gives reading paths by role and problem type, and records the boundary of the first English release.
+This guide explains the main line of the book, gives reading paths by role and problem type, and clarifies the scope of the current edition.
 
 ## Book Structure
 
@@ -48,6 +48,6 @@ Appendices support execution: installation, terminology, APIs, evaluation sets, 
 
 ## First English Release Boundary
 
-The first English release prioritizes stable technical chapters, reviewable figures and code references, and a locally buildable web-book project. It does not invent customer cases, contributor acknowledgements, or unrealized project capabilities.
+The current edition prioritizes stable technical chapters, reviewable figures and code references, and a locally buildable web-book project. Case chapters use admission and review standards unless source material, sanitization, and factual checks are sufficient for a full case.
 
-Future versions that add real cases, project practices, or additional multilingual content should update navigation, image directories, references, CI checks, and version notes together.
+When citing the book, record the reading date, chapter number, and page path so that later content changes can still be traced back to the original context.
