@@ -16,9 +16,7 @@ The gateway's value goes beyond request forwarding. It identifies tenant and use
 
 Without a unified entry point, multiple Agent teams each maintain their own API keys, retry logic, model lists, and rate-limiting rules. At scale, this almost inevitably leads to: key leaks, runaway costs, inability to isolate failures centrally, and compliance audits that cannot answer "who called which model and via which backend." When FinOps finds anomalous cloud API costs in the monthly bill while platform monitoring shows stable inference QPS, the common root cause is that some Agents are bypassing the platform and calling external APIs directly, or that retry storms are amplifying token consumption.
 
-The **LLM Gateway** is the unified entry point of the Agent platform control plane: all Runtimes, DataAgents, and Console instances interact only with the gateway; the gateway routes to the model services from Chapter 44 or external SaaS providers, and layers on rate limiting, quotas, caching, trace propagation, and degradation. Chapter 41 covers token cost accounting strategies; Chapter 42 covers SLOs and circuit breaking, with the gateway acting as the enforcement point for these strategies rather than their replacement. Chapter 43 ensures GPUs are provisioned; Chapter 44 ensures model services are ready; Chapter 45 ensures "which backend this request goes to, under which tenant identity, and where it falls back on failure." The Runtime only needs to learn one OpenAI-compatible calling convention.
-
-A typical enterprise Agent platform has four business units, a dozen or more Agent applications, several model services (Chapter 44's `llm-general-32b`, `llm-code-7b`, etc.), and some cloud API backups. The gateway converges these heterogeneous backends into a single call surface.
+The **LLM Gateway** is the unified entry point of the Agent platform control plane: all Runtimes, DataAgents, and Console instances interact only with the gateway; the gateway routes to the model services from Chapter 44 or external SaaS providers, and layers on rate limiting, quotas, caching, trace propagation, and degradation. Chapter 41 covers token cost accounting strategies; Chapter 42 covers SLOs and circuit breaking, with the gateway acting as the enforcement point for these strategies instead of their replacement. Chapter 43 ensures GPUs are provisioned; Chapter 44 ensures model services are ready; Chapter 45 ensures "which backend this request goes to, under which tenant identity, and where it falls back on failure." The Runtime only needs to learn one OpenAI-compatible calling convention. A typical enterprise Agent platform has four business units, a dozen or more Agent applications, several model services (Chapter 44's `llm-general-32b`, `llm-code-7b`, etc.), and some cloud API backups. The gateway converges these heterogeneous backends into a single call surface.
 
 ![Figure 45-1: The gateway is the sole entry point for model calls and the enforcement surface for governance policies](../../images/part8/en/ch45-01.png)
 
@@ -53,7 +51,7 @@ Gateway tenant breakdown (consistent with Chapter 46 GitOps `values-prod.yaml` a
 | `finance` | Finance | Local `llm-general-32b` only | 10M |
 | `logistics` | Logistics | `llm-general-32b` + cloud backup | 30M |
 
-The retail tenant is allowed to route to a cloud backup during peak business periods to absorb traffic spikes; the finance tenant's `allowed_models` whitelist contains only `llm-general-32b`, so any request for `gpt-4o` receives a 403 at the gateway layer rather than being forwarded to the cloud for rejection. The manufacturing DataAgent's NL2SQL defaults to `llm-code-7b`, while complex planning falls back to `llm-general-32b`. Routing is decided by `X-Task-Type` and the rule table, so Agent code does not need to hard-code two sets of URLs.
+The retail tenant is allowed to route to a cloud backup during peak business periods to absorb traffic spikes; the finance tenant's `allowed_models` whitelist contains only `llm-general-32b`, so any request for `gpt-4o` receives a 403 at the gateway layer instead of being forwarded to the cloud for rejection. The manufacturing DataAgent's NL2SQL defaults to `llm-code-7b`, while complex planning falls back to `llm-general-32b`. Routing is decided by `X-Task-Type` and the rule table, so Agent code does not need to hard-code two sets of URLs.
 
 *Table 45-3: Definitions and distinctions of core multi-tenancy concepts. Source: Compiled by the authors.*
 
@@ -73,7 +71,7 @@ Mapping abstract capabilities to typical business traffic helps in designing rou
 - **Retail (`retail`)**: Daytime customer service Agents account for the bulk of TPM; when quota reaches 80% of the warning threshold during peak periods, routing can shift some overflow to `gpt-4o-fallback`, though FinOps typically requires a time-limited cutback to the local 32B model.
 - **Manufacturing (`mfg`)**: DataAgent NL2SQL peaks route to `llm-code-7b`; equipment knowledge-base Q&A falls back to `llm-general-32b`; the two models have independent rate limits to prevent SQL spikes from starving conversational traffic.
 - **Finance (`finance`)**: Only the local 32B is used around the clock, with a hard 10M daily quota cap; any anomaly other than a 403 must not fall back to a cloud provider. Degradation can only mean "queue" or "cached FAQ," not switching to an external API model.
-- **Logistics (`logistics`)**: Embedding rebuild jobs bypass the gateway (connecting directly to Chapter 44's Triton); waybill Q&A goes through the gateway, and when connectivity is poor, falls back to a local 3B edge model (Chapter 46) rather than retrying the central 32B indefinitely.
+- **Logistics (`logistics`)**: Embedding rebuild jobs bypass the gateway (connecting directly to Chapter 44's Triton); waybill Q&A goes through the gateway, and when connectivity is poor, falls back to a local 3B edge model (Chapter 46) instead of retrying the central 32B indefinitely.
 
 ### 45.1.2 Four Responsibilities in Gateway Governance
 
@@ -112,17 +110,15 @@ Quota should be split across resource dimensions. RPM controls request frequency
 
 Multi-tenant cache is another common failure point. Even when prompt text is identical, different tenants may receive different answers because policy version, data permission, region, or compliance context differs. The cache key should include tenant, model, prompt hash, tool version, and relevant policy version. Cache hits should also be written into Trace so users and auditors can tell whether an answer came from cache or a fresh model call.
 
-![Figure 45-2: Tenant isolation is a four-layer stack of authentication, authorization, quota, and observability, rather than a single API key](../../images/part8/en/ch45-02.png)
+![Figure 45-2: Tenant isolation is a four-layer stack of authentication, authorization, quota, and observability, instead of a single API key](../../images/part8/en/ch45-02.png)
 
-*Figure 45-2: Tenant isolation is a four-layer stack of authentication, authorization, quota, and observability, rather than a single API key. Source: Original illustration. Alt text: Four layers from outermost to innermost: authentication (who is calling), authorization (what they are allowed to call), quota (how much they can call), and observability (what was called). Each layer is annotated with its governance object, showing why multi-layer isolation is stronger than a single key.*
+*Figure 45-2: Tenant isolation is a four-layer stack of authentication, authorization, quota, and observability, instead of a single API key. Source: Original illustration. Alt text: Four layers from outermost to innermost: authentication (who is calling), authorization (what they are allowed to call), quota (how much they can call), and observability (what was called). Each layer is annotated with its governance object, showing why multi-layer isolation is stronger than a single key.*
 
 In Figure 45-2, the finance tenant's "local models only" constraint takes effect at the authorization layer: even a holder of a valid API key will receive `403 MODEL_NOT_ALLOWED_FOR_TENANT` from the gateway if they request `gpt-4o`. The request never leaks through to Chapter 50 for interception. Tenant labels in the observability layer are injected by the gateway and are not trusted from client headers; see Failure Mode 2.
 
 ### 45.2.1 Routing Strategies: By Task Type, By Cost, By Latency, By Compliance Zone, and Fallback Chains
 
-Routing is not an "if-else to pick a URL"; it is a prioritized decision chain: compliance constraints perform hard cutoffs, business preferences make soft selections, and failure paths use explicit fallbacks. Input fields should be documented between Chapter 45 and the Runtime to prevent each Agent from defining its own custom header names.
-
-Routing decision inputs:
+Routing is not an "if-else to pick a URL"; it is a prioritized decision chain: compliance constraints perform hard cutoffs, business preferences make soft selections, and failure paths use explicit fallbacks. Input fields should be documented between Chapter 45 and the Runtime to prevent each Agent from defining its own custom header names. Routing decision inputs:
 
 ```text
 tenant_id, model (declared in request), task_type (header/metadata),
@@ -160,7 +156,7 @@ Figure 45-3 shows the routing decision chain in order: tenant authentication -> 
 | Higress / Kong AI | Integrates with API gateway ecosystem | LLM semantics require plugins | Existing Kong/Higress | Hybrid architecture |
 | Custom-built | Fully customizable | High engineering effort | Very large enterprises | Long-term option |
 
-At the MVP stage, choose LiteLLM, because Chapter 44 has already unified OpenAI-compatible backends, and LiteLLM's `model_list` can quickly map to KServe Services. Finance compliance routing and tenant whitelisting are added on top of LiteLLM as a middleware layer or DB policy, rather than writing an HTTP proxy from scratch.
+At the MVP stage, choose LiteLLM, because Chapter 44 has already unified OpenAI-compatible backends, and LiteLLM's `model_list` can quickly map to KServe Services. Finance compliance routing and tenant whitelisting are added on top of LiteLLM as a middleware layer or DB policy, instead of writing an HTTP proxy from scratch.
 
 #### Gateway Cache and Model-Layer Prompt Cache
 
@@ -244,7 +240,7 @@ Traces should propagate from the Runtime through the gateway all the way to Chap
 
 ![Figure 45-4: Traces are unbroken; tenant labels are injected only at the gateway](../../images/part8/en/ch45-04.png)
 
-*Figure 45-4: Traces are unbroken; tenant labels are injected only at the gateway. Source: Original illustration. Alt text: The trace originates from the Agent and runs unbroken through the gateway to the model provider; tenant labels are injected centrally at the gateway rather than applied by each Agent individually; arrows mark the label injection point, illustrating that governance is centralized at the gateway.*
+*Figure 45-4: Traces are unbroken; tenant labels are injected only at the gateway. Source: Original illustration. Alt text: The trace originates from the Agent and runs unbroken through the gateway to the model provider; tenant labels are injected centrally at the gateway instead of applied by each Agent individually; arrows mark the label injection point, illustrating that governance is centralized at the gateway.*
 
 Figure 45-4 emphasizes that traces must **not be broken** and that tenant labels must be **injected only at the gateway**: KServe Pods should not trust `X-Tenant-Id` from the client; otherwise, finance compliance is bypassed at the model layer. The observability platform should support three-dimensional drill-down by `tenant_id + model + backend`, consistent with the billing dimensions in Chapter 41.
 
@@ -268,7 +264,7 @@ When Chapter 44 runs a 5% Canary on `llm-general-32b`, Chapter 45's `model_list`
 
 #### Redis Rate-Limiting Single Point of Failure and Multi-Replica Gateway
 
-With multiple LiteLLM replicas and Redis-based rate limiting, a Redis failure leads to "rate limiting disabled or all requests rejected." Use Redis Sentinel or clustering, and explicitly define the failure policy: fail-closed (reject rather than allow) or fail-open (allow rather than reject). Finance typically chooses fail-closed; retail can temporarily switch to fail-open during peak business windows and rely heavily on Chapter 41 cost alerts, but this change requires a change request.
+With multiple LiteLLM replicas and Redis-based rate limiting, a Redis failure leads to "rate limiting disabled or all requests rejected." Use Redis Sentinel or clustering, and explicitly define the failure policy: fail-closed (reject instead of allow) or fail-open (allow instead of reject). Finance typically chooses fail-closed; retail can temporarily switch to fail-open during peak business windows and rely heavily on Chapter 41 cost alerts, but this change requires a change request.
 
 ---
 
@@ -311,9 +307,7 @@ general_settings:
   database_url: os.environ/DATABASE_URL   # usage and key management
 ```
 
-In production, the `fallbacks` DAG must be manually reviewed to be acyclic; `simple-shuffle` load-balances across multiple KServe replicas but cannot replace tenant routing. Tenant routing should be implemented in DB policy or a custom callback.
-
-This configuration expresses model entry points and basic fallback only. Production also needs API key to `tenant_id` mapping, `allowed_models` whitelists, daily quota, and audit fields in a database or policy repository released through Chapter 46 GitOps. If these policies are changed manually in the LiteLLM UI, the gateway becomes a new configuration black box. During incidents, the team cannot explain why one request reached a cloud model.
+In production, the `fallbacks` DAG must be manually reviewed to be acyclic; `simple-shuffle` load-balances across multiple KServe replicas but cannot replace tenant routing. Tenant routing should be implemented in DB policy or a custom callback. This configuration expresses model entry points and basic fallback only. Production also needs API key to `tenant_id` mapping, `allowed_models` whitelists, daily quota, and audit fields in a database or policy repository released through Chapter 46 GitOps. If these policies are changed manually in the LiteLLM UI, the gateway becomes a new configuration black box. During incidents, the team cannot explain why one request reached a cloud model.
 
 #### Tenant Keys and Model Whitelists (Illustrative SQL Logic)
 
@@ -396,9 +390,7 @@ Gateway rules themselves must be versioned. Routing rules, tenant allowlists, fa
 
 Gateway error semantics must give Runtime the right next action. `401` and `403` usually should not be retried, `429` should honor `Retry-After`, and only `502` or `503` should trigger fallback or short retries. If Runtime treats every error as retryable, stricter gateway policy will create larger retry storms. If Runtime exposes every error directly to users, the system leaks too much internal detail. The interface contract in this chapter must be designed together with the Chapter 22 Runtime retry budget and Chapter 42 SLO policy.
 
-The gateway also needs to distinguish technical errors, policy denials, and deliberate degradation. A finance request for a cloud model returning 403 is not a service failure; it means the compliance rule worked. A tenant that exceeds budget and receives 429 is not seeing an unavailable gateway; the cost gate is working. Observability reports should not flatten all of these into ordinary errors. Otherwise business teams will read a higher error rate as platform instability when the platform may simply be blocking calls that were previously uncontrolled.
-
-After launch, the platform should keep a fixed set of probe requests and run them daily through CI or scheduled jobs. These probes do not need broad business coverage. They verify that the core governance contracts still hold.
+The gateway also needs to distinguish technical errors, policy denials, and deliberate degradation. A finance request for a cloud model returning 403 is not a service failure; it means the compliance rule worked. A tenant that exceeds budget and receives 429 is not seeing an unavailable gateway; the cost gate is working. Observability reports should not flatten all of these into ordinary errors. Otherwise business teams will read a higher error rate as platform instability when the platform may simply be blocking calls that were previously uncontrolled. After launch, the platform should keep a fixed set of probe requests and run them daily through CI or scheduled jobs. These probes do not need broad business coverage. They verify that the core governance contracts still hold.
 
 ### 45.3.1 Locating Policy Misconfiguration and Tenant Isolation Gaps
 
@@ -411,7 +403,7 @@ After launch, the platform should keep a fixed set of probe requests and run the
 #### Finance Tenant Accesses Cloud by Forging Headers
 
 - Symptom: Compliance scan finds finance Agent requests appearing in the OpenAI bill.
-- Root cause: The gateway trusts the client's `X-Tenant-Id` header rather than mapping from the API key; an attacker uses a retail key body to forge a finance identity.
+- Root cause: The gateway trusts the client's `X-Tenant-Id` header instead of mapping from the API key; an attacker uses a retail key body to forge a finance identity.
 - Fix: Tenant identity derives solely from the key registry; compliance routing is enforced server-side; the cloud backend is invisible to finance keys; Chapter 50 regularly runs "should-be-rejected" probe test cases.
 
 #### Semantic Cache Without tenant_id Causes Response Cross-Contamination
@@ -420,7 +412,7 @@ After launch, the platform should keep a fixed set of probe requests and run the
 - Root cause: cache key = hash(prompt), without tenant; finance and retail share the gateway cache Redis.
 - Fix: cache key = hash(tenant_id + model + prompt); disable cross-session cache for the finance tenant or apply encryption-based isolation; align cache TTL with the Chapter 41 semantic cache policy.
 
-Gateway production readiness should be validated along three lines. The first is permissions: keys need a rotation policy, `master_key` should be accessible only to SRE and release automation, and tenant identity must come from the key registry rather than trusted client headers. The second is audit: every request should record tenant, model, backend, token usage, `trace_id`, fallback state, and error code. The third is stability: the fallback DAG must be acyclic, 429 responses must carry `Retry-After`, and gateway-side P99 overhead should be measured separately from model inference time.
+Gateway production readiness should be validated along three lines. The first is permissions: keys need a rotation policy, `master_key` should be accessible only to SRE and release automation, and tenant identity must come from the key registry instead of trusted client headers. The second is audit: every request should record tenant, model, backend, token usage, `trace_id`, fallback state, and error code. The third is stability: the fallback DAG must be acyclic, 429 responses must carry `Retry-After`, and gateway-side P99 overhead should be measured separately from model inference time.
 
 Cost governance also belongs at the gateway. Quotas should support both hard gates and 80 percent warnings, while FinOps reports should break down usage by tenant, model, and backend. For tenants allowed to use cloud fallback, reports must list fallback spend separately; otherwise peak-window external API cost will be hidden inside normal model calls. In multi-replica gateway deployments, Redis rate limiting, ConfigMap hot reload, and backend health checks all need explicit failure policies. Compliance-sensitive tenants such as finance usually prefer rejecting traffic over allowing cloud calls when the limiter fails.
 
@@ -444,11 +436,11 @@ Metric labels must use the same `tenant_id` naming convention as the Chapter 41 
 
 ### 45.3.2 Operating Cadence for Gateway Policies
 
-LLM gateway policy needs ongoing operation after launch. Model prices change, tenant budgets change, external API availability changes, and compliance requirements change. If gateway policy is not reviewed, stale fallbacks, long-lived temporary quotas, unused model aliases, and outdated compliance routes accumulate. The platform should regularly review tenant quotas, model whitelists, fallback chains, cache scope, and error-code statistics. Weekly reviews should look for anomalies: spikes in 429, spikes in fallback, unexpected cloud usage, tenant token surges, and rising gateway P99. Monthly reviews should examine structure: which models sit idle, which tenants keep exceeding budget, which Agents frequently trigger policy denials, and which cache hits reduce cost without quality risk. Review results should enter the configuration repository rather than only changing an admin database.
+LLM gateway policy needs ongoing operation after launch. Model prices change, tenant budgets change, external API availability changes, and compliance requirements change. If gateway policy is not reviewed, stale fallbacks, long-lived temporary quotas, unused model aliases, and outdated compliance routes accumulate. The platform should regularly review tenant quotas, model whitelists, fallback chains, cache scope, and error-code statistics. Weekly reviews should look for anomalies: spikes in 429, spikes in fallback, unexpected cloud usage, tenant token surges, and rising gateway P99. Monthly reviews should examine structure: which models sit idle, which tenants keep exceeding budget, which Agents frequently trigger policy denials, and which cache hits reduce cost without quality risk. Review results should enter the configuration repository instead of only changing an admin database.
 
 Policy ownership must also be explicit. SRE owns availability and routing health. The platform team owns the API contract and Runtime integration. Security and compliance own model whitelists and data boundaries. FinOps owns budgets and cost attribution. When policy changes lack owners, incidents quickly become blame shifting. The gateway is a centralized entry point, so it needs centralized operation with clear responsibility boundaries.
 
-After launch, every model call should be attributable to tenant, task, model, and version. When a bill spikes, the team should see which Run category grew, which policy caused stronger models to be used, and which requests missed cache. Without attribution, cost optimization becomes guessing. The gateway also handles degradation. When a provider times out, a self-hosted service overloads, or a model version rolls back, the gateway can switch backends, lower concurrency, or reject low-priority requests by policy. Business Agents should receive clear errors or degraded results rather than provider-specific failure details.
+After launch, every model call should be attributable to tenant, task, model, and version. When a bill spikes, the team should see which Run category grew, which policy caused stronger models to be used, and which requests missed cache. Without attribution, cost optimization becomes guessing. The gateway also handles degradation. When a provider times out, a self-hosted service overloads, or a model version rolls back, the gateway can switch backends, lower concurrency, or reject low-priority requests by policy. Business Agents should receive clear errors or degraded results instead of provider-specific failure details.
 
 Security-wise, the gateway is a key point for data egress and audit. Whether a request contains sensitive fields, whether it may use an external model, and whether the response needs desensitization should be handled centrally. Calls that bypass the gateway should be treated as platform risk, not a personal development habit. Gateway routing should be explainable: why a request used a local model, why it used an external provider, why it degraded to a small model, or why it was rejected should be visible in routing logs. Without that explanation, business teams tend to blame model quality for latency, refusal, and answer differences.
 
@@ -484,11 +476,49 @@ The gateway needs emergency block controls. When a model version misbehaves, a t
 
 The gateway should support policy simulation before a business scenario goes live. With sample requests, the platform can show which models would be used, expected cost, security restrictions, and cache behavior. Simulation helps business teams adjust task design before launch. In that sense, the gateway is also a review tool for model usage plans.
 
-Gateway logs should avoid storing excessive raw text. They can store summaries, token statistics, policy hits, and artifact references. Sensitive request and response text should be desensitized or stored behind permission controls. A unified entry point creates unified visibility, but it also concentrates sensitive data, so logging governance must be designed together.
+Gateway logs should avoid storing excessive raw text. They can store summaries, token statistics, policy hits, and artifact references. Sensitive request and response text should be desensitized or stored behind permission controls. A unified entry point creates unified visibility, but it also concentrates sensitive data, so logging governance must be designed together. Policy test samples should cover normal requests, unauthorized requests, sensitive data, long context, provider failure, and budget exhaustion. Running these samples before each policy change catches obvious routing and security regressions. The more centralized the gateway becomes, the more important policy testing becomes.
 
-Policy test samples should cover normal requests, unauthorized requests, sensitive data, long context, provider failure, and budget exhaustion. Running these samples before each policy change catches obvious routing and security regressions. The more centralized the gateway becomes, the more important policy testing becomes.
+The gateway should explain usage to business teams. When cost rises, reports should break usage down by task, model, cache, retries, and evaluation traffic instead of showing one bill. Explainable cost moves the conversation from opinion to evidence. Once usage explanation is stable, budget governance becomes more than a simple cap. A gateway operations dashboard should keep this explanation visible so teams develop a shared cost language.
 
-The gateway should explain usage to business teams. When cost rises, reports should break usage down by task, model, cache, retries, and evaluation traffic rather than showing one bill. Explainable cost moves the conversation from opinion to evidence. Once usage explanation is stable, budget governance becomes more than a simple cap. A gateway operations dashboard should keep this explanation visible so teams develop a shared cost language.
+## 45.4 Shadow evaluation and exit rules for gateway policy
+
+LLM gateway policy changes should not take full effect immediately. Routing weights, model allowlists, fallback order, cache scope, tenant quota, and external-model switches all affect answer quality, cost, compliance boundary, and user experience. A small rule change may route DataAgent from a local model to an external model. It may allow low-risk FAQ traffic to use cache while creating unsafe reuse for high-risk finance questions. Important policy changes should first run in shadow evaluation: real requests keep using the old policy, while the candidate policy calculates which backend it would choose, how much it would cost, and whether it would deny, fallback, or cache the request.
+
+Shadow evaluation should record differences and confirm the business effect of the candidate policy. The platform should compare old and candidate policies by model choice, latency, cost, denial rate, fallback count, cache hit, and compliance path. A candidate policy that lowers cost but sends more high-risk tenant traffic to an external provider should not pass on cost alone. A policy that lowers latency while increasing structured-output failure should return to task-level samples. The value of shadow mode is that teams can see policy consequences before users experience them.
+
+Policies also need exit rules. Temporary quota, emergency fallback, manually opened external-model paths, and incident-time rejection rules should not stay in the gateway forever. Each temporary policy should have owner, reason, scope, expiry time, and review samples. At expiry, the team should either promote it to a formal policy, remove it, or send it through shadow evaluation again. Without exit rules, gateway configuration collects historical exceptions until later teams cannot tell which rule still has a business basis.
+
+A first version can encode shadow evaluation and exit rules in the policy release template. The template should record change goal, affected tenants, candidate backend, expected cost change, compliance boundary, rollback method, and expiry time. Before release, run fixed probe samples. After release, observe real traffic differences. Before expiry, remind the owner to review. This turns gateway governance from request routing into a policy management process that can be evaluated, withdrawn, and explained.
+
+## 45.5 Tenant quota disputes and routing adjudication
+
+After an LLM gateway enters multi-tenant production, quota disputes appear quickly. One business team may believe its task was throttled incorrectly, while another believes peak resources were taken away. The platform sees RPM, TPM, concurrency, and cost. The business sees unfinished reports, delayed customer-service replies, or incomplete approvals. If the gateway only returns a rate-limit error, the dispute becomes organizational negotiation. The gateway needs to turn quota, routing, and business priority into adjudication material.
+
+Adjudication material should include tenant, application, task type, model route, request time, token use, concurrency occupancy, throttle reason, degradation action, retry result, and user-visible impact. If the dispute occurs during peak load, the material should also record resource use by other tenants and the protection policy active at the time. Teams can then decide whether the quota was too low, task priority was wrong, route-pool capacity was insufficient, or an application failed to back off correctly.
+
+Routing adjudication should also consider task value. Low-risk batch work can wait or move to asynchronous execution. High-value interactive work needs protection. High-risk write actions must still pass approval even when resources are scarce. Gateway policy should adjust by tenant, task type, model pool, and time window instead of relying on one global threshold. If a tenant repeatedly exceeds quota, the platform should either adjust commercial and cost rules or ask the business to split tasks and reduce call frequency.
+
+A first version can keep a quota-dispute ledger for the LLM gateway. The ledger records disputed requests, adjudication reason, temporary policy, long-term correction, and review time. Multi-tenant governance then moves from organizational volume to operating evidence. The gateway takes on control-plane responsibility: it routes model requests and also turns resource commitments, cost constraints, and business priority into executable rules.
+
+## 45.6 Gateway quota disputes and tenant appeals
+
+After an LLM gateway goes live, quota disputes become a common operating issue. A business team may believe rate limiting blocks key tasks, while the platform team sees tenant budget overrun, serving pressure, or abnormal retries. If the gateway returns only `429`, users do not know whether to narrow the task, wait and retry, request capacity, or move the task to async execution. Quota governance needs appeal and ruling mechanisms.
+
+Appeal material should focus on task value and call volume together. When a tenant requests more quota, it should state task type, business impact, historical success rate, cost owner, expected peak, acceptable latency, and degradation path. The platform team rules based on model capacity, SLO, cost, and safety policy. A high-value low-frequency task may receive temporary quota. Low-value bulk generation may move to async execution or a cheaper model. If abnormal retry causes consumption, the caller should be fixed first.
+
+A first version can connect quota appeals to the gateway ledger. Each adjustment records tenant, model, time window, reason, approver, retest time, and reclaim condition. The gateway then becomes an entry point for platform resource allocation and business-priority negotiation, with rate limiting as one operating mechanism.
+
+## 45.7 Replay validation for gateway policy changes
+
+When replay validation for gateway policy changes reaches production, the platform needs a shared evidence standard for routing rule, tenant quota, safety policy, cache key, degradation path, cost attribution, and abnormal sample. This standard is not paperwork for its own sake. It lets business, platform, data, security, and operations teams discuss the same facts. Without this material, incident review depends on memory and personal judgment. With it, the team can see which inputs were valid, which actions executed, which artifacts can still be used, and which results need correction or withdrawal.
+
+This evidence should connect to Chapter 44 on model serving, Chapter 41 on cost governance, and Chapter 50 on security. The upstream chapters provide the capability base, downstream chapters consume the runtime result, and this chapter explains how the middle layer is verified. If a capability looks complete inside one chapter but cannot enter Trace, Eval, release records, or the compliance evidence package, the production system still has a break in the chain. Readers should treat cross-chapter interfaces as engineering contracts, not as a reading order.
+
+Common risks include policy changes affecting all tenants, cache keys ignoring data level, and fallback routing bypassing safety policy. A successful demo rarely exposes these problems because demo samples are usually clean, short, and direct. Real business traffic brings stale data, abnormal input, permission changes, user withdrawal, budget limits, and long-running state. If the platform does not turn those situations into samples and ledgers, later scenarios will hit the same class of issues again.
+
+Policy changes affecting all tenants should be turned into a tracked review item when it appears repeatedly. The operating record should at least state owner, version, sample, affected scope, action, and review time. It does not need to become a long process report, but it must be clear enough for a later maintainer to understand the decision. For high-risk capability, the record should also state which conditions allow wider use and which failures require degradation or withdrawal.
+
+A first version can build this habit in a few representative scenarios. It is better to make high-traffic, high-risk, externally visible paths solid first, then copy the sample, ledger, and review method to related capabilities in other chapters. This makes the chapter read like engineering guidance: it explains how the capability is integrated, validated, operated, and retired.
 
 ## Chapter Recap
 
@@ -500,10 +530,4 @@ The gateway should explain usage to business teams. When cost rises, reports sho
 
 ## References
 
-LiteLLM. (n.d.). [Documentation](https://docs.litellm.ai/).
-
-Portkey. (n.d.). [AI Gateway documentation](https://portkey.ai/docs).
-
-Kong. (n.d.). [AI Gateway documentation](https://docs.konghq.com/gateway/latest/ai-gateway/).
-
-Envoy Proxy. (n.d.). [Documentation](https://www.envoyproxy.io/docs/envoy/latest/).
+LiteLLM. (n.d.). [Documentation](https://docs.litellm.ai/). Portkey. (n.d.). [AI Gateway documentation](https://portkey.ai/docs). Kong. (n.d.). [AI Gateway documentation](https://docs.konghq.com/gateway/latest/ai-gateway/). Envoy Proxy. (n.d.). [Documentation](https://www.envoyproxy.io/docs/envoy/latest/).

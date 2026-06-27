@@ -20,7 +20,7 @@ Online evaluation is not a substitute for offline evaluation. Offline benchmarks
 
 *Figure 40-1 shows the closed-loop relationship between online evaluation, offline evaluation, and manual review.*
 
-This diagram illustrates a quality closed loop rather than three isolated processes. Offline evaluation provides a stable measuring stick, online evaluation provides real distribution, and manual review provides a high-trust ruler. The connecting points are the `trace_id`, `run_id`, context packages, tool invocations, and artifact references discussed in Chapter 38. Without these observations, an online thumbs down only means "someone is unhappy"; with these linkage keys, the team can drill down further: is it a problem of metric definitions or tool failure? Is the answer factually incorrect or the expression unsuitable for executives? Is a new model degraded, or is field interpretation changed due to semantic layer version updates?
+This diagram illustrates a quality closed loop instead of three isolated processes. Offline evaluation provides a stable measuring stick, online evaluation provides real distribution, and manual review provides a high-trust ruler. The connecting points are the `trace_id`, `run_id`, context packages, tool invocations, and artifact references discussed in Chapter 38. Without these observations, an online thumbs down only means "someone is unhappy"; with these linkage keys, the team can drill down further: is it a problem of metric definitions or tool failure? Is the answer factually incorrect or the expression unsuitable for executives? Is a new model degraded, or is field interpretation changed due to semantic layer version updates?
 
 Online evaluation is most often misunderstood as "collecting user feedback." Feedback is certainly important, but it is only part of the evidence. A thumbs down may arise from numerical errors, or from excessive latency, overly verbose responses, denied permissions, unfamiliar charts, or even the user asking an unanswerable question in the first place. What online evaluation really needs to assess are four things: whether the task was completed, whether the completion path was acceptable, whether online signals changed abnormally, and whether abnormalities can be turned into actionable engineering fixes. Defined this way, online evaluation is no longer a mere satisfaction button but a production quality reasoning system.
 
@@ -30,9 +30,7 @@ Online feedback can be divided into explicit feedback, implicit behaviors, and b
 
 Implicit behaviors have broader coverage. Copying answers, downloading reports, saving SQL, asking follow-up questions, clicking regenerate, abandoning conversations, requesting human takeover, quickly repeating the same question-these actions all reflect whether the system is useful. However, interpreting implicit behaviors is more difficult. A follow-up question may mean the user was inspired by the answer or that the answer was unclear; downloading a report usually signals positive intent but may be just to manually fix it. Therefore, implicit behaviors cannot be used as direct labels but should be interpreted together with task type, dialogue turns, artifact states, latency, and user roles.
 
-Business outcomes are closest to real value. For example, whether a sales analysis report was included in weekly meetings, whether generated SQL is saved as a dashboard, whether customer service responses reduce ticket escalation, or whether procurement analysis triggered approval workflows. Their drawbacks are obvious: delay, noise, and attribution difficulty. A report adopted may be due to the agent's success or just because the business was simple; a report not adopted might be due to outside decision changes and not a quality problem of the agent.
-
-Hence, feedback records must also save a `thumb_down` field. They must link user signals with execution evidence:
+Business outcomes are closest to real value. For example, whether a sales analysis report was included in weekly meetings, whether generated SQL is saved as a dashboard, whether customer service responses reduce ticket escalation, or whether procurement analysis triggered approval workflows. Their drawbacks are obvious: delay, noise, and attribution difficulty. A report adopted may be due to the agent's success or just because the business was simple; a report not adopted might be due to outside decision changes and not a quality problem of the agent. Hence, feedback records must also save a `thumb_down` field. They must link user signals with execution evidence:
 
 ```json
 {
@@ -52,11 +50,7 @@ Hence, feedback records must also save a `thumb_down` field. They must link user
 }
 ```
 
-The value of this record is not the "thumb down," but that it connects a subjective feedback to model version, prompt version, semantic layer version, permission policies, and artifacts. During later reviews, engineers can drill down from the `trace_id` to context packages and tool calls; product managers can analyze user behavior trends by task type; AI researchers can convert failed samples into model or prompt improvement data.
-
-To prioritize samples, one can define a feedback intensity score, but this score should only act as a "triage priority," not the "true quality measure":
-
-$$
+The value of this record is not the "thumb down," but that it connects a subjective feedback to model version, prompt version, semantic layer version, permission policies, and artifacts. During later reviews, engineers can drill down from the `trace_id` to context packages and tool calls; product managers can analyze user behavior trends by task type; AI researchers can convert failed samples into model or prompt improvement data. To prioritize samples, one can define a feedback intensity score, but this score should only act as a "triage priority," not the "true quality measure": $$
 FeedbackSignal =
 w_e \cdot Explicit
 + w_b \cdot Behavior
@@ -115,7 +109,7 @@ A DataAgent judge input can be organized like this:
 }
 ```
 
-Judge output should be structured rather than only a textual comment:
+Judge output should be structured instead of only a textual comment:
 
 ```json
 {
@@ -132,11 +126,7 @@ Judge output should be structured rather than only a textual comment:
 }
 ```
 
-For product managers, the key is not the overall score (0.82) itself, but whether it can translate into product actions. If `correctness` is low, first check data sources, SQL, and tooling; if `grounding` is low, check citations, source graph, and report templates; if `actionability` is low, improve output structure and product interaction; if `safety` fails, it should trigger release blocking or manual review rather than routine optimization.
-
-Multi-dimensional judging scores can be written as:
-
-$$
+For product managers, the key is not the overall score (0.82) itself, but whether it can translate into product actions. If `correctness` is low, first check data sources, SQL, and tooling; if `grounding` is low, check citations, source graph, and report templates; if `actionability` is low, improve output structure and product interaction; if `safety` fails, it should trigger release blocking or manual review instead of routine optimization. Multi-dimensional judging scores can be written as: $$
 JudgeScore =
 \sum_{d \in D} w_d \cdot score_d
 $$
@@ -145,13 +135,13 @@ where `D` is the set of scoring dimensions and `w_d` are dimension weights deter
 
 DACOMP (Lei et al. 2025) offers a rubric scoring engineering reference in the DA (Data Analysis) task. Its goal is not to answer a single-point question but to complete a reproducible, auditable data analysis report usable for business decisions. For example, a corporate credit pricing and portfolio optimization task requires building an entire analytic pipeline from customer risk scores, default probabilities, loss given default, regulatory parameters to individual pricing, quota estimation, portfolio allocation, and churn constraints. Such tasks cannot be judged by a single final answer alone because a correct report must consistently satisfy definitions, reproducibility, traceability, and executability.
 
-Its rubric breaks scoring into two sets of demands with multiple standards and alternative paths. The first focuses on the risk quantification chain: clear field mappings; correct dimensions, weights, and directionalities for metric S; monotonic mapping from S to PD; LGD stratification covering collateral, guarantees, and unknowns; replicable regulatory parameters and RAROC. The second focuses on pricing and portfolio optimization: individual pricing formulas matching risk parameters; boundary testing for quota chain; iterative convergence of portfolio EAD; closed loops for churn intervention and RAROC bottom line. Each substandard includes completeness, precision, and conclusiveness. The judge inspects each item explicitly rather than vaguely stating "report is good."
+Its rubric breaks scoring into two sets of demands with multiple standards and alternative paths. The first focuses on the risk quantification chain: clear field mappings; correct dimensions, weights, and directionalities for metric S; monotonic mapping from S to PD; LGD stratification covering collateral, guarantees, and unknowns; replicable regulatory parameters and RAROC. The second focuses on pricing and portfolio optimization: individual pricing formulas matching risk parameters; boundary testing for quota chain; iterative convergence of portfolio EAD; closed loops for churn intervention and RAROC bottom line. Each substandard includes completeness, precision, and conclusiveness. The judge inspects each item explicitly instead of vaguely stating "report is good."
 
 DACOMP evaluation is not a single judge score. It first uses rubric-based judges for total and three dimension scores, then conducts GSB (Good/Same/Bad) style reference report comparisons on readability, professional depth, and visualization. Final DA Score weights: rubric contribution 60%, readability 10%, depth 10%, visualization 20%. This shows enterprise evaluation can separate "task satisfaction" and "report presentation quality": the former uses fine-grained rubrics to verify business completion; the latter uses reference report comparison to judge expression, depth, and visual presentation. Engineering implementation also needs format validation, retry on invalid outputs, fallback for visual evaluation failures, zero score for missing visuals, and other details for industrializing model judges.
 
 ### 40.2.3 Bias, Consistency, and Human Review
 
-Model judges are useful because they extend semantic evaluation; they are risky because they propagate bias into evaluation. Common issues include positional bias, length bias, style bias, self-preference, reference leakage, and domain blind spots. In paired comparisons, judges may favor the first answer; in report reviews, they may mistake longer, more fluent responses as better; if references are strongly written, judges may reward texts "similar to reference" rather than semantically correct answers. Enterprise usage also risks: judges might not understand internal metric definitions or permission boundaries, hence cannot detect seemingly professional but mixed-caliber answers.
+Model judges are useful because they extend semantic evaluation; they are risky because they propagate bias into evaluation. Common issues include positional bias, length bias, style bias, self-preference, reference leakage, and domain blind spots. In paired comparisons, judges may favor the first answer; in report reviews, they may mistake longer, more fluent responses as better; if references are strongly written, judges may reward texts "similar to reference" instead of semantically correct answers. Enterprise usage also risks: judges might not understand internal metric definitions or permission boundaries, hence cannot detect seemingly professional but mixed-caliber answers.
 
 Bias control requires engineering mechanisms, not blind trust that judges will be stable naturally. Paired comparisons must randomize answer order and record an `order_seed`; reversals after switching order should lower confidence or trigger review. Rubrics must be versioned; every update creates a new `rubric_version`; old and new scores cannot be mixed. Judge models and prompts must be version-tied; score changes may stem from either evaluated system or judge changes.
 
@@ -161,11 +151,7 @@ Several hard constraints are needed in practice. First, judge inputs should hide
 
 Golden samples are the foundation for calibrating judges. These come from expert annotations covering typical cases: correct, partially correct, factually incorrect, insufficient citation, authorization breach/leakage, verbose expression, missing action recommendations, etc. Every change in judge model, prompt, or rubric requires running golden samples again. If judge scores diverge significantly from expert labels on golden sets, the judge is unfit for large-scale online use.
 
-High-risk samples cannot be fully delegated to automatic judges. Financial, compliance, HR, customer data, and permission-sensitive tasks require sampling for manual review; safety failures, authorization breaches, sensitive leaks, or regulated outputs should directly enter a human review queue. Multiple judges cross-review are valuable: rule engines verify permissions, deterministic scripts check values, model judges score report quality, experts sample high-risk cases for spot checks. This complexity is not needless but prevents a single judge becoming an unexplainable single point of failure.
-
-Judge stability can be monitored by a consistency metric:
-
-$$
+High-risk samples cannot be fully delegated to automatic judges. Financial, compliance, HR, customer data, and permission-sensitive tasks require sampling for manual review; safety failures, authorization breaches, sensitive leaks, or regulated outputs should directly enter a human review queue. Multiple judges cross-review are valuable: rule engines verify permissions, deterministic scripts check values, model judges score report quality, experts sample high-risk cases for spot checks. This complexity is not needless but prevents a single judge becoming an unexplainable single point of failure. Judge stability can be monitored by a consistency metric: $$
 JudgeAgreement =
 \frac{\text{Number of samples where judge agrees with experts}}
 {\text{Total number of reviewed samples}}
@@ -175,7 +161,7 @@ If `JudgeAgreement` declines steadily, first suspect the evaluation system: Has 
 
 Variance between different LLM judges should be tracked separately. A common practice runs the same golden samples through multiple judges-a strong closed-source model, a locally deployable model, a safety- or factuality-biased model. If total score rankings align but some dimension scores vary widely, that dimension's rubric may lack verifiability. If only one judge prefers a new version while experts and other judges disagree, it cannot be considered reliable evidence for release. Enterprise evaluation reports are best presented with `mean_score`, `std_score`, `judge_agreement`, and human spot check pass rates instead of just a single attractive total score.
 
-Academic research echoes these principles: never treat "a single large model judgement" as the evaluation truth. ResearchRubrics (Sharma et al. 2025) uses many expert-written fine-grained rubrics combined with human and model evaluation protocols to constrain model judges to expert standards. DeepResearch Bench II (Li et al. 2026) further derives 9,430 fine-grained binary rubrics from expert surveys, covering retrieval, analysis, and expression-all reviewed by LLM + human four-stage pipelines and over 400 hours of expert review to reduce "model self-questioning and self-scoring" bias. RubricEval (Pan et al. 2026) finds rubric-level judging is hard but explicit rubric evaluation, reasoning chains, and structured judgments reduce inter-judge variance better than coarse checklists. LLM-Rubric (Hashemi et al. 2025) offers a calibration approach combining multiple LLM judgment distributions to mimic different human raters rather than assuming a single LLM judge equals human preference.
+Academic research echoes these principles: never treat "a single large model judgement" as the evaluation truth. ResearchRubrics (Sharma et al. 2025) uses many expert-written fine-grained rubrics combined with human and model evaluation protocols to constrain model judges to expert standards. DeepResearch Bench II (Li et al. 2026) further derives 9,430 fine-grained binary rubrics from expert surveys, covering retrieval, analysis, and expression-all reviewed by LLM + human four-stage pipelines and over 400 hours of expert review to reduce "model self-questioning and self-scoring" bias. RubricEval (Pan et al. 2026) finds rubric-level judging is hard but explicit rubric evaluation, reasoning chains, and structured judgments reduce inter-judge variance better than coarse checklists. LLM-Rubric (Hashemi et al. 2025) offers a calibration approach combining multiple LLM judgment distributions to mimic different human raters instead of assuming a single LLM judge equals human preference.
 
 In enterprise platforms, these methods can be combined into an operational process. Experts first define or review rubrics, preferably binary or low-level discrete scores; multiple judges score independently, recording mean, variance, and consistency on order swaps; high-variance, low-confidence, or safety-relevant samples enter manual review; manual review results feed back into golden samples to calibrate the next judge prompt and rubric round. The goal is not "perfect objectivity" but making bias visible, measurable, and controllable by human standards.
 
@@ -208,11 +194,7 @@ Passing offline benchmarks and improving model scores only show that the new sol
 
 Primary metrics represent the real improvement targets of the experiment, such as first answer availability rate, task completion rate, or report adoption rate. Guardrail metrics are those that must not degrade significantly, such as safety failure rate, P95 latency, average cost, manual takeover rate, and privilege interception rate. For example, a new prompt that raises report adoption but also increases sensitive data exposure should not be launched; a new model that slightly improves correctness but doubles P95 latency and cost requires re-evaluation of product benefits.
 
-Multi-turn Agent interactions complicate experiment attribution. One user session may span multiple runs, and satisfaction at the third turn may depend on the first turn's answer. If bucketing is done at each request randomly, the same user in one session may experience both group A and B, polluting both experience and data. Therefore, a safer approach is bucketing by user, tenant, or session, and recording the experiment version in context packages. Long tasks also require handling delayed feedback: report generation may take minutes, and downloads or report adoption can happen even later. The experiment window should also cover the request completion instant.
-
-A simplified launch decision can be expressed as:
-
-$$
+Multi-turn Agent interactions complicate experiment attribution. One user session may span multiple runs, and satisfaction at the third turn may depend on the first turn's answer. If bucketing is done at each request randomly, the same user in one session may experience both group A and B, polluting both experience and data. Therefore, a safer approach is bucketing by user, tenant, or session, and recording the experiment version in context packages. Long tasks also require handling delayed feedback: report generation may take minutes, and downloads or report adoption can happen even later. The experiment window should also cover the request completion instant. A simplified launch decision can be expressed as: $$
 Launch =
 \begin{cases}
 1, & \Delta Primary > \tau_p \ \text{and all Guardrails pass} \\
@@ -220,7 +202,7 @@ Launch =
 \end{cases}
 $$
 
-where `Primary` is the primary metric, `Guardrail` represents the guardrail metrics, and `\tau_p` is the minimum effective improvement threshold. This formula emphasizes one thing: launch is not about any improvement but whether the improvement is large enough without breaking safety, cost, or stability. For high-risk tasks, manual review pass rates and safe sample pass rates should be gating criteria rather than post-hoc observations.
+where `Primary` is the primary metric, `Guardrail` represents the guardrail metrics, and `\tau_p` is the minimum effective improvement threshold. This formula emphasizes one thing: launch is not about any improvement but whether the improvement is large enough without breaking safety, cost, or stability. For high-risk tasks, manual review pass rates and safe sample pass rates should be gating criteria instead of post-hoc observations.
 
 Beyond traditional A/B, interleaved comparisons can be used in controlled environments. Interleaving mixes two candidate summaries, charts, or explanations for users to directly reveal preferences through behavior. It is unsuitable for most DataAgent tasks since many enterprise outputs require a complete context and audit trail; but in selection of candidate charts, summary phrasing, or report structure, it can supplement A/B testing.
 
@@ -246,37 +228,46 @@ Then use model scoring for batch evaluation. The rubric is divided into correctn
 
 Fixes are clear. The prompt and report template are changed to "each attribution conclusion must bind to a source," the tool output adds regional contribution summaries, and the frontend report displays source citations. After passing offline regression, the new solution enters a 5% canary. Negative feedback rate drops to 7% in the canary group, report download rates increase, and P95 latency and token cost rise slightly but stay within guardrails, so traffic is further expanded.
 
-This example shows the value of online evaluation is not having another score but turning "users don't like it" into engineering problems that are locatable, fixable, and regressable. For enterprise Agents, the true unit of quality optimization is not a single answer sentence but a run sample with version, evidence, traces, and business feedback.
+This example shows how online evaluation turns "users don't like it" into engineering problems that are locatable, fixable, and regressable. For enterprise Agents, the unit of quality optimization is a run sample with version, evidence, traces, and business feedback.
 
 ---
+
+### 40.3.4 Judge drift and human appeals
+
+The judge can drift as well. Model upgrades, rubric edits, sample distribution shifts, prompt rewrites, and safety-policy changes can all change scoring behavior. If a team watches only score trends, it may mistake a judge-policy change for product-quality movement. The platform should maintain a version ledger for the judge: judge model, rubric, prompt, examples, thresholds, and calibration samples. Each judge component change should replay a fixed gold set before release and compare score distribution, failure labels, and agreement with human review.
+
+Judge drift should not be monitored only through averages. A stable average can hide drift in one task type. Legal explanations, data reports, and support summaries may respond differently to the same judge. A stricter factuality rubric may lower scores for report tasks while barely affecting chat summaries. The platform should inspect distributions by task type, business domain, language, output form, and risk level, then sample boundary cases. If one layer changes sharply, the team should first determine whether the judge changed before diagnosing the evaluated system.
+
+Human appeal is part of judge governance. A business reviewer or engineering owner may challenge a judge result when the judge misunderstood domain terminology, ignored chart evidence, or treated a compliant refusal as an incomplete task. The appeal package should include the original sample, judge input, judge output, human rationale, and final ruling. If the appeal is accepted, the platform decides whether to revise the rubric, add examples, adjust thresholds, or route this sample class to human review.
+
+Judge governance should enter release gates. If a new product version passes offline regression while the judge version has just changed, the team should confirm that gate thresholds still apply. If judge agreement is weak for a task class, that task's release decision should add human spot checks. For high-risk Agents, a judge can reduce review cost, but it cannot take ownership from accountable reviewers. Its job is to broaden sample coverage and speed diagnosis.
+
+## 40.4 Human calibration for judge results
+
+When human calibration for judge results reaches production, the platform needs a shared evidence standard for scoring dimension, judge model, human label, disagreement sample, bias analysis, version record, and usage boundary. This standard is not paperwork for its own sake. It lets business, platform, data, security, and operations teams discuss the same facts. Without this material, incident review depends on memory and personal judgment. With it, the team can see which inputs were valid, which actions executed, which artifacts can still be used, and which results need correction or withdrawal.
+
+This evidence should connect to Chapter 39 on evaluation, Chapter 38 on Trace, and Chapter 52 on compliance. The upstream chapters provide the capability base, downstream chapters consume the runtime result, and this chapter explains how the middle layer is verified. If a capability looks complete inside one chapter but cannot enter Trace, Eval, release records, or the compliance evidence package, the production system still has a break in the chain. Readers should treat cross-chapter interfaces as engineering contracts, not as a reading order.
+
+Common risks include judges preferring long answers, scoring rationales diverging from business standards, and judge upgrades changing historical scores. A successful demo rarely exposes these problems because demo samples are usually clean, short, and direct. Real business traffic brings stale data, abnormal input, permission changes, user withdrawal, budget limits, and long-running state. If the platform does not turn those situations into samples and ledgers, later scenarios will hit the same class of issues again.
+
+Judges preferring long answers should be turned into a tracked review item when it appears repeatedly. The operating record should at least state owner, version, sample, affected scope, action, and review time. It does not need to become a long process report, but it must be clear enough for a later maintainer to understand the decision. For high-risk capability, the record should also state which conditions allow wider use and which failures require degradation or withdrawal.
+
+A first version can build this habit in a few representative scenarios. It is better to make high-traffic, high-risk, externally visible paths solid first, then copy the sample, ledger, and review method to related capabilities in other chapters. This makes the chapter read like engineering guidance: it explains how the capability is integrated, validated, operated, and retired.
+
 ## Chapter Recap
 
 Online evaluation supplements offline benchmarks to identify unknown issues and distribution shifts in real traffic. Online feedback is not a natural label; it must be interpreted alongside traces, task types, business context, version information, and permission results. Model judges are suitable to augment open-domain semantic evaluation, but must be constrained by rubrics, gold samples, version control, randomization of sequence, consistency monitoring, and manual spot-checking. A/B experiments are responsible for answering whether new solutions truly improve real user experience without compromising safety, cost, or stability.
 
 The key conclusion of this chapter is: online evaluation is not about chasing an overall online score, but about establishing a closed loop from real failures to offline regression, from judge judgments to engineering fixes, and from low-traffic canary tests to continuous monitoring. This closed loop relies on observable data from Chapter 38 and also links back to benchmark assets in Chapter 39.
 
-- Are explicit feedback, implicit behavior, and business outcomes distinguished and used for sample selection rather than treated directly as ground-truth quality?
+- Are explicit feedback, implicit behavior, and business outcomes distinguished and used for sample selection instead of treated directly as ground-truth quality?
 - Is each piece of feedback associated with `session_id`, `run_id`, `trace_id`, model version, prompt version, semantic layer version, and permission policy version?
 - Does the model judge have fixed rubrics, version control, gold sample calibration, sequence randomization, and manual inspection?
-- Does the judge output dimension scores, confidence, failure labels, and explanations rather than only a total score?
+- Does the judge output dimension scores, confidence, failure labels, and explanations instead of only a total score?
 - Does the online experiment set main metrics, guardrail metrics, rollback conditions, traffic exposure ranges, and bucketing strategies?
 - Can online failure samples be consolidated into the Regression Set or Safety Set described in Chapter 39?
 ## References
 
-Related chapters: [Chapter 38 Agent Observability and Operational Diagnostics](ch38-trace.md), [Chapter 39 Enterprise-Level DataAgent Evaluation System Design and Benchmark Construction](ch39-dataagent-eval-benchmark.md), [Chapter 41 Cost Governance and Cache Optimization](ch41-cost-governance-cache.md), [Chapter 42 SLO Management, Rate Limiting, and System Resilience](ch42-slo.md).
+Related chapters: [Chapter 38 Agent Observability and Operational Diagnostics](ch38-trace.md), [Chapter 39 Enterprise-Level DataAgent Evaluation System Design and Benchmark Construction](ch39-dataagent-eval-benchmark.md), [Chapter 41 Cost Governance and Cache Optimization](ch41-cost-governance-cache.md), [Chapter 42 SLO Management, Rate Limiting, and System Resilience](ch42-slo.md). References related to public benchmarks and model adjudication referenced in this chapter are listed in order of first appearance in the main text. Lei, F. et al. (2025). [*DAComp: Benchmarking Data Agents across the Full Data Intelligence Lifecycle*](https://arxiv.org/abs/2512.04324). arXiv. Tang, Z. et al. (2026). [*Workspace-Bench 1.0: Benchmarking AI Agents on Workspace Tasks with Large-Scale File Dependencies*](https://arxiv.org/abs/2605.03596). arXiv. Sharma, M. et al. (2025). [*ResearchRubrics: A Benchmark of Prompts and Rubrics For Evaluating Deep Research Agents*](https://arxiv.org/abs/2511.07685). arXiv. Li, R. et al. (2026). [*DeepResearch Bench II: Diagnosing Deep Research Agents via Rubrics from Expert Report*](https://arxiv.org/abs/2601.08536). arXiv.
 
-References related to public benchmarks and model adjudication referenced in this chapter are listed in order of first appearance in the main text.
-
-Lei, F. et al. (2025). [*DAComp: Benchmarking Data Agents across the Full Data Intelligence Lifecycle*](https://arxiv.org/abs/2512.04324). arXiv.
-
-Tang, Z. et al. (2026). [*Workspace-Bench 1.0: Benchmarking AI Agents on Workspace Tasks with Large-Scale File Dependencies*](https://arxiv.org/abs/2605.03596). arXiv.
-
-Sharma, M. et al. (2025). [*ResearchRubrics: A Benchmark of Prompts and Rubrics For Evaluating Deep Research Agents*](https://arxiv.org/abs/2511.07685). arXiv.
-
-Li, R. et al. (2026). [*DeepResearch Bench II: Diagnosing Deep Research Agents via Rubrics from Expert Report*](https://arxiv.org/abs/2601.08536). arXiv.
-
-Pan, T. et al. (2026). [*RubricEval: A Rubric-Level Meta-Evaluation Benchmark for LLM Judges in Instruction Following*](https://arxiv.org/abs/2603.25133). arXiv.
-
-Hashemi, H. et al. (2025). [*LLM-Rubric: A Multidimensional, Calibrated Approach to Automated Evaluation of Natural Language Texts*](https://arxiv.org/abs/2501.00274). arXiv.
-
-Methods and tools: A/B Testing, Interleaving, LLM-as-Judge, Ragas, DeepEval, Promptfoo, Langfuse, Phoenix. Related research and practice can also refer to MT-Bench / Chatbot Arena, G-Eval, and studies on evaluation bias and consistency around model adjudicators.
+Pan, T. et al. (2026). [*RubricEval: A Rubric-Level Meta-Evaluation Benchmark for LLM Judges in Instruction Following*](https://arxiv.org/abs/2603.25133). arXiv. Hashemi, H. et al. (2025). [*LLM-Rubric: A Multidimensional, Calibrated Approach to Automated Evaluation of Natural Language Texts*](https://arxiv.org/abs/2501.00274). arXiv. Methods and tools: A/B Testing, Interleaving, LLM-as-Judge, Ragas, DeepEval, Promptfoo, Langfuse, Phoenix. Related research and practice can also refer to MT-Bench / Chatbot Arena, G-Eval, and studies on evaluation bias and consistency around model adjudicators.

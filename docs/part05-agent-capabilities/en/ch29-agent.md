@@ -1,6 +1,7 @@
 # Chapter 29 Agent Protocols and Standards
 
 ---
+
 Chapter 24 has already explained how MCP exposes tools and resources to models, and Chapter 28 discusses Handoff between Agents within the platform. Real-world enterprise platforms face a third type of challenge: external vendors, Agents on other clouds, desktop tools, internal API gateways, and model vendor tool interfaces may all request integration with the same Agent platform.
 
 Consider a sentiment analysis scenario. An internal Data Agent can query sales through a semantic layer, while an external vendor provides a sentiment monitoring Agent that only exposes an A2A endpoint and an Agent Card. The business wants to include both sales decline and sentiment changes in the same operational report. The platform cannot allow the Runtime to call the vendor's endpoint directly, nor treat the A2A Task as an unmonitored HTTP request. The correct approach is to import the external Agent into the L1 Catalog and register it via an A2A adapter as an internal ToolSpec or Handoff target; the Runtime still only sees a single Registry `invoke`, and the Trace records the `run_id`, inputs, outputs, external task ID, and artifact hash.
@@ -16,6 +17,7 @@ Protocols also amplify version-management risk. Internal tool upgrades can be go
 For that reason, this chapter focuses less on predicting which protocol wins and more on who owns responsibility after a protocol enters the enterprise platform. MCP is suited to tools and resources, A2A to remote Agent delegation, Agent Card to capability discovery, and ACP to continuous message collaboration. They solve different problems, but once they enter the enterprise platform, they must pass through the same core: Registry registers the capability, Policy decides whether it may run, Runtime manages state, Trace records evidence, and Catalog owns lifecycle. The more open the protocol layer becomes, the steadier the platform core must be.
 
 ---
+
 ## 29.1 Protocol Landscape
 
 Agent platforms are typically divided into three layers: L1 Control Plane, L2 Runtime, and L3 Protocol Interoperability. L3 is not a single protocol, but a set of adapter layers organized by collaboration targets. For tools and resources, use MCP; for remote Agent delegation, use A2A; for capability discovery, use Agent Card; for continuous messaging and event collaboration, consider ACP or map to an internal Event Bus; for model function calls, Gateway and Registry export the schema.
@@ -53,6 +55,7 @@ The part most often missed by platform engineering is test data. Each protocol a
 The rest of this chapter uses the same lens repeatedly: what object the protocol represents, what internal object it becomes, who authorizes it before invocation, who records evidence after invocation, and who recovers from failure. If that chain is complete, adding protocols does not have to create chaos. If it breaks, even one protocol can create a governance blind spot.
 
 ---
+
 ## 29.2 Positioning of MCP
 
 The core objects of MCP are tools, resources, and prompt templates. It is suitable for standardizing external capabilities into a discoverable, invocable, and describable tool catalog. IDEs reading repositories, local desktop tools, enterprise SQL query services, ticketing systems, and read-only document resources are all well suited to be exposed to Agents through MCP.
@@ -79,15 +82,16 @@ MCP Server tool
     -> result
 ```
 
-One commonly overlooked aspect when integrating MCP is version snapshots. The response to `tools/list` changes as the Server updates, but historical Runs need to be reproducible. If a vendor modifies `query_sales(region)` to `query_sales(regions)`, the platform must not allow old Runs to suddenly match the new schema during replay. The L1 layer should save a snapshot of the tool list at registration time; server upgrades introduce new ToolSpec versions rather than overwriting `v1`.
+One commonly overlooked aspect when integrating MCP is version snapshots. The response to `tools/list` changes as the Server updates, but historical Runs need to be reproducible. If a vendor modifies `query_sales(region)` to `query_sales(regions)`, the platform must not allow old Runs to suddenly match the new schema during replay. The L1 layer should save a snapshot of the tool list at registration time; server upgrades introduce new ToolSpec versions instead of overwriting `v1`.
 
-MCP is also not suited to handle all forms of collaboration. Long-running asynchronous agent delegation, cross-organization task state, external agent capability declarations, and ongoing multiparty messaging are not MCP's strengths. Such requirements are better addressed through A2A communication, Agent Cards, or internal Event Buses rather than turning everything into a gigantic MCP tool.
+MCP is also not suited to handle all forms of collaboration. Long-running asynchronous agent delegation, cross-organization task state, external agent capability declarations, and ongoing multiparty messaging are not MCP's strengths. Such requirements are better addressed through A2A communication, Agent Cards, or internal Event Buses instead of turning everything into a gigantic MCP tool.
 
 The security boundary of MCP must be concretely implemented. stdio is suitable for local development and sidecar scenarios but in Kubernetes environments requires managing process lifecycles, stdout/stderr contamination, and container permissions. Streamable HTTP is better for remote servers but must handle TLS, authentication, request size limits, timeouts, and retries. Regardless of transport, MCP Servers should never directly expose public database capabilities; backend systems are typically accessed through enterprise API gateways or controlled services.
 
 Resources and prompts should be governed separately as well. Read-only resources can be loaded into the Planner as Memory or contextual loaders but must log URI, etag, and access time metadata. Prompt templates can be maintained by compliance or branding teams but should not allow remote prompts to replace local system prompts versionlessly during Runs. MCP provides a distribution mechanism, not content governance itself.
 
 ---
+
 ## 29.3 A2A and Agent Card
 
 A2A addresses task delegation between Agents. Its target is not a single function but a piece of work that may have state, progress, and artifacts. When the internal platform assigns tasks to external public opinion Agents, legal review Agents, or industry knowledge Agents, A2A is semantically closer than MCP.
@@ -103,19 +107,20 @@ When the platform integrates A2A, the outer Run still exists. An A2A Task is jus
 | Task Status | `executing`, `waiting_human`, `failed`, etc. | Outer Run must nest with external Task timeouts |
 | Artifact    | Result references or report attachments | Save hash, source, and version |
 
-Agent Card is a discovery layer, not an execution layer. It describes the Agent's name, version, endpoint, skills, authentication method, and capability limits. After importing the Card URL at L1, the platform should verify the schema, authentication info, network access scope, and version before mapping it to an internal AgentSpec. The Router uses the internal AgentSpec rather than fetching the remote Card at runtime each time.
+Agent Card is a discovery layer, not an execution layer. It describes the Agent's name, version, endpoint, skills, authentication method, and capability limits. After importing the Card URL at L1, the platform should verify the schema, authentication info, network access scope, and version before mapping it to an internal AgentSpec. The Router uses the internal AgentSpec instead of fetching the remote Card at runtime each time.
 
 The production risk of Agent Cards lies in discrepancies between the declared and actual capabilities. Vendors may modify endpoints, remove skills, change authentication methods, or have temporary Card inaccessibility. The platform should pin `etag` or versions, refresh periodically, and mark stale; failure to refresh should not immediately delete the old Spec. Before enabling an external Agent, smoke tests as described in Chapter 41 should be run to confirm the declared capabilities are truly available.
 
-When importing Cards, SSRF protection is also essential. L1 should disallow access to arbitrary intranet URLs, private IP ranges, or redirect chains. More reliable approaches include URL allowlisting, using a static egress proxy, prohibiting resolution of private subnets, and placing secret keys in secret management rather than embedding them in the Card text.
+When importing Cards, SSRF protection is also essential. L1 should disallow access to arbitrary intranet URLs, private IP ranges, or redirect chains. More reliable approaches include URL allowlisting, using a static egress proxy, prohibiting resolution of private subnets, and placing secret keys in secret management instead of embedding them in the Card text.
 
 Card import should also retain both the original document and the parsed result. The original Card shows what the supplier declared, while the parsed AgentSpec shows what the platform finally allowed. They may differ: the platform may hide some skills, replace authentication, or split read-only capabilities and write actions into separate entries. Keeping both versions makes it much easier to diagnose cases where a supplier says a capability exists but the platform does not route to it.
 
 A2A's timeout design must be bound to the outer Run. If the external Task may take up to 30 minutes, the outer Run cannot allow only 5 minutes. If the outer Run is canceled by the user, the A2A Client must also propagate the cancel signal upstream or at least mark the remote task as orphaned and enter a compensation workflow. Otherwise, the user will see failure while the vendor side continues running, and returned artifacts later have no place to go.
 
-Outputs from external Agents should not directly enter the final answer. The platform must at minimum verify artifact type, size, hash, source, and security classification. For natural language conclusions, it must clarify whether it was generated by the external vendor or internally summarized by a Report Agent. Reports involving business, finance, or compliance should retain references to the original output from the external Agent so audits can trace back to the vendor output, rather than just see internally rewritten sentences.
+Outputs from external Agents should not directly enter the final answer. The platform must at minimum verify artifact type, size, hash, source, and security classification. For natural language conclusions, it must clarify whether it was generated by the external vendor or internally summarized by a Report Agent. Reports involving business, finance, or compliance should retain references to the original output from the external Agent so audits can trace back to the vendor output, instead of just see internally rewritten sentences.
 
 ---
+
 ## 29.4 ACP and Event Collaboration
 
 ACP focuses on continuous messaging and event collaboration. It is suitable for scenarios where multiple agents append messages around a single conversation or event stream. For example, after a report draft is generated, the brand agent, legal agent, and data agent all subscribe to the same review thread. Compared to A2A, ACP is more like an ongoing conversation or message bus; compared to MCP, it is not a tool invocation protocol.
@@ -132,13 +137,14 @@ Enterprise platforms usually have an internal Event Bus. The appropriate place f
 | External synchronization of continuous collaboration messages | ACP or Event Bus adapter | Suitable for event streams; not as execution entry |
 | Model-side function calls            | Registry-exported tools schema | Does not bypass enterprise tool governance |
 
-ACP's maturity and ecosystem are still evolving. This book treats it as an observable direction rather than a primary production dependency. The initial edition of the platform should first stabilize the internal Event Bus, asynchronous Tools, HITL (Human-in-the-Loop), and Trace, before considering ACP as a boundary adapter.
+ACP's maturity and ecosystem are still evolving. This book treats it as an observable direction instead of a primary production dependency. The initial edition of the platform should first stabilize the internal Event Bus, asynchronous Tools, HITL (Human-in-the-Loop), and Trace, before considering ACP as a boundary adapter.
 
 A common pitfall in event collaboration is treating events as commands. A `report.ready` event can notify the brand agent or reviewer to access the report, but it should not by default trigger publishing, deletion, or external sending. Actions with side effects should still go through Registry Tools and be governed by Policy. Events express "what happened," while commands express "what to do." Mixing the two blurs permission control and replayability.
 
 If there is indeed a need for external messages to drive internal Runs, the platform should first convert messages into controlled requests. This conversion process requires verifying tenant identity, signatures, idempotency keys, event timestamps, and payload schemas, then the Runtime creates or advances the Run accordingly. External ACP messages must not directly invoke internal functions.
 
 ---
+
 ## 29.5 Protocol Combination Scenarios
 
 Protocol combination is not uncommon. In a single business analysis Run, the Question Agent can first clarify the `query_spec`; the Data Agent calls the semantic layer via MCP to fetch metrics; the Workflow delegates to an external public opinion Agent via A2A; the Report Agent aggregates sales and public opinion; finally, an internal Event Bus notifies the Reviewer. The Runtime still sees a sequence of `action`, `invoke`, `result`, and possibly `waiting_human`.
@@ -160,6 +166,7 @@ Protocol combinations also raise data egress issues. Whether internal metrics fe
 Another design point that must be addressed upfront is result ownership. Public opinion conclusions returned by external A2A Agents can be referenced and rewritten by the internal Report Agent, but vendor conclusions must not be disguised as internal facts. Reports can state "The external public opinion Agent returned the following trend" and retain artifact references in the Trace. This protects traceability of vendor outputs and prevents the internal platform from taking unclear responsibility for externally generated model content.
 
 ---
+
 ## 29.6 Protocol Integration and Registry Convergence
 
 Currently, `mini-platform/core/protocol/` only implements the minimal `ProtocolAdapter`, used to normalize protocol sources into Registry calls. The MCP data tools from Chapter 24 register to the Registry via `tools/mcp_db/registry_bridge.py`; the Part V practical Run chain uses `registry_setup.py`, `register_mcp_tools`, and `Registry invoke`, but it has not yet integrated a full A2A, Agent Card, or ACP adapter.
@@ -176,9 +183,7 @@ Production extension targets:
   - acp_adapter.py
 ```
 
-Dependency direction must remain clear: `protocol` can register ToolSpec to the `registry`; `runtime` depends only on `registry` and must never depend directly on `protocol`. If RunLoop directly imports MCP Client or A2A Client, protocol upgrades, transport switching, and vendor replacements will pollute the Runtime.
-
-The currently runnable minimal code is as follows:
+Dependency direction must remain clear: `protocol` can register ToolSpec to the `registry`; `runtime` depends only on `registry` and must never depend directly on `protocol`. If RunLoop directly imports MCP Client or A2A Client, protocol upgrades, transport switching, and vendor replacements will pollute the Runtime. The currently runnable minimal code is as follows:
 
 ```python
 from core.protocol import ProtocolAdapter, ProtocolKind
@@ -204,13 +209,9 @@ Before launch, fault drills are essential. MCP Server returns incompatible schem
 
 Procurement and onboarding processes should use the same set of evidence. When vendors claim MCP or A2A support, do not rely only on white papers or demo videos. Require runnable endpoints, Agent Cards, authentication methods, versioning strategies, error codes, timeout behavior, and log fields. Platform teams can run fixed test runs to verify capability before allowing access to the Catalog. This turns protocol support from "verbal compatibility" into "replayable onboarding records."
 
-The same applies internally. A new MCP Server or internal Agent wanting to enter the production Catalog must first submit ToolSpec or AgentSpec, owner, SLA, permission scope, rollback method, and a minimal test suite. Only after approval can the Router select it. Without an owner, even useful functionality should not enter default routing.
+The same applies internally. A new MCP Server or internal Agent wanting to enter the production Catalog must first submit ToolSpec or AgentSpec, owner, SLA, permission scope, rollback method, and a minimal test suite. Only after approval can the Router select it. Without an owner, even useful functionality should not enter default routing. Onboarding failure should have clear states. Capabilities can remain in `draft`, `disabled`, or `stale` to serve dev and test environments, but must not join production candidates. This avoids blocking team experiments while preventing unverified external protocol capabilities from hitting business Runs. Onboarding records should save test timestamps, environments, responsible parties, and failure reasons. Follow-up retests determine if issues are resolved.
 
-Onboarding failure should have clear states. Capabilities can remain in `draft`, `disabled`, or `stale` to serve dev and test environments, but must not join production candidates. This avoids blocking team experiments while preventing unverified external protocol capabilities from hitting business Runs.
-
-Onboarding records should save test timestamps, environments, responsible parties, and failure reasons. Follow-up retests determine if issues are resolved.
-
-The first version need not aim for full protocol coverage. A more reasonable approach is to stabilize internal Registry, MCP tool integration, and Agent Card import first, then choose a low-risk external Agent for an A2A pilot. ACP or complex multi-party collaboration can expand after internal Event Bus stabilization. Protocol maturity should follow platform governance maturity rather than industry buzzwords.
+The first version need not aim for full protocol coverage. A more reasonable approach is to stabilize internal Registry, MCP tool integration, and Agent Card import first, then choose a low-risk external Agent for an A2A pilot. ACP or complex multi-party collaboration can expand after internal Event Bus stabilization. Protocol maturity should follow platform governance maturity instead of industry buzzwords.
 
 For operations, protocol capabilities need owners and disable paths. When external Agent contracts expire, MCP Servers fail long-term, Cards refresh repeatedly fail, or vendor security incidents occur, L1 must be able to instantly disable the related AgentSpec or ToolSpec and have the Router stop selecting them. Disabling is not deleting: historical Runs must preserve the used version and evidence, while new Runs cannot hit the capability.
 
@@ -219,6 +220,7 @@ Finally, the protocol adapter layer must avoid leaking vendor SDK implementation
 Acceptance can use a minimal yet complete set of test cases. MCP cases validate tool snapshots, schema checks, tenant ACL, and replay; Agent Card cases validate import, refresh, stale marking, SSRF protection, and disable; A2A cases verify long tasks, cancellation, timeouts, artifact hash, and external task ID; event cases verify duplicate delivery and idempotency handling. Each case should leave readable evidence in the Trace. Protocol chapters that show only success calls without validating these boundaries struggle to support real procurement and production onboarding.
 
 ---
+
 ## 29.7 Enterprise Acceptance Criteria for Protocol Integration
 
 The acceptance standard for protocol integration is not that two systems can exchange messages. The standard is that identity, permission, audit, and recovery semantics still hold after the call crosses systems. MCP describes how tools and resources are exposed, A2A describes Agent discovery and task interaction, and ACP-like event protocols describe collaborative process state. Once they enter an enterprise platform, none of them may bypass Runtime, Registry, Policy, or Trace.
@@ -249,15 +251,94 @@ Protocol combinations should therefore use minimum authorization by default. Sen
 
 Protocol integration needs dedicated tests. A single successful call proves little. The baseline should cover authentication failure, permission denial, schema incompatibility, remote timeout, version change, duplicate request, cancellation, and error-code mapping. For A2A, tests should also cover remote task rejection, partial results, requests for additional information, and capability declaration changes. For MCP, tests should cover tool-list changes, parameter validation failures, and resource-access restrictions.
 
-Tests should retain both the original protocol message and the internal platform event it maps to. When an adapter fails, the team can then determine whether the external protocol behavior changed or whether ToolSpec, Runtime, or Policy mapping is wrong. Protocol standards will continue to evolve, so the platform should not assume today's fields remain stable. Version compatibility tests should be part of every adapter release.
-
-The enterprise baseline is that external capabilities cannot bypass local governance. Whatever standard the remote side uses, the local Runtime must still see tenant, user, permission, risk level, and audit identifiers. The more open the protocol boundary becomes, the more important this rule is.
+Tests should retain both the original protocol message and the internal platform event it maps to. When an adapter fails, the team can then determine whether the external protocol behavior changed or whether ToolSpec, Runtime, or Policy mapping is wrong. Protocol standards will continue to evolve, so the platform should not assume today's fields remain stable. Version compatibility tests should be part of every adapter release. The enterprise baseline is that external capabilities cannot bypass local governance. Whatever standard the remote side uses, the local Runtime must still see tenant, user, permission, risk level, and audit identifiers. The more open the protocol boundary becomes, the more important this rule is.
 
 Protocol integration should also have an observation period. A new MCP Server or remote Agent should first run in low-risk scenarios while the platform monitors failure rate, error-code quality, permission denials, latency, and version changes. During that period, high-risk write operations should stay hidden from Planner, and unknown capabilities should not be freely composed. After the adapter, Trace, and regression samples stabilize, the platform can widen the allowed capability set.
 
-After the observation period, health checks and version probes should remain. External protocol services may upgrade capability declarations or error semantics without notifying the platform. Regular probes detect compatibility drift early. Protocol health should appear on the platform dashboard rather than only in an onboarding script. The dashboard should show protocol version, capability-change time, owner, and responsible team so operations and business owners know whether an external capability should remain visible to Agents.
+After the observation period, health checks and version probes should remain. External protocol services may upgrade capability declarations or error semantics without notifying the platform. Regular probes detect compatibility drift early. Protocol health should appear on the platform dashboard instead of only in an onboarding script. The dashboard should show protocol version, capability-change time, owner, and responsible team so operations and business owners know whether an external capability should remain visible to Agents.
 
 Protocol governance needs an operating rhythm. The platform team can review external capability health, schema changes, failed calls, permission hits, and owner validity each month. The security team reviews outbound data and vendor risk. The business team confirms whether the capability is still used by real scenarios. Capabilities with no owner, frequent failures, or long periods of no use should leave the default candidate set. This keeps the protocol ecosystem governable instead of letting pilots accumulate into an unmanaged pile of connections.
+
+## 29.11 Protocol Capability Release Ledger and Retirement Path
+
+Protocol capabilities should have their own release ledger after they enter the platform. The ledger should record protocol type, adapter version, remote endpoint or Agent Card version, authentication method, owner, eligible tenants, allowed data domains, risk level, canary scope, latest regression result, and retirement conditions. When the Router selects an external capability, the platform can then explain why it is available, who may use it, and which task classes may invoke it. Without such a ledger, protocol integration turns into scripts, environment variables, and vendor settings, which makes impact analysis difficult during incidents.
+
+The release ledger should connect directly to retirement. Long-term external failure, Agent Card drift, repeated schema incompatibility, owner departure, contract-scope change, security incident, or long-term lack of business use should trigger a disable review. Disabling a capability does not remove historical evidence. Old Runs still keep the AgentSpec, ToolSpec, protocol version, artifact hash, and remote request ID used at the time. New Runs should stop selecting that capability. This preserves audit replay while preventing stale capabilities from remaining visible to Planner.
+
+Protocol review can share the platform catalog rhythm. Each month, check call volume, failure rate, permission refusals, remote version change, latency, cost, and owner validity. After every adapter upgrade, run a fixed regression set. When a vendor releases a protocol change, narrow Planner-visible capability first and restore access based on regression results. Protocol ecosystems will keep changing; the platform has to convert that change into managed versions and states. Supporting a standard protocol is an operating responsibility, not a one-time onboarding task.
+
+The release ledger should also enter procurement and internal admission. When buying an external Agent, the platform team can ask the vendor for a runnable endpoint, Agent Card, authentication method, error codes, timeout behavior, log fields, and versioning strategy. When an internal team submits an MCP Server or AgentSpec, it should also submit owner, SLA, permission scope, rollback method, and a minimal evaluation set. Only after these materials pass review should the capability enter production candidates. Incomplete material can stay in development testing, but business Runs should not select it automatically. Protocol compatibility then becomes replayable evidence instead of a verbal promise.
+
+The protocol chapter ultimately preserves the enterprise runtime model while adopting standards. Standards reduce connection cost. The platform still decides identity, permission, version, evidence, and retirement. When those responsibilities are separated, a richer protocol ecosystem becomes easier to govern.
+
+## 29.12 Evidence Contracts For Agent Interoperability
+
+When several Agents collaborate, interoperability should mean more than message delivery. Each handoff should carry an evidence contract: task goal, current state, tools already used, confirmed facts, unresolved questions, permission scope, cost budget, timeout condition, and fallback path. The receiving Agent should not treat upstream output as absolute fact, and it should not inherit tool capability beyond its own permissions. The point of interoperability is to keep the task auditable, reviewable, and recoverable after it moves across Agents.
+
+The evidence contract should also separate handoff information from execution authorization. An upstream Agent can state which data it inspected, which intermediate conclusions it reached, and which limits it encountered. When the receiving Agent performs a write operation, exports data, or triggers approval, it should still pass through its own Runtime, Policy Engine, and HITL node. This prevents a low-permission Agent from indirectly triggering high-permission actions through handoff, and it keeps upstream mistakes from being amplified downstream.
+
+Interoperability review should preserve cross-Agent Trace. If a task moves from a customer-service Agent to DataAgent, then to a report Agent, and then to approval, the platform should show the input, output, evidence, owner, and recovery path of each handoff. If each Agent only keeps internal logs, incident review cannot tell whether the issue came from handoff, tool execution, permission, or model behavior. Chapter 29 writes Agent relationships as verifiable contracts, not as chatbots sending messages to each other.
+
+## 29.13 Version Compatibility For Agent Interoperability Protocols
+
+Agent interoperability protocols also face version compatibility. Task-goal fields, state enums, evidence references, permission scope, budget expression, error codes, and handoff results can all change as the platform evolves. If one Agent uses a new protocol while another remains on an old version, handoff may lose evidence or misread state. The interoperability protocol needs version numbers, compatibility windows, and degradation strategy.
+
+Compatibility tests should cover real handoff scenarios. Read-only analysis handoff, write-operation handoff, approval-waiting handoff, failure-recovery handoff, and cross-tenant rejection should all have samples. Tests should check whether old Agents can read new fields, whether new Agents handle missing old fields, whether unknown states are safely rejected, and whether evidence references remain accessible. Protocol upgrade cannot rely on SDK unit tests alone because the real risk sits in task semantics and responsibility boundaries.
+
+Protocol versions should match organizational release rhythm. Platform teams can first run a new protocol among a small set of internal Agents, then expand to high-value business scenarios. External vendor Agents or cross-team Agents may need longer compatibility windows. If an Agent cannot upgrade for a long period, the platform should limit task types it can receive. Interoperability does not require every Agent to upgrade at the same time. It requires different versions to operate within explicit boundaries.
+
+## 29.14 Incident review across Agent protocols
+
+After cross-Agent protocols are connected, incident review must reconstruct the call chain. A task may start from a local Agent, move through A2A or ACP to another Agent, call a tool through MCP, and return a result to the original session. If each segment keeps only local logs, the team cannot tell whether the failure came from planning, protocol conversion, permission mapping, remote execution, or result interpretation. Protocol interoperability matters only when evidence can cross the boundary.
+
+The review record should keep protocol version, Agent Card, capability declaration, call parameters, identity mapping, authorization result, remote trace id, returned artifact, and error code. For asynchronous tasks, it should also keep suspend, resume, cancel, and timeout state. If the remote Agent refuses execution, the caller should know whether permission was missing, capability was unsupported, input was invalid, or the remote system was degraded. Without structured reasons, the Planner can only retry or show a vague failure.
+
+A first version can require every cross-Agent call to carry a correlation id and connect local Run, remote Run, tool call, and final artifact. Protocol integration then supports audit, incident handling, and capability expansion together. Without this evidence chain, enterprises will struggle to put several Agents into one production workflow.
+
+## 29.15 Runtime degradation strategy for protocol dependencies
+
+After protocol integration reaches production, the platform should assume external capabilities can slow down, change, or disappear. An MCP Server may return a new schema. A remote Agent Card may expire. An A2A task may stay in `working` for too long. A vendor gateway may throttle requests. An internal event bus may deliver the same message twice. If Runtime treats all of these as ordinary tool failures, users see technical errors. If Planner retries on its own, cost and side effects grow. The adapter layer should translate external dependency failures into platform states that Runtime can handle.
+
+Degradation should follow capability risk. Low-risk read-only capabilities can switch to a backup MCP Server, use a cached capability declaration, or ask the user to retry later. Medium-risk analysis capabilities can preserve the task draft and collected evidence, then move to asynchronous recovery. High-risk write operations and cross-domain data transfer should pause and enter human review. Trace should record the remote endpoint, protocol version, failed stage, retry count, retained artifact, user-visible message, and next action. Incident review can then tell whether the failure came from connection, authentication, capability drift, remote timeout, or return-path failure.
+
+Degradation must protect business semantics. If a remote Agent is unavailable, the local platform should not automatically hand the task to another Agent with similar capability but different permissions. If an MCP Tool schema changes, the model should not keep generating arguments from the old schema. Replacement capability must pass through Registry, Policy, and permission mapping again. If no qualified replacement exists, the system should state that the capability is unavailable and keep a recovery entry point. This conservative behavior prevents a protocol dependency failure from turning into overreach, wrong writes, or data leakage.
+
+Operations should expose protocol degradation as metrics. Each external capability should report connection success rate, capability refresh result, schema compatibility, error-code distribution, average latency, timeout rate, disable count, and human takeover count. When metrics degrade, Router can lower the capability weight or remove it from the default candidate set. A richer protocol ecosystem makes degradation strategy more important. It keeps the internal runtime model stable while external systems change around it.
+
+## 29.16 Admission sandbox for protocol capabilities
+
+Protocol capabilities should enter an admission sandbox before production. The sandbox is not a demo that proves A2A, MCP, or ACP can connect. It verifies whether an external capability can operate under the enterprise runtime model. The sandbox should use masked identities, restricted tools, fixed samples, and separate Trace, so an external Agent does not touch real write actions or sensitive data during trial. This lets the platform find missing protocol fields, unclear error codes, incomplete permission mapping, and weak timeout recovery before real integration.
+
+The sandbox should cover four sample groups. Read-only delegation verifies that the remote Agent can return structured artifacts and evidence references. Rejection samples verify whether permission failure, unsupported capability, and invalid input return routable reasons. Long-task samples verify whether suspend, resume, cancel, and timeout events return to local Runtime. Protocol-drift samples verify whether the platform can freeze a capability or move to human confirmation after Agent Card, Tool schema, or event fields change. The sample set can stay small, but it must cover production risks.
+
+The sandbox should produce an admission decision. A passing capability can enter the candidate catalog while remaining limited by tenant, task type, and call volume. A partially passing capability can be used only for low-risk read-only scenarios. A failed capability should not appear in the default Planner candidate set. The decision should record protocol version, allowed tasks, forbidden tasks, owner, observation window, and exit condition. Protocol ecosystem growth then remains governed, and the platform can explain to business teams why some external Agents are not ready for production.
+
+A first version can make the admission sandbox a pre-step for Registry. External capabilities first produce Trace, Eval samples, and error-code mappings in the sandbox, then the platform decides whether to publish them into the formal catalog. The interoperability protocols in Chapter 29 then connect naturally to Chapter 23 Tool Registry, Chapter 22 Runtime, and Chapter 38 Trace, instead of stopping at connectivity tests.
+
+## 29.17 Version negotiation for protocol interoperability
+
+Agent protocol interoperability cannot assume that every participant upgrades at the same time. A2A, MCP, internal event protocols, and enterprise message buses may each have their own release cadence. A renamed field, new state enum, or changed error code can make another system misunderstand task state. The platform needs version negotiation at the protocol layer, stating what capabilities the caller supports, what the callee returns, and whether both sides share failure and degradation semantics.
+
+Version negotiation should enter runtime records. Each cross-system call should store protocol version, capability declaration, required fields, optional fields, degradation result, and error semantics. If the other side does not support a capability, the platform can refuse, degrade, route to human review, or use compatibility mode. The model should not interpret missing fields on the fly, and the frontend should not guess state from incomplete events. The more open interoperability becomes, the more specific contracts need to be.
+
+A first version can add protocol compatibility samples to release gates. Each A2A or MCP adapter upgrade replays old callers, new callers, missing fields, unknown error codes, and timeout cases. Enterprise platforms can then adopt broader Agent and tool ecosystems without breaking existing production paths.
+
+## 29.18 Identity and permission checks for cross-protocol tasks
+
+After Agent protocol interoperability reaches production, a successful demo is not enough evidence. The platform needs stable fields for caller identity, target capability, authorization scope, context transfer, receipt, and audit identifier, and those fields should connect to release records, Trace, evaluation samples, and incident notes. When a production issue appears, teams can follow one set of facts to understand scope, ownership, and repair order instead of stitching together model logs, business logs, and verbal explanations.
+
+This evidence also connects the surrounding chapters. It links to Chapter 24 on MCP, Chapter 28 on multi-Agent collaboration, and Chapter 52 on compliance: upstream capabilities provide assumptions, downstream capabilities consume the result, and governance capabilities preserve evidence and review decisions. If these materials do not share identifiers and versions, the production system splits apart. Business owners see user complaints, platform owners see system errors, and security or compliance teams see explanations written after the fact. That separation makes it hard to decide whether the issue came from data, model behavior, tool contracts, workflow state, or organizational ownership.
+
+Common production risks include protocol conversion dropping user identity, an external Agent expanding tool permission, and receipts that cannot be linked to the original task. These risks are less visible during demos because demos usually exercise the successful path. Production users bring boundary cases, repeated requests, permission changes, and long-running state. The platform team should turn such failures into release samples. Some samples should block launch, some can be handled by degradation, and some require the business owner to accept the remaining risk with a review date.
+
+Cross-protocol tasks should prove identity and permission continuity before the platform expands automatic execution. The record can stay compact, but it should include time, version, owner, sample, action, and the next review condition. Without those fields, review remains informal experience. With them, one production issue can become material for later releases, evaluation suites, and training.
+
+A first platform version can start with a small set of high-risk paths. Choose flows with high traffic, high business impact, or sensitive data, require an evidence package for each change, and then expand the practice to ordinary scenarios. This keeps the capability at the engineering level: runnable, explainable, and recoverable.
+## 29.19 Responsibility adjudication after interoperability failure
+
+When protocol interoperability fails, the platform needs a way to adjudicate responsibility. Tasks passed across A2A, MCP, or internal protocols may lose identity, miss context fields, produce incompatible tool receipts, time out in an external Agent, or be rejected by the target system. If each system records only local logs, users see a failed task while platform teams cannot tell whether to repair protocol adaptation, tool contracts, permission systems, or business workflow.
+
+Adjudication needs a minimum evidence chain: original request, caller identity, target capability, context summary, protocol-conversion record, target-system receipt, failure class, and user-facing explanation. High-risk tasks should also record human-takeover points and retry limits. Interoperability then stops being described as an external-system problem and becomes a set of repairable interfaces and responsibility boundaries. A first version can apply this mechanism to cross-protocol write actions first, then expand to read-only tasks.
 
 ## Chapter Recap
 
@@ -267,18 +348,4 @@ External protocols should stay in the L3 adapter layer. Runtime continues to inv
 
 ## References
 
-Model Context Protocol. (2024). *Specification* (2024-11-05). [https://modelcontextprotocol.io/specification/2024-11-05](https://modelcontextprotocol.io/specification/2024-11-05)
-
-Anthropic. (2024). *Introducing the Model Context Protocol*. [https://www.anthropic.com/news/model-context-protocol](https://www.anthropic.com/news/model-context-protocol)
-
-Google. (2025). *Agent2Agent (A2A) Protocol*. [https://google.github.io/A2A/](https://google.github.io/A2A/)
-
-IBM. (2025). *Agent Communication Protocol (ACP)*. [https://github.com/i-am-bee/agent-communication-protocol](https://github.com/i-am-bee/agent-communication-protocol)
-
-OpenAI. (n.d.). *Function calling*. [https://developers.openai.com/api/docs/guides/function-calling](https://developers.openai.com/api/docs/guides/function-calling)
-
-Anthropic. (2024). *MCP SDK*. [https://github.com/modelcontextprotocol/python-sdk](https://github.com/modelcontextprotocol/python-sdk)
-
-Google. (2025). *A2A Python SDK*. [https://github.com/google/A2A](https://github.com/google/A2A)
-
-Wu, Q., et al. (2024). AutoGen: Enabling next-gen LLM applications via multi-agent conversation. arXiv:2308.08155. [https://arxiv.org/abs/2308.08155](https://arxiv.org/abs/2308.08155)
+Model Context Protocol. (2024). *Specification* (2024-11-05). [https://modelcontextprotocol.io/specification/2024-11-05](https://modelcontextprotocol.io/specification/2024-11-05) Anthropic. (2024). *Introducing the Model Context Protocol*. [https://www.anthropic.com/news/model-context-protocol](https://www.anthropic.com/news/model-context-protocol) Google. (2025). *Agent2Agent (A2A) Protocol*. [https://google.github.io/A2A/](https://google.github.io/A2A/) IBM. (2025). *Agent Communication Protocol (ACP)*. [https://github.com/i-am-bee/agent-communication-protocol](https://github.com/i-am-bee/agent-communication-protocol) OpenAI. (n.d.). *Function calling*. [https://developers.openai.com/api/docs/guides/function-calling](https://developers.openai.com/api/docs/guides/function-calling) Anthropic. (2024). *MCP SDK*. [https://github.com/modelcontextprotocol/python-sdk](https://github.com/modelcontextprotocol/python-sdk) Google. (2025). *A2A Python SDK*. [https://github.com/google/A2A](https://github.com/google/A2A) Wu, Q., et al. (2024). AutoGen: Enabling next-gen LLM applications via multi-agent conversation. arXiv:2308.08155. [https://arxiv.org/abs/2308.08155](https://arxiv.org/abs/2308.08155)

@@ -1,6 +1,7 @@
 # Chapter 27: Memory Systems
 
 ---
+
 Memory is the platform mechanism that controls what context an Agent can reuse, how long that context remains valid, who can see it, and when it must expire or be deleted. It is not a place to stuff all previous conversations back into the prompt, and it is not a renamed enterprise knowledge base. Its job is to restore context inside one Run, reuse confirmed user preferences safely, inject organizational standards consistently, and keep Memory separate from RAG.
 
 Chapter 22 requires checkpoints to reconstruct the Planner's visible context. Otherwise, after a process restarts, the Planner may forget that the previous SQL query already returned results, reselect tables, call tools again, or produce an answer that differs from the one before the restart. Chapter 25 adds that each Planner decision depends on Tool Call history, errors, and Memory fragments. Memory is therefore part of Runtime recoverability, not an optional personalization feature.
@@ -10,6 +11,7 @@ Consider a DataAgent flow. The user first asks which SKUs declined in East China
 The chapter separates four layers: Working Memory for the current Run, Episodic Memory for past task fragments, Profile for confirmed long-term user preferences, and Org Context for enterprise definitions, permissions, and process standards. Mixing them into one vector store creates privacy, deletion, versioning, and permission problems. A production platform needs controlled memory layers between forgetting everything and remembering everything forever.
 
 ---
+
 ## 27.1 Four-Layer Model of Memory
 
 ### 27.1.1 Four Types of Memory
@@ -41,15 +43,12 @@ This flow also benefits auditing: it enables restoring "what the model knew at t
 
 ### 27.1.3 Misuse Risks in Memory
 
-The first misconception is treating Memory as chat history. Chat history is only one input to Working Memory and cannot shoulder user profiles, organizational context, or long-term task experience.
-
-The second misconception is equating Memory with Retrieval-Augmented Generation (RAG). RAG mainly handles corporate documents and knowledge bases, emphasizing citation sources; Memory handles user and task context, emphasizing permissions, deletions, and recovery. They can collaborate but should not mix indexing and permission models.
-
-The third misconception is letting the model decide what to remember permanently. Promotion to long-term memory must pass policies for PII, permissions, and user confirmation. The model can suggest, but the platform decides what to write.
+The first misconception is treating Memory as chat history. Chat history is only one input to Working Memory and cannot shoulder user profiles, organizational context, or long-term task experience. The second misconception is equating Memory with Retrieval-Augmented Generation (RAG). RAG mainly handles corporate documents and knowledge bases, emphasizing citation sources; Memory handles user and task context, emphasizing permissions, deletions, and recovery. They can collaborate but should not mix indexing and permission models. The third misconception is letting the model decide what to remember permanently. Promotion to long-term memory must pass policies for PII, permissions, and user confirmation. The model can suggest, but the platform decides what to write.
 
 The fourth misconception is adding memory without deleting memory. Employee turnover, tenant offboarding, organizational changes, and compliance deletion requests all require the system to clear parts of memory. Without delete and export capabilities in the Memory API, launching long-term memory too early increases future migration costs.
 
 ---
+
 ## 27.2 Working Memory and Checkpoints
 
 ### 27.2.1 Saving the Visible Context of the Current Run
@@ -81,9 +80,7 @@ The mini-platform currently implements a minimal Working Memory: `append`, `snap
 
 ### 27.2.2 Why Checkpoints Must Contain Working Memory
 
-Saving only the state machine is insufficient. Suppose a business analytics Run has executed SQL and the tool returned a sales drop for a specific SKU; then the Pod restarts before report generation. If the checkpoint lacks `working_snapshot`, the restored Planner might re-run the query or even see different results due to new data arriving. The user sees the same Run, but internally the system's factual chain has changed.
-
-Therefore, checkpoint payloads should minimally include:
+Saving only the state machine is insufficient. Suppose a business analytics Run has executed SQL and the tool returned a sales drop for a specific SKU; then the Pod restarts before report generation. If the checkpoint lacks `working_snapshot`, the restored Planner might re-run the query or even see different results due to new data arriving. The user sees the same Run, but internally the system's factual chain has changed. Therefore, checkpoint payloads should minimally include:
 
 ```python
 checkpoint_payload = {
@@ -111,15 +108,12 @@ For instance, when a user says that future answers should use tables, it can be 
 
 ### 27.3.2 Org Context
 
-Organizational Context belongs to enterprise context. It is not personal memory. Regional definitions, indicator criteria, approval chains, master data versions, and permission domains should be managed by organization and version. Its update frequency and permission boundaries differ entirely from user Profile.
-
-For example, the list of stores that belong to East China should come from organizational master data or semantic layer versions, not from a particular user's historical queries. When the Planner assembles context, it should first inject organizational criteria, then stitch together the Working Window, and finally retrieve Episodic Memory as needed. This prevents a user's private memory from polluting enterprise definitions.
-
-Org Context also requires invalidation mechanisms. After organizational restructuring, indicator renaming, or region merging, old memories must not remain valid by default. The Memory API should return version and validity period so Trace can record the organizational criteria used in the current response.
+Organizational Context belongs to enterprise context. It is not personal memory. Regional definitions, indicator criteria, approval chains, master data versions, and permission domains should be managed by organization and version. Its update frequency and permission boundaries differ entirely from user Profile. For example, the list of stores that belong to East China should come from organizational master data or semantic layer versions, not from a particular user's historical queries. When the Planner assembles context, it should first inject organizational criteria, then stitch together the Working Window, and finally retrieve Episodic Memory as needed. This prevents a user's private memory from polluting enterprise definitions. Org Context also requires invalidation mechanisms. After organizational restructuring, indicator renaming, or region merging, old memories must not remain valid by default. The Memory API should return version and validity period so Trace can record the organizational criteria used in the current response.
 
 Org Context is closely related to the semantic layer but has different focuses. The semantic layer defines indicators, dimensions, and SQL generation criteria; Org Context injects the current organization, permissions, approval chains, and business terminology into the Planner. When DataAgent generates SQL, it follows the semantic layer as the source of truth, but when generating explanations and approval paths, it simultaneously uses Org Context.
 
 ---
+
 ## 27.4 Boundaries Between Memory and RAG
 
 RAG and Memory both incorporate external information into the context, but they are not the same thing. RAG targets documents, knowledge bases, table schemas, and policies, emphasizing citing sources and traceable facts. Memory targets users, tasks, and runtime context, emphasizing continuity, restoration, preferences, and organizational norms.
@@ -139,6 +133,7 @@ The two should work together. For example, DataAgent first obtains organizationa
 Once the boundary is blurred, a common accident is public citation of private memory. For example, if a user uploads unpublished business data in conversation and that dialogue is indexed as RAG documents, another user may retrieve it by querying similar questions. Memory must first enforce isolation by user, tenant, and run before considering vector retrieval.
 
 ---
+
 ## 27.5 Context Overflow Management
 
 The most common engineering challenge with memory is context bloat. Multi-turn conversations, tool outputs, retrieved snippets, user preferences, and organizational standards all stack together and quickly exceed the model's context window. Governance cannot rely solely on history summaries, because summaries might rewrite numbers, lose evidence, or confuse versions.
@@ -152,6 +147,7 @@ Context governance must also be part of evaluation. The test set cannot focus on
 Evaluation samples should cover multi-turn processes as well as single-turn Q&A. For example, the first turn asks for East China, the second turn says to switch to North China, the third turn deletes a personal preference, and the fourth turn runs after the organizational definition has changed. Such samples test whether Working, Profile, and Org Context each take effect under the right rules. Single-turn samples can make Memory look usable while hiding cross-turn contamination and stale definitions.
 
 ---
+
 ## 27.6 Memory and Runtime Read/Write Interfaces
 
 ### 27.6.1 Working Memory Implementation Entry Point
@@ -194,25 +190,22 @@ Before Memory connects to Runtime, at least five questions must be answered. The
 | Expiry      | Does Org Context have versioning and invalidation mechanisms?    |
 | Context Budget | Is there a limit on total Tool results, RAG fragments, and Memory fragments? |
 
-The first version can focus on solid Working Memory and checkpointing. If long-term memory and user profiles lack deletion, confirmation, and audit capabilities, it is better not to go live with them than to let the system quietly "permanently remember" user conversations.
-
-Practical acceptance can design two scenarios: one where a Pod restarts and continues generating reports, verifying that `working_snapshot` can restore the Planner context; another where the user deletes preferences and then queries again, verifying that Profile is no longer injected. The former proves Memory supports runtime recovery, the latter that long-term memory is subject to governance constraints.
+The first version can focus on solid Working Memory and checkpointing. If long-term memory and user profiles lack deletion, confirmation, and audit capabilities, it is better not to go live with them than to let the system quietly "permanently remember" user conversations. Practical acceptance can design two scenarios: one where a Pod restarts and continues generating reports, verifying that `working_snapshot` can restore the Planner context; another where the user deletes preferences and then queries again, verifying that Profile is no longer injected. The former proves Memory supports runtime recovery, the latter that long-term memory is subject to governance constraints.
 
 Production APIs can evolve in four capability groups. The first group is Working API, providing append, window, snapshot, and restore. The second group is long-term memory API, providing propose, approve, merge, and delete. The third group is organizational context API, providing get_org_context, version, and invalidate. The fourth group is audit API, reporting which memories were injected during the run, from which version, and whether they were deleted by the user. Clear API grouping makes it easier to integrate mem0, Letta, or self-developed vector stores later.
 
-Memory must also have quotas. After long-term use by a user, Profile, Episodic, and Working snapshots will grow; without quotas, the system accumulates growing historical noise. Quotas can be set by user, tenant, memory type, and validity period. When exceeding quota, the system should prioritize evicting expired, low-confidence, and unreferenced entries rather than simply deleting the most recent records.
+Memory must also have quotas. After long-term use by a user, Profile, Episodic, and Working snapshots will grow; without quotas, the system accumulates growing historical noise. Quotas can be set by user, tenant, memory type, and validity period. When exceeding quota, the system should prioritize evicting expired, low-confidence, and unreferenced entries instead of simply deleting the most recent records.
 
-Beyond quotas, memory entries should retain source and confidence metadata. Preferences confirmed by users, policies from organizational configuration, candidates extracted by the model all have different trust levels that influence deletion and overwrite rules. A common practice is to tag Profile entries with `source=confirmed_by_user` or `source=model_suggested`, and Org Context with `source=semantic_layer` and version numbers. The Planner can prioritize high-confidence entries during reads; audit replay can explain why a certain memory was injected rather than showing only a seemingly relevant context snippet.
+Beyond quotas, memory entries should retain source and confidence metadata. Preferences confirmed by users, policies from organizational configuration, candidates extracted by the model all have different trust levels that influence deletion and overwrite rules. A common practice is to tag Profile entries with `source=confirmed_by_user` or `source=model_suggested`, and Org Context with `source=semantic_layer` and version numbers. The Planner can prioritize high-confidence entries during reads; audit replay can explain why a certain memory was injected instead of showing only a seemingly relevant context snippet.
 
 Changes to Memory should also enter the release process. Adding new memory types, changing Profile promotion strategies, and adjusting Org Context expiration times all affect the model's visible context. A stable approach is to record strategy versions in the Trace and use regression testing to check whether old issues change answers under new strategies. Memory is not static configuration; it continuously affects Agent behavior and thus should be version-managed alongside Prompts, tool schemas, and semantic layers.
 
 Finally, the Memory user experience should be restrained. The system does not need to show all memories to users but should explain in key scenarios, "I am analyzing this based on previously confirmed policies," and provide interfaces for viewing and deleting. This way, users know why the system remembers something and how to correct it. Invisible, undeletable, unexplainable long-term memory is hard to adopt in enterprise production environments.
 
-The first version should avoid making long-term memory enabled by default. It can initially enable Profile candidates only in internal or low-risk scenarios, requiring user confirmation before writing; Episodic only stores summaries and evidence references of successful tasks without saving original sensitive text; Org Context is loaded only from controlled configurations. This way, Memory first serves continuity and recovery, then gradually expands to personalization and organizational learning.
-
-This sequence reduces rework. Once long-term memory stores many incorrect preferences, expired policies, or sensitive fragments, cleanup becomes harder than adding missing features. Stable Working Memory, checkpointing, deletion, and export should come first, followed by automated promotion.
+The first version should avoid making long-term memory enabled by default. It can initially enable Profile candidates only in internal or low-risk scenarios, requiring user confirmation before writing; Episodic only stores summaries and evidence references of successful tasks without saving original sensitive text; Org Context is loaded only from controlled configurations. This way, Memory first serves continuity and recovery, then gradually expands to personalization and organizational learning. This sequence reduces rework. Once long-term memory stores many incorrect preferences, expired policies, or sensitive fragments, cleanup becomes harder than adding missing features. Stable Working Memory, checkpointing, deletion, and export should come first, followed by automated promotion.
 
 ---
+
 ### 27.6.4 Pollution Control and Evaluation Evidence for Memory
 
 The hardest Memory problem after launch is not that the system fails to remember, but that it remembers the wrong thing and keeps using it. An incorrect preference, expired organizational rule, or prompt-injection-contaminated fact can enter long-term memory and affect later Runs repeatedly. Enterprise platforms should treat Memory writes as governed actions, not as ordinary context concatenation.
@@ -255,9 +248,9 @@ Context compression also needs traceability. Compressing a long conversation int
 
 Working Memory should follow the Run lifecycle. After a task ends, the platform must decide which content is retained only for audit, which content can become a user-preference candidate, and which content must be discarded immediately. If every context item is saved long term by default, the system accumulates sensitive and stale information. Long-term memory is safer with a suggest-confirm pattern: the model may identify a candidate preference, but before writing it, the system explains the source and intended use and requests confirmation when needed. Automatic writes may look intelligent, but they can turn accidental behavior into long-term preference.
 
-Organization context should be maintained by the organization rather than growing out of personal conversations. Company metrics, approval rules, brand language, and security policies should come from formal assets. A user correcting the model in one dialogue may produce a feedback sample, but it should not directly overwrite shared organization rules. Pollution signals should also be observable: repeated user correction of the same preference, sudden use of old information in a task class, or contradictory organization definitions across users can all indicate write or read errors in Memory.
+Organization context should be maintained by the organization instead of growing out of personal conversations. Company metrics, approval rules, brand language, and security policies should come from formal assets. A user correcting the model in one dialogue may produce a feedback sample, but it should not directly overwrite shared organization rules. Pollution signals should also be observable: repeated user correction of the same preference, sudden use of old information in a task class, or contradictory organization definitions across users can all indicate write or read errors in Memory.
 
-High-risk scenarios should use Memory conservatively. Contract review, financial analysis, permission decisions, and compliance advice should rely on current evidence and formal rules rather than historical preference. Memory can improve continuity, but it should not replace evidence or policy. Memory reads should also be explainable. The debug view should show which preferences, historical tasks, or Org Context entries were used. Users do not need to see this detail every time, but the platform needs to explain source influence when an answer depends on history.
+High-risk scenarios should use Memory conservatively. Contract review, financial analysis, permission decisions, and compliance advice should rely on current evidence and formal rules instead of historical preference. Memory can improve continuity, but it should not replace evidence or policy. Memory reads should also be explainable. The debug view should show which preferences, historical tasks, or Org Context entries were used. Users do not need to see this detail every time, but the platform needs to explain source influence when an answer depends on history.
 
 Compression should be structured by layer. Short-term task summaries can keep the user question, executed tools, key results, and unfinished items. Long-term preference summaries should keep stable choices only. Org Context should reference formal rules. Collapsing everything into one natural-language summary loses permission, time, and evidence boundaries. A stable Memory schema is more useful than a beautiful paragraph: preferences, task summaries, organization-rule references, user profile entries, and historical artifacts should not all be stored as free text.
 
@@ -269,20 +262,91 @@ Long-term memory needs conflict handling. User preferences change, organization 
 
 Memory should be measured by impact, not volume. The platform can compare task completion, user corrections, and complaints with and without Memory. If a memory type often leads to user correction, it should be down-weighted or its write rule should change. More memory is not automatically better; useful, controlled memory is what should remain.
 
+## 27.10 Memory Release Ledger and Pollution Review
+
+Memory should enter the release ledger in the same way as prompts, tool schemas, and semantic layers. The ledger should record memory type, read/write strategy version, default scope, expiry rule, deletion capability, evaluation set, canary tenants, and owner. Adding a Profile entry type, changing Episodic retrieval top-k, or changing Org Context invalidation changes what the model can see. Without version records, a changed online answer is hard to attribute to model upgrade, retrieval change, user preference, or organization definition.
+
+Pre-release acceptance samples should cover both "remember" and "forget" behavior. Remember samples check whether multi-turn recovery, confirmed user preference, and organization defaults are used correctly. Forget samples check whether user deletion, tenant cleanup, permission revocation, retired metrics, and expired organization rules stop affecting new tasks. Memory quality cannot be judged by hit rate alone, because retrieving wrong information is more dangerous than retrieving nothing. The acceptance report should record which memories were injected, their source Run, scope, and expiry so Chapter 38 Trace and Chapter 39 Eval can reuse the evidence.
+
+Pollution review should trace the write source. Bad memory may come from model extraction, a one-time user phrase, a wrong summary, cross-tenant retrieval, confusion between RAG and Memory, or administrator configuration. Review should first locate `memory_id`, write Run, strategy version, and recent reads. The repair may delete the entry, lower its weight, regenerate the summary, ask the user to confirm, or change retrieval filters. Changing the prompt alone usually fails, because the polluted entry can still be retrieved in later tasks.
+
+Memory also needs isolation from evaluation environments. If regression tests read production user preferences, scores will drift with historical usage and different versions cannot be compared. A more stable setup uses a controlled Memory snapshot for evaluation and records the memory set used in each result. For DataAgent, Memory must never override the semantic layer or permission policy. A user often viewing one region does not grant access to that region's details in the next task. A preferred report format also cannot change a finance metric definition.
+
+The first version can start with three operating signals: write volume, impact after read, and user correction. Excessive write volume suggests that promotion rules are too broad. Frequent user correction after reads points to poor memory quality or wrong scope. A deleted item appearing again indicates that indexes, caches, or summary copies were not cleaned consistently. The platform should review these signals weekly and adjust write admission, expiry, and user controls. Memory creates value through controlled reuse; long-term memory belongs in enterprise production only when ledger, deletion, isolation, and pollution repair all work.
+
+## 27.11 Memory Contamination Diagnosis And Deletion Evidence
+
+Production Memory risk often appears after writing. A temporary user preference, a model misjudgment, or a wrong tool summary can become long-term Memory and then influence Planner, retrieval, and answers repeatedly. Memory contamination does not always show up as an obvious error. More often, the system keeps leaning toward one customer, one metric definition, one expired project, or one wrong fact. The platform should treat Memory writing as an auditable action, not as ordinary context caching.
+
+Contamination diagnosis should preserve write source, write reason, usage count, affected tasks, user feedback, and deletion record. A Memory confirmed by a person can carry higher trust and longer retention. A Memory generated from model summarization should have shorter expiry and stricter use boundaries. User correction, approval rejection, evaluation failure, and permission change can all trigger Memory review. Deletion also needs evidence: who deleted it, why it was deleted, which later tasks were affected, and whether related evaluation needs rerun.
+
+Memory should support partial forgetting. Removing one preference should not erase all user history. When permission changes, affected data references should be removed while non-sensitive task habits can remain. When a project ends, project Memory should be archived instead of influencing new projects. A first platform version can implement minimum governance: writes carry source, reads carry reason, high-risk Memory needs human confirmation, and deletion records audit evidence. Memory can then carry context without becoming hidden state.
+
+## 27.12 User notice and review for Memory policy
+
+Memory changes how users trust the system, so policy must be explainable and reviewable. Users need to know what the system remembers, how long it keeps the record, which tasks can use it, whether it works across sessions, and whether it can be deleted. Enterprise scenarios also need to separate organizational memory from personal memory. Personal preference can improve interface and wording. Organizational facts must come from governed systems; one user's statement should not become a global rule.
+
+Review should cover both writes and reads. On write, the platform checks whether the information is stable, permitted, sensitive, and user-confirmed when needed. On read, the platform checks whether the current task may use the memory, whether the user should be told, and whether the memory conflicts with the latest system record. If memory affects a tool call, report conclusion, or recommended action, Trace should record memory id and reason for use. When a user questions the result, the team can then tell whether the issue came from stale memory, a bad write, or a business-system update.
+
+A first Memory version can start with high-value, low-risk content such as report format preference, common filters, working language, and task templates. Content involving permission, factual claims, or long-term decisions should remain as candidate memory or require human confirmation. Memory maturity is not measured by how much the system remembers, but by whether each write and read can explain purpose, scope, and exit path.
+
+## 27.13 User explanation after Memory hits
+
+When Memory is used, users need a measured explanation. The system does not need to show a detailed prompt every time, but when memory affects recommendations, tool parameters, report format, or risk judgment, it should state which type of memory was used. A message such as "using the East China scope you selected last time" is safer than silently changing filters. Users can correct bad memory only when they know it was used.
+
+The explanation should also protect privacy. The interface can show memory category and purpose without exposing full original text. The audit view keeps memory id, write source, read reason, and deletion state. This lets user experience, privacy, and review work together.
+
+## 27.14 Memory replay evaluation and policy downgrade
+
+Memory evaluation after launch should support replay. The platform can prepare paired inputs for representative tasks: one run with Memory enabled and one with Memory disabled, then compare task result, tool parameters, user corrections, and risk events. If enabling Memory makes the output fit user habits without changing permission, metric definition, or evidence source, that Memory type can stay active. If it shifts tool parameters, mixes stale preferences into report facts, or causes frequent user corrections, the platform should lower its weight or pause writes. Memory quality should not be proven by hit rate alone; the behavior after a hit matters more.
+
+Policy downgrade should be executable. When a Memory type proves risky, the platform can move it from automatic injection to candidate hint, from candidate hint to user confirmation, from long-term storage to short-term Working Memory, or from cross-task reuse to project-only reuse. After downgrade, Trace should still record that Memory matched and why it was not used, so evaluation teams can see the effect of the policy change. For high-risk tasks, disabling personal preferences by default or allowing only formal organizational context is a safer starting point.
+
+Replay should also cover deletion verification. After a user deletes a preference, the platform should use historical task samples to confirm that it no longer affects Planner, RAG filtering, report templates, or frontend defaults. If the deleted Memory still has influence, the source may be an index copy, summary cache, evaluation sample, or downstream artifact. Making deletion verification part of replay evaluation turns the Memory control plane from a UI action into a provable governance capability.
+
+## 27.15 Review flow for disputed Memory hits
+
+After a Memory hit, users may not report the problem immediately. They may only feel that the system reused an old habit, or later notice that it carried an outdated region, customer, project, or format into the task. Disputes often appear during report review, approval rejection, or downstream action failure. The platform should connect these disputes to specific memory ids instead of recording them only as answer-quality issues.
+
+The review flow should first decide whether the Memory was allowed to be read. The task may no longer belong to the same project. The user may have lost permission. The memory may have expired. Organization rules may have a newer version. The user may have deleted or disabled that memory class. These questions determine whether the hit was valid. If the read was invalid, fix read policy or scope. If the read was valid but the content was wrong, revise, downrank, or delete the memory. If the content was correct but the user could not understand its effect, improve the hit explanation and user control plane.
+
+Memory disputes should also enter evaluation. The platform can replay the same task with and without the disputed memory, then compare tool parameters, report conclusions, user corrections, and permission decisions. If disabling Memory produces a result that better matches current evidence, that memory class should not be injected automatically. If enabling Memory reduces repeated input without changing evidence boundaries, it can remain. This evaluation is more useful than hit rate alone because it measures production behavior after a hit.
+
+A first version can classify Memory disputes into three groups: wrong write, wrong read, and insufficient explanation. Wrong writes enter deletion and sample revision. Wrong reads enter policy and permission revision. Insufficient explanation enters product copy and audit-view improvement. This simple classification helps teams locate Memory problems in writing, retrieval, permission, and explanation, instead of attributing every issue to model memory ability.
+
+## 27.16 User revocation rights for Memory changes
+
+After Memory enters production, users need revocation rights. They may find that the system remembered a wrong preference, stale project, sensitive identity, temporary context, or content that should not persist across sessions. If only backend teams can delete Memory, users lose control and privacy risk grows. An enterprise Agent platform should let users view, correct, delete, and limit the scope of Memory use.
+
+Revocation rights should connect to operating evidence. After a user deletes one Memory item, the platform should record the deleted object, deletion time, affected scope, and later policy. It should also define whether running Runs continue using old Memory. If a report or decision already referenced deleted Memory, the system may not rewrite historical artifacts, but it should explain that the Memory was used at the time and stop using it for future tasks. User control then does not break audit evidence.
+
+Revocation should support levels. A user can delete one preference or disable a Memory class, such as personal preferences, project context, organizational rules, or historical task summaries. An administrator can freeze Memory writes by tenant or data domain. Each level should enter Trace and the Memory ledger, so Planner knows which context is no longer available and avoids planning around stale preferences.
+
+A first version can start with view, delete, and limit-use capabilities. View shows users what the system remembers. Delete handles wrong or sensitive records. Limit-use controls whether Memory enters high-risk tasks. Memory is valuable because it carries long-term context, but that context belongs in enterprise scenarios only when users can control it.
+
+## 27.17 Memory deletion rights and user explanation
+
+After Memory goes live, users need to know what is remembered, why it is remembered, and how to delete it. Enterprise Memory may contain preferences, project context, common metrics, approval habits, customer information, and historical tasks. If the platform writes and expires Memory only in the backend, users experience it as an invisible source of judgment. When an answer goes wrong, they cannot tell whether the cause is current input, historical memory, or model inference.
+
+Deletion rights should apply to concrete objects. A user may delete one memory item, one project context, one preference class, or request that Memory for a tenant stop entering answers. After deletion, the platform should handle derived material: cache, evaluation samples, summaries, vector indexes, and report artifacts may still reference that memory. Not every audit record must be physically deleted, but user-visible and model-usable memory should be removed according to policy.
+
+Explanation also needs granularity. The Agent can say that this answer used project X context and did not use personal preferences, without exposing every internal record. For high-risk tasks, Memory usage should enter Trace. For user feedback, the platform should allow users to mark a memory item as not applicable. A first version can show memory source, scope, last-used time, and deletion action in the Memory panel. Memory can then improve continuity without becoming hidden context that nobody can audit.
+
+## 27.18 Appeal handling after Memory use
+
+After Memory reaches production, a successful demo is not enough evidence. The platform needs stable fields for matched content, source, write time, use reason, user revocation, and deletion receipt, and those fields should connect to release records, Trace, evaluation samples, and incident notes. When a production issue appears, teams can follow one set of facts to understand scope, ownership, and repair order instead of stitching together model logs, business logs, and verbal explanations.
+
+This evidence also connects the surrounding chapters. It links to Chapter 20 on RAG, Chapter 30 on HITL, and Chapter 52 on compliance: upstream capabilities provide assumptions, downstream capabilities consume the result, and governance capabilities preserve evidence and review decisions. If these materials do not share identifiers and versions, the production system splits apart. Business owners see user complaints, platform owners see system errors, and security or compliance teams see explanations written after the fact. That separation makes it hard to decide whether the issue came from data, model behavior, tool contracts, workflow state, or organizational ownership.
+
+Common production risks include users disagreeing with a profile, stale preferences affecting answers, and deleted content still being served from cache. These risks are less visible during demos because demos usually exercise the successful path. Production users bring boundary cases, repeated requests, permission changes, and long-running state. The platform team should turn such failures into release samples. Some samples should block launch, some can be handled by degradation, and some require the business owner to accept the remaining risk with a review date.
+
+Memory should provide explanation and appeal paths so long-term context does not become an invisible decision basis. The record can stay compact, but it should include time, version, owner, sample, action, and the next review condition. Without those fields, review remains informal experience. With them, one production issue can become material for later releases, evaluation suites, and training.
+
+A first platform version can start with a small set of high-risk paths. Choose flows with high traffic, high business impact, or sensitive data, require an evidence package for each change, and then expand the practice to ordinary scenarios. This keeps the capability at the engineering level: runnable, explainable, and recoverable.
 ## Chapter Recap
 
 Memory is a platform subsystem, not chat history and not RAG. Working Memory must enter checkpoints so Runtime recovery preserves Planner context. Episodic, Profile, and Org Context have different scopes, permissions, and update frequency and should not be mixed into one generic store. RAG handles documents and evidence; Memory handles task continuity, user preference, and organization context. Long-term memory should solve deletion, isolation, versioning, audit, write admission, pollution repair, and user control before automated promotion becomes default.
 
 ## References
 
-Wang, L., Ma, C., Feng, X., et al. (2024). A survey on large language model based autonomous agents. *Frontiers of Computer Science*, 18(6), 186345. [https://doi.org/10.1007/s11704-024-40231-1](https://doi.org/10.1007/s11704-024-40231-1)
-
-Chhikara, P., Khant, P., Yadav, P., et al. (2025). mem0: Building production-ready AI agents with scalable long-term memory. [https://arxiv.org/abs/2504.19437](https://arxiv.org/abs/2504.19437)
-
-Packer, C., Wooders, S., Lin, K., et al. (2023). MemGPT: Towards LLMs as operating systems. [https://arxiv.org/abs/2310.08560](https://arxiv.org/abs/2310.08560)
-
-Letta. (n.d.). *Letta documentation*. [https://docs.letta.com/](https://docs.letta.com/)
-
-Zhang, Z., Wang, Y., Fang, C., et al. (2024). A survey on the memory mechanism of large language model-based agents. [https://arxiv.org/abs/2404.13501](https://arxiv.org/abs/2404.13501)
-
-LangChain. (n.d.). *Persistence*. LangGraph. [https://docs.langchain.com/oss/python/langgraph/persistence](https://docs.langchain.com/oss/python/langgraph/persistence)
+Wang, L., Ma, C., Feng, X., et al. (2024). A survey on large language model based autonomous agents. *Frontiers of Computer Science*, 18(6), 186345. [https://doi.org/10.1007/s11704-024-40231-1](https://doi.org/10.1007/s11704-024-40231-1) Chhikara, P., Khant, P., Yadav, P., et al. (2025). mem0: Building production-ready AI agents with scalable long-term memory. [https://arxiv.org/abs/2504.19437](https://arxiv.org/abs/2504.19437) Packer, C., Wooders, S., Lin, K., et al. (2023). MemGPT: Towards LLMs as operating systems. [https://arxiv.org/abs/2310.08560](https://arxiv.org/abs/2310.08560) Letta. (n.d.). *Letta documentation*. [https://docs.letta.com/](https://docs.letta.com/) Zhang, Z., Wang, Y., Fang, C., et al. (2024). A survey on the memory mechanism of large language model-based agents. [https://arxiv.org/abs/2404.13501](https://arxiv.org/abs/2404.13501) LangChain. (n.d.). *Persistence*. LangGraph. [https://docs.langchain.com/oss/python/langgraph/persistence](https://docs.langchain.com/oss/python/langgraph/persistence)

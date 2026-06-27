@@ -1,9 +1,8 @@
 # Chapter 32 DataAgent Product Forms
 
 ---
-## Scene Introduction
 
-Part V established the operational foundation of the Agent platform: the Runtime handles the six states of running and checkpointing, the Registry manages tool registration and call auditing, the Planner determines the next tool to use, the Memory stores multi-turn context, and HITL (Human-In-The-Loop) pauses high-risk tasks awaiting human confirmation. Entering Part VI, the question becomes: how do these capabilities combine to form a data product tailored for business users?
+## Scene Introduction Part V established the operational foundation of the Agent platform: the Runtime handles the six states of running and checkpointing, the Registry manages tool registration and call auditing, the Planner determines the next tool to use, the Memory stores multi-turn context, and HITL (Human-In-The-Loop) pauses high-risk tasks awaiting human confirmation. Entering Part VI, the question becomes: how do these capabilities combine to form a data product tailored for business users?
 
 This book calls such products DataAgents. They run on top of the Agent platform, serving business scenarios in operations, finance, supply chain, marketing, and more, helping users initiate data queries, analyses, and reporting tasks via natural language. They are not Gateways, not semantic layers, nor just SQL plugins. They are business Agents that link natural language questions, semantic layers, SQL execution, Python analysis, charts, reports, and audit workflows into one chain.
 
@@ -11,9 +10,10 @@ We can start from a common question: "Sales in East China dropped sharply last w
 
 This boundary becomes visible in real operating meetings. A pilot system may quickly return a Top SKU table and executable SQL, yet the meeting can still fail if two of the SKUs belong to a clearance strategy, the controller expects operational GMV while the query used a finance metric, or the region hierarchy changed during the week. The SQL can be valid while the business conclusion is unusable.
 
-DataAgent must therefore complete a data task rather than produce a fluent answer. It identifies whether the user is querying or diagnosing, binds metrics and organization scope, decides whether multi-step analysis is needed, keeps evidence after execution, and delivers an explanation that business users can adopt. Chapters 33 through 36 develop the chain: semantic layer, NL2SQL, Text-to-Python, visualization, and reporting.
+DataAgent must therefore complete a data task instead of produce a fluent answer. It identifies whether the user is querying or diagnosing, binds metrics and organization scope, decides whether multi-step analysis is needed, keeps evidence after execution, and delivers an explanation that business users can adopt. Chapters 33 through 36 develop the chain: semantic layer, NL2SQL, Text-to-Python, visualization, and reporting.
 
 ---
+
 ## 32.1 DataAgent Covers the Full Data Task Chain
 
 NL2SQL is one of the core capabilities of DataAgent. Without the ability to convert natural language questions into executable queries, DataAgent would struggle to enable self-service analytics. However, NL2SQL alone is not enough. The most common failures in enterprise analytics are not SQL syntax errors, but mistakes in business definitions, permission boundaries, loss of context, or conclusions unsupported by evidence.
@@ -56,9 +56,10 @@ DataAgent functions more like an entry point for data tasks. It can start from n
 
 This boundary is important for product roadmaps. If a company only has a single-subject data set, starting with ChatBI or BI Copilot may be faster. If the goal is cross-business domain operational analysis with auditing, approvals, and multi-step tasks, DataAgent is a more suitable form.
 
-When evaluating products, whether for procurement or in-house development, three questions can quickly judge the true product boundaries. First, can the metrics in responses be traced back to semantic layer versions? Second, can the execution process be replayed down to SQL, parameters, and permission contexts? Third, does multi-turn querying reuse structured frames rather than feeding chat history back into the model? Systems unable to answer these questions resemble conversational BI plugins rather than a platform-level DataAgent.
+When evaluating products, whether for procurement or in-house development, three questions can quickly judge the true product boundaries. First, can the metrics in responses be traced back to semantic layer versions? Second, can the execution process be replayed down to SQL, parameters, and permission contexts? Third, does multi-turn querying reuse structured frames instead of feeding chat history back into the model? Systems unable to answer these questions resemble conversational BI plugins instead of a platform-level DataAgent.
 
 ---
+
 ## 32.3 Four Product Forms
 
 This book divides DataAgent product forms into four tiers: Questioning, Analysis, Reporting, and Task Workbench. They are not four mutually exclusive SKUs but a maturity progression. Most enterprises should first make the Questioning form reliable, then add Analysis and Reporting, and finally solidify high-frequency workflows into a Task Workbench.
@@ -74,15 +75,14 @@ This book divides DataAgent product forms into four tiers: Questioning, Analysis
 
 The Questioning form is the easiest foundation to verify. It requires the semantic layer to bind business terms to metrics, NL2SQL to generate correct queries, the executor to safely return results, and the answer to explain definitions and data time frames. Without this step, jumping directly to reports tends to package erroneous numbers more attractively.
 
-The Analysis form introduces Python or dedicated analysis services. Many problems cannot be solved by a single SQL query, such as structural contribution, anomaly detection, simple forecasting, and price-sales decomposition. DataAgent should first retrieve controlled data via SQL, then pass intermediate results into sandbox analysis instead of asking the model to compute inside the prompt.
-
-The Reporting form requires evidence references. Every number, trend, and conclusion in reports should link back to query results, chart data, or analysis artifacts. Otherwise, the smoother the narrative language, the greater the risk. Chapter 36 will focus on organizing EvidenceRef, charts, and storytelling.
+The Analysis form introduces Python or dedicated analysis services. Many problems cannot be solved by a single SQL query, such as structural contribution, anomaly detection, simple forecasting, and price-sales decomposition. DataAgent should first retrieve controlled data via SQL, then pass intermediate results into sandbox analysis instead of asking the model to compute inside the prompt. The Reporting form requires evidence references. Every number, trend, and conclusion in reports should link back to query results, chart data, or analysis artifacts. Otherwise, the smoother the narrative language, the greater the risk. Chapter 36 will focus on organizing EvidenceRef, charts, and storytelling.
 
 The Task Workbench is the mature form. It turns DataAgent from a one-off Q&A into an operational workflow, such as weekly business briefs, monthly reviews, anomaly attribution, and approval submission. At this stage, run checkpoints, approvals, scheduled tasks, multi-Agent collaboration, and trace replay all become part of the product.
 
 The pace of advancing through these four forms should obey the maturity of the data foundation. If the semantic layer covers only a few core metrics, starting with Questioning is more suitable; if query results are stable but business requires secondary processing, Analysis with Python can be added; if report templates and evidence referencing are stable, move to Reporting; only when reporting workflows repeat frequently is it worthwhile to build scheduling, approval, and the Task Workbench. Conversely, if the semantic layer is unstable but the system jumps directly to automated monthly reports, it amplifies definition issues into organizational problems.
 
 ---
+
 ## 32.4 Question Frame and Task Planning
 
 Before generating SQL, DataAgent should first convert the user's question into a Question Frame. This is not text shown to the user but rather a contract between the Planner, semantic layer, Memory, and execution tools. A typical Frame includes metrics, dimensions, time, subject, task type, granularity, and execution path.
@@ -126,6 +126,7 @@ The Frame can also reduce front-end complexity. The front end does not need to u
 For operational users, the Frame's presence should not feel like a form burden. The system can ask a brief clarification question when needed, such as "For sales amount here, do you mean operational GMV or financial GMV?" Once the user confirms, subsequent similar queries can reduce repeated clarifications by applying user profiles or organizational defaults. Human-computer interaction requires restraint: ask when necessary, use explainable defaults otherwise.
 
 ---
+
 ## 32.5 Composite Scenario of Business Analysis
 
 Part VI uses an anonymized business analysis scenario to run through each chapter. Before the weekly meeting, the operations lead needs to explain the sales decline in the East China region; the financial controller needs to verify the metric definitions; and the category manager wants to review structural changes. DataAgent is responsible for breaking down the problem into executable workflows.
@@ -148,13 +149,14 @@ User-visible answers must include evidence information. For example: "East China
 This scenario also demonstrates DataAgent's failure handling paths. If the semantic layer lacks "operational GMV," the system should pause for clarification or refuse to answer; if SQL execution times out, the task should return failure while preserving the trace; if Python analysis finds insufficient sample size, the conclusion confidence should be downgraded; if the report is to be sent externally, it should enter HITL (Human-In-The-Loop). Clearly defining failure paths prevents the product from degenerating into simply "model-generated fabricated explanations" during exceptional cases.
 
 ---
+
 ## 32.6 Boundaries with Data Platforms, BI, and Agent Platforms
 
 DataAgent operates at the business application layer, reusing capabilities from the data platform and agent platform below. Clear boundaries are essential so that the system does not become technical debt after early successful demos.
 
 ![Figure 32-2: Boundary between DataAgent and Platform Layers](../../images/part6/en/ch32-platform-layers.png)
 
-*Figure 32-2: Boundary between DataAgent and platform layers. Source: author's illustration. Alt text: The layered diagram distinguishes DataAgent's exclusive capabilities from platform shared capabilities, arrows indicate DataAgent reuses platform features rather than rebuilding them.*
+*Figure 32-2: Boundary between DataAgent and platform layers. Source: author's illustration. Alt text: The layered diagram distinguishes DataAgent's exclusive capabilities from platform shared capabilities, arrows indicate DataAgent reuses platform features instead of rebuilding them.*
 
 The Agent platform provides Runtime, Registry, Trace, HITL (Human-in-the-Loop), and Policy components. DataAgent should not replicate its own execution state management or tool call chains. SQL executors, Python sandboxes, and chart renderers should be invoked as Registry tools so that other agents can reuse them and audits can be unified.
 
@@ -165,6 +167,7 @@ BI remains valuable. Fixed dashboards, formal financial reports, and high-freque
 This also means DataAgent projects should not be completed by a frontend or modeling team alone. The data platform team must provide metrics and quality metadata, the agent platform team must provide runtime and tool governance, and the business team must provide terminology, default definitions, and reporting templates. Without any party, the product will suffer distortions at some stage: the model may write SQL but be inconsistent in definitions, or the definitions may be accurate but the user experience will feel like an internal tool.
 
 ---
+
 ## 32.7 Product Success Criteria
 
 The success of DataAgent cannot be judged solely by SQL exact match rates. Enterprise users ultimately care about trustworthiness, usability, and governance. Trustworthiness means data definitions are accurate, evidence is traceable, and permissions are properly controlled; usability means business users are willing to repeatedly use the system, with acceptable latency and interaction costs; governance means every answer can be replayed with the Run, SQL, metric versions, approval chains, and artifacts intact.
@@ -187,15 +190,15 @@ The release path must allow downgrade. If a reporting scenario shows falling evi
 
 ## 32.9 Typical Failure Modes and Product Degradation
 
-DataAgent failures usually cross multiple layers. The user may omit a definition, the semantic layer may not cover a metric, NL2SQL may generate executable but wrong SQL, Python analysis may lack enough samples, a report may state a conclusion more strongly than the evidence supports, or the reviewer may not have enough context to approve. Product design should convert these failures into understandable states rather than a generic system error.
+DataAgent failures usually cross multiple layers. The user may omit a definition, the semantic layer may not cover a metric, NL2SQL may generate executable but wrong SQL, Python analysis may lack enough samples, a report may state a conclusion more strongly than the evidence supports, or the reviewer may not have enough context to approve. Product design should convert these failures into understandable states instead of a generic system error.
 
-When a metric definition is missing, the system should ask a clarification question and write the result back into the Question Frame. When the semantic layer lacks coverage, the answer should explain the unsupported metric and suggest available definitions. SQL failures should distinguish permission denial, resource limits, missing fields, and empty data. Python failures can downgrade to query results plus a cautious explanation. Reports with weak evidence can be generated as restricted drafts rather than formal conclusions.
+When a metric definition is missing, the system should ask a clarification question and write the result back into the Question Frame. When the semantic layer lacks coverage, the answer should explain the unsupported metric and suggest available definitions. SQL failures should distinguish permission denial, resource limits, missing fields, and empty data. Python failures can downgrade to query results plus a cautious explanation. Reports with weak evidence can be generated as restricted drafts instead of formal conclusions.
 
 Degradation preserves the trusted scope when evidence is insufficient. A DataAgent that returns controlled query results is more production-ready than one that produces a full report without traceable evidence. This chapter sets the degradation principle; Chapters 33 through 36 apply it to semantic binding, query execution, analysis artifacts, and reports.
 
 ## 32.10 Integration with Organizational Processes
 
-DataAgent is used by business people, so it has to enter business processes rather than remain a chat box. Operating reviews, finance retrospectives, supply chain incidents, and marketing campaign evaluations already have metric definitions, review responsibilities, and publication paths. Before DataAgent enters those processes, the team must define who can ask, who can see detail, who confirms definitions, who publishes reports, and who resolves disputes.
+DataAgent is used by business people, so it has to enter business processes instead of remain a chat box. Operating reviews, finance retrospectives, supply chain incidents, and marketing campaign evaluations already have metric definitions, review responsibilities, and publication paths. Before DataAgent enters those processes, the team must define who can ask, who can see detail, who confirms definitions, who publishes reports, and who resolves disputes.
 
 Organizational context also defines defaults. The same "sales" question may use one definition in an operations meeting, another in finance closing, and a different period in sales daily reporting. The same regional manager may view detail for her own region but only aggregates elsewhere. DataAgent should read user role, business domain, default metric policy, and permission policy before handing the task to model planning and execution. The model turns a question into a task; the platform decides whether that task may run.
 
@@ -223,6 +226,83 @@ Acceptance samples should also include organizational roles. An operations owner
 
 Sample maintenance belongs to operations. Online disputes, manual rejections, and user edits should become new samples. Obsolete metrics, retired organization definitions, and removed report templates should move out of the default regression set or be marked as historical samples. A useful sample library supports both historical replay and current release decisions.
 
+## 32.13 DataAgent Release Ledger and Operating Review
+
+The DataAgent release ledger should be organized by capability layer instead of a single version label. Querying, analysis, reporting, and task workbench modes depend on different modules and require different evidence. The querying layer records semantic-layer version, SQL executor version, permission policy, and refusal samples. The analysis layer records Python sandbox policy, reproducible artifacts, sample-size boundaries, and numeric checks. The reporting layer records EvidenceRef coverage, template version, manual rejection reasons, and publication permission. The task workbench layer records Runtime, HITL, scheduled triggers, notifications, and task recovery. With this structure, a release record explains which capability was opened and which scenarios remain experimental.
+
+Operating review should follow real task chains. A weekly business review task may pass through Question Frame, semantic binding, SQL query, Python analysis, chart generation, report draft, controller review, and meeting-material archival. Review should inspect more than whether the final answer reads well. Each stage needs evidence: whether the Frame carried role and default definition, whether SQL was read-only and hit the correct View, whether the Python artifact can be reproduced, whether report conclusions point to EvidenceRef, and whether HITL recorded the approved object and artifact hash. If any stage lacks evidence, future disputes return to manual explanation.
+
+The release ledger also supports downgrade decisions. A scenario that performs well in querying is not automatically ready for automated reports. A report scenario with many manual rejections does not require shutting down the whole DataAgent. The safer response is to move that scenario back to the analysis layer, keep controlled query and analysis output, and pause automatic drafting or submission. If a query topic keeps being refused because the semantic layer lacks coverage, the product owner should put it into the next metric-building cycle instead of asking the model to bypass the semantic layer and query physical tables directly. The ledger ties capability level to evidence so the team can adjust locally.
+
+Different roles need different review measures. Business owners care about completion rate for core questions, clarification count, and report usability. Data owners care about metric version, lineage, freshness, and definition disputes. Platform owners care about cost per Run, tool failure rate, recovery success rate, and queue waiting time. Compliance owners care about permission refusals, approval records, and export evidence. A single aggregate score hides these differences. DataAgent spans the data platform and the Agent platform, and its operating view has to be layered as well.
+
+The first version can use a weekly review rhythm. Each week, sample successful tasks, downgraded tasks, manually rejected tasks, and user disputes, then inspect Frame, metric binding, SQL, analysis artifacts, EvidenceRef, HITL, and Trace with the same checklist. Review results should feed acceptance samples and the next release plan: scenarios with enough evidence can move to a higher capability layer, weak-evidence scenarios can downgrade, and repeated failures can return to the corresponding engineering module in later chapters. DataAgent then improves from production evidence instead of relying on demos or subjective impressions.
+
+## 32.14 Admission Samples For The DataAgent End-To-End Chain
+
+DataAgent construction should start from admission samples. A qualified sample needs more than a natural-language question. It should include user role, metric definition, accessible data domain, expected SQL or query path, correct conclusion, acceptable chart, evidence citation, and failure handling. If a sample only says "query this month's sales," the platform cannot judge whether semantic layer, permission, SQL, charting, and reporting work together. The more complete the admission sample is, the easier it is for Chapters 33 to 36 to align.
+
+Admission samples should cover normal and abnormal paths. The normal path shows how the system enters the semantic layer, generates the query, executes computation, explains charts, and produces a report. The abnormal path states how to recover when the metric is missing, permission is insufficient, SQL fails, results are empty, the chart is unsuitable, EvidenceRef is missing, or human review rejects the answer. Samples with only happy paths make DataAgent look smooth in demos but leave it unable to handle incomplete inputs and disputed definitions in production.
+
+The overall chain also needs cross-chapter evidence. After a sample passes, it should link model version, semantic-layer version, query log, execution plan, chart specification, report paragraph, Trace, Eval, and human review. Chapter 32 then becomes the admission entry for later chapters, with the architecture overview serving that acceptance role. Each new business domain should start by adding admission samples, then expanding semantic layer and tools, and finally entering reporting and evaluation.
+
+## 32.15 Release communication for DataAgent capability boundaries
+
+Before DataAgent goes live, product and platform teams should explain capability boundaries to users. Users need to know which questions can be answered directly, which questions produce drafts, which questions require human confirmation, and which questions are outside the current scope. Boundary communication should not read like a disclaimer. It should appear in task entry points, result pages, and review flows. A business-analysis entry point can state supported metric domains, data freshness, available dimensions, and approval requirements. A report-generation flow can mark which sections come from data queries and which sections require a business owner to revise.
+
+Failure paths also need communication. DataAgent may stop because permission is missing, the semantic layer has no metric, SQL execution failed, evidence conflicts, or report review did not pass. If users see only a generic failure, they tend to blame the model. If they see the failing stage and the available action, they are more likely to accept platform governance. A message such as "the East China metric definition is missing; choose national scope or submit a metric request" is more useful than "query failed." Boundary communication helps users understand how the system completes work safely.
+
+The first release can include a small set of supported and unsupported questions. Supported examples show task chains already covered by the platform. Unsupported examples show high-risk or low-evidence tasks that should wait. After every capability expansion, these examples should be updated. User expectation, evaluation samples, and product boundary then stay aligned as DataAgent moves from a demo capability to an operated enterprise service.
+
+## 32.16 Change control and rollback strategy for DataAgent
+
+DataAgent change control should be separated by chain segment. Model, Prompt, semantic layer, SQL executor, Python sandbox, report template, permission policy, and frontend component changes can all alter the user's result, but they introduce different risks. A model change may affect definition explanation and clarification behavior. A semantic-layer change affects metric binding. A report-template change affects expression strength and evidence display. A permission-policy change may alter the data scope visible to the same user. A release record that only says "DataAgent upgraded" gives the team little help when an incident appears.
+
+Each change should bind to acceptance samples and an observation window. Semantic-layer changes should run core metric, permission refusal, empty result, and multi-turn follow-up samples. Report-template changes should run EvidenceRef, human review, and export-boundary samples. Python sandbox policy changes should run resource-limit, non-whitelisted package, and numeric-validation samples. After samples pass, the change can enter canary release. During canary, the platform should record old/new differences, user feedback, manual rejections, and cost movement.
+
+Rollback should also be layered. Model routing can return to the previous model. A metric can return to the prior semantic version. Report templates can pause automatic publication. Python analysis can degrade to read-only querying. A business domain can return to internal pilot. Rollback should not mean taking the whole platform offline. Fine-grained rollback preserves validated capability and reduces business disruption.
+
+Change control also needs user communication. If a release changes default metrics, report format, or approval requirements, users need to know where the change happened, whether old results remain reviewable, and whether new results can be compared with old ones. For fixed processes such as operating reviews and finance retrospectives, the platform should keep a dual-track window where old and new definitions are visible, with one version marked for official material. This keeps DataAgent evolution from eroding trust in data definitions.
+
+## 32.17 Acceptance order before expanding to a new business domain
+
+When DataAgent expands from one business domain to another, teams should not copy prompts and report templates alone. Each domain has its own metric definitions, permission hierarchy, anomaly explanations, approval responsibility, and report audience. In sales, "region" may mean a sales organization. In supply chain, it may mean a warehouse and delivery network. In finance, it may map to an accounting entity. If the platform reuses the old domain's default dimensions and explanation style, users in the new domain will receive fluent but misaligned analysis.
+
+Expansion should accept the semantic layer first, then querying, then analysis and reporting. Semantic-layer acceptance confirms core metrics, dimensions, definitions, default time grain, and permission boundary. Query acceptance confirms that NL2SQL reaches the right View, remains read-only, and handles empty results and permission refusal. Analysis acceptance confirms whether Python or statistical logic fits the domain. Report acceptance confirms EvidenceRef, human review, and publication boundary. This order prevents teams from skipping semantic foundations and asking the model to generate complete material too early.
+
+Domain expansion should also preserve differences between the old and new domains. The release ledger should state which capabilities are reusable, which samples need rebuilding, which tools are added, and which report templates need rewriting. A capability verified only in the old domain should enter the new domain as a canary capability. Top-SKU decomposition in sales may not fit production-bottleneck analysis in manufacturing. An operating-review template may not fit a compliance explanation.
+
+A first version can treat each new business domain as a small admission cycle. Admission material includes business questions, core metrics, permission roles, acceptance samples, failure handling, report template, and owner. After acceptance, the domain can open to more users. Before acceptance, it should provide only query or draft capability. This lets DataAgent coverage expand steadily without asking model generalization to absorb every business difference at once.
+
+## 32.18 Responsibility map for the end-to-end DataAgent chain
+
+The end-to-end DataAgent chain needs a responsibility map. After a natural-language question enters the system, it passes through semantic layer, query generation, execution engine, Python sandbox, chart generation, report expression, human review, and publication records. Each stage can succeed, fail, degrade, or wait. If responsibility is not assigned in advance, incidents are easily blamed on the model that produced the final answer, while the real issue may sit in data contracts, permissions, OLAP resources, or report templates.
+
+The responsibility map should assign owners by chain stage. The semantic-layer owner handles metrics and field explanations. The data owner handles freshness and quality. The platform owner handles Runtime, Trace, and degradation. The security owner handles permissions and approval. The business owner handles acceptance samples and usage boundaries. Each owner needs observable signals: field version, quality state, SQL artifact, execution state, EvidenceRef, report version, and user feedback. Responsibility without signals rarely works in production.
+
+The map should also support change. Adding a data domain, replacing a query engine, changing report templates, adjusting permissions, or adding human review changes one part of the responsibility chain. The responsibility map should update before the capability ships. DataAgent expansion then checks whether operating responsibility keeps pace with feature integration.
+
+A first version can place the responsibility map inside the DataAgent release ledger. Each scenario lists chain stage, owner, evidence field, failure action, and review entry. Readers can then treat Chapters 33 to 36 as expansions of the responsibility map in Chapter 32, not separate feature modules.
+
+## 32.19 DataAgent responsibility map
+
+DataAgent spans data, models, tools, reports, and approvals, so a responsibility map matters more than a single architecture diagram. A wrong answer may come from semantic-layer definitions, SQL generation, permission filtering, Python analysis, report wording, cache, user context, or human review. Without a responsibility map, incidents bounce among data teams, model teams, and business teams.
+
+The map should assign owners by chain segment. Semantic-layer owners maintain metric and dimension definitions. Data owners maintain source tables, quality, and permissions. Model platform owns routing and inference stability. Agent Runtime owns planning, tool calls, and state. The report layer owns EvidenceRef and publication boundaries. Business owners decide whether a conclusion fits the scenario. Security and compliance own high-risk actions and audit evidence. Each owner needs access to the relevant Trace segment.
+
+A first version can maintain a responsibility matrix for each production DataAgent scenario. The matrix lists user entry point, key data sources, tools, models, approval points, report artifacts, SLO, and review owners. During incidents, teams first locate the responsibility domain through failure labels, then review samples. DataAgent then becomes an operable data-intelligence chain across teams, with question answering as one visible interaction.
+
+## 32.20 Minimum evidence set for the DataAgent main chain
+
+After the DataAgent main chain reaches production, a successful demo is not enough evidence. The platform needs stable fields for Question Frame, semantic match, SQL, execution result, analysis code, report artifact, and user feedback, and those fields should connect to release records, Trace, evaluation samples, and incident notes. When a production issue appears, teams can follow one set of facts to understand scope, ownership, and repair order instead of stitching together model logs, business logs, and verbal explanations.
+
+This evidence also connects the surrounding chapters. It links to Chapters 33 through 36, Chapter 38 on Trace, and Chapter 39 on Eval: upstream capabilities provide assumptions, downstream capabilities consume the result, and governance capabilities preserve evidence and review decisions. If these materials do not share identifiers and versions, the production system splits apart. Business owners see user complaints, platform owners see system errors, and security or compliance teams see explanations written after the fact. That separation makes it hard to decide whether the issue came from data, model behavior, tool contracts, workflow state, or organizational ownership.
+
+Common production risks include one step succeeding while the final answer remains unusable, reports that cannot trace back to SQL, and user edits that do not return to samples. These risks are less visible during demos because demos usually exercise the successful path. Production users bring boundary cases, repeated requests, permission changes, and long-running state. The platform team should turn such failures into release samples. Some samples should block launch, some can be handled by degradation, and some require the business owner to accept the remaining risk with a review date.
+
+First-version DataAgent acceptance should inspect evidence completeness across the full chain instead of measuring only single-point capability. The record can stay compact, but it should include time, version, owner, sample, action, and the next review condition. Without those fields, review remains informal experience. With them, one production issue can become material for later releases, evaluation suites, and training.
+
+A first platform version can start with a small set of high-risk paths. Choose flows with high traffic, high business impact, or sensitive data, require an evidence package for each change, and then expand the practice to ordinary scenarios. This keeps the capability at the engineering level: runnable, explainable, and recoverable.
 ## Chapter Recap
 
 DataAgent covers more than NL2SQL. NL2SQL converts natural language into queries, while production DataAgent also handles semantic binding, read-only execution, Memory, analysis, reports, approval, and audit. ChatBI and BI Copilot focus more on query entry points and dashboard assistance; DataAgent targets cross-system, long-running, replayable data workflows. Querying, analysis, reporting, and task workbench should advance layer by layer. If the semantic layer is unstable, generating complete reports will amplify definition conflicts, permission gaps, and execution risk.
@@ -231,14 +311,8 @@ Question Frame is the intermediate contract that ties this chain together. It sh
 
 ## References
 
-Liu, X., Shen, S., Li, B., Ma, P., Jiang, R., Zhang, Y., Fan, J., Li, G., Tang, N., & Luo, Y. (2025). A survey of Text-to-SQL in the era of LLMs: Where are we, and where are we going? *IEEE Transactions on Knowledge and Data Engineering*, 37(10), 5735-5754. [https://doi.org/10.1109/TKDE.2025.3592032](https://doi.org/10.1109/TKDE.2025.3592032)
-
-Tang, Z., Wang, W., Zhou, Z., Jiao, Y., Xu, B., Niu, B., Zhou, X., Li, G., He, Y., Zhou, W., et al. (2025). LLM/Agent-as-Data-Analyst: A survey. arXiv:2509.23988. [https://arxiv.org/abs/2509.23988](https://arxiv.org/abs/2509.23988)
+Liu, X., Shen, S., Li, B., Ma, P., Jiang, R., Zhang, Y., Fan, J., Li, G., Tang, N., & Luo, Y. (2025). A survey of Text-to-SQL in the era of LLMs: Where are we, and where are we going? *IEEE Transactions on Knowledge and Data Engineering*, 37(10), 5735-5754. [https://doi.org/10.1109/TKDE.2025.3592032](https://doi.org/10.1109/TKDE.2025.3592032) Tang, Z., Wang, W., Zhou, Z., Jiao, Y., Xu, B., Niu, B., Zhou, X., Li, G., He, Y., Zhou, W., et al. (2025). LLM/Agent-as-Data-Analyst: A survey. arXiv:2509.23988. [https://arxiv.org/abs/2509.23988](https://arxiv.org/abs/2509.23988)
 
 Lei, F., Chen, J., Ye, Y., Cao, R., Shin, D., Su, H., Suo, Z., Gao, H., Hu, W., Yin, P., Zhong, V., Xiong, C., Sun, R., Liu, Q., Wang, S., & Yu, T. (2024). Spider 2.0: Evaluating language models on real-world enterprise text-to-SQL workflows. *ICLR 2025*. arXiv:2411.07763. [https://arxiv.org/abs/2411.07763](https://arxiv.org/abs/2411.07763)
 
-Huo, N., Xu, X., Li, J., Jacobsson, P., Lin, S., Qin, B., Hui, B., Li, X., Qu, G., Si, S., Han, L., Alexander, E., Zhu, X., Qin, R., Yu, R., Jin, Y., Zhou, F., Zhong, W., Chen, Y., Liu, H., Ma, C., Ozcan, F., Papakonstantinou, Y., & Cheng, R. (2026). BIRD-INTERACT: Re-imagining Text-to-SQL evaluation through the lens of dynamic interactions. *ICLR 2026*. arXiv:2510.05318. [https://arxiv.org/abs/2510.05318](https://arxiv.org/abs/2510.05318)
-
-Cube. (2025). *Introduction: Cube semantic layer*. Cube Documentation. [https://cube.dev/docs/product/introduction](https://cube.dev/docs/product/introduction)
-
-Microsoft. (2024). *Copilot in Power BI*. Microsoft Learn. [https://learn.microsoft.com/en-us/power-bi/create-reports/copilot-introduction](https://learn.microsoft.com/en-us/power-bi/create-reports/copilot-introduction)
+Huo, N., Xu, X., Li, J., Jacobsson, P., Lin, S., Qin, B., Hui, B., Li, X., Qu, G., Si, S., Han, L., Alexander, E., Zhu, X., Qin, R., Yu, R., Jin, Y., Zhou, F., Zhong, W., Chen, Y., Liu, H., Ma, C., Ozcan, F., Papakonstantinou, Y., & Cheng, R. (2026). BIRD-INTERACT: Re-imagining Text-to-SQL evaluation through the lens of dynamic interactions. *ICLR 2026*. arXiv:2510.05318. [https://arxiv.org/abs/2510.05318](https://arxiv.org/abs/2510.05318) Cube. (2025). *Introduction: Cube semantic layer*. Cube Documentation. [https://cube.dev/docs/product/introduction](https://cube.dev/docs/product/introduction) Microsoft. (2024). *Copilot in Power BI*. Microsoft Learn. [https://learn.microsoft.com/en-us/power-bi/create-reports/copilot-introduction](https://learn.microsoft.com/en-us/power-bi/create-reports/copilot-introduction)

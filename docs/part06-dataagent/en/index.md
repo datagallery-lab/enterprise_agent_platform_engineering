@@ -2,7 +2,7 @@
 
 ## Goals of this part
 
-Part VI follows one DataAgent mainline: from product boundary and question framing, through semantic-layer linking and secure NL2SQL, into Python analysis, chart/report generation, and ecosystem selection. The goal is to show how data analysis Agents become governed task systems rather than isolated Text-to-SQL demos.
+Part VI follows one DataAgent mainline: from product boundary and question framing, through semantic-layer linking and secure NL2SQL, into Python analysis, chart/report generation, and ecosystem selection. The goal is to show how data analysis Agents become governed task systems instead of isolated Text-to-SQL demos.
 
 ## Chapters in This Part
 
@@ -13,9 +13,7 @@ Part VI follows one DataAgent mainline: from product boundary and question frami
 - [Chapter 36 Data Analysis, Visualization, and Reporting](ch36.md) - Insights, charts, reports; output quality evaluation
 - [Chapter 37 DataAgent Benchmarking and Ecosystem](ch37-dataagent.md) - Open source/commercial benchmarking; selection; Part VI summary
 
-**Unified Case Study**: A multi-business-line company in East China experiences GMV decline -> inquiry -> analysis -> report run chain (spanning six chapters starting from Chapter 32).
-
-The modules below represent the unfolding order of DataAgent capabilities in the mini-platform across Part VI chapters.
+**Unified Case Study**: A multi-business-line company in East China experiences GMV decline -> inquiry -> analysis -> report run chain (spanning six chapters starting from Chapter 32). The modules below represent the unfolding order of DataAgent capabilities in the mini-platform across Part VI chapters.
 
 ## Part VI Mini-Platform Module Map
 

@@ -1,6 +1,7 @@
 # Chapter 24 MCP and the Enterprise Tool Ecosystem
 
 ---
+
 MCP provides an open protocol for connecting models to external tools and data, but an enterprise cannot connect arbitrary MCP Servers directly into production. External capability still has to pass through the enterprise Registry for permission control, audit, versioning, and risk classification. Host, Client, Server, Tools, Resources, and the enterprise Registry belong to different boundaries. Collapsing them into one layer makes tool governance hard to control.
 
 Chapter 23 converged tools into a Tool Registry: register by `(name, version)`, validate schema, and invoke through a unified `invoke` path. In practice, however, existing enterprise capabilities are scattered across team-owned HTTP services, script libraries, and vendor SaaS products. If every consuming Agent writes its own adapter, the platform quickly returns to the old pattern of one Agent and one integration.
@@ -14,6 +15,7 @@ This chapter uses the following terminology. MCP refers to Model Context Protoco
 Consider a multi-business-line enterprise that encapsulates a read-only sales wide-table query as an MCP Server. DataAgent, Finance Agent, and operations scripts can share the same service, while audit and version governance stay in the Registry layer. The key boundaries are where MCP sits in L3, how Tools, Resources, and Prompts divide responsibilities, and how MCP tools enter Tool Registry. MCP makes tools and resources easier to expose through a standard protocol. It does not automatically solve enterprise governance. Production access still has to pass through existing controls for identity, network isolation, audit, data classification, and tool version management.
 
 ---
+
 ## 24.1 MCP's Position in the Platform Protocol Layering
 
 Chapter 2 defines **L3 Protocol Interoperability** as the standard interface layer across systems and platforms. MCP's current most typical ecosystem niche is: **enabling LLM applications (Host) to use external data and tools (Server) in a standardized way**, instead of duplicating an HTTP client in every Agent project (Anthropic 2024).
@@ -31,9 +33,7 @@ The table below summarizes the division of responsibilities among MCP, Registry,
 | L3 Protocol | MCP Client     | `tools/list`, `tools/call`, transport (stdio / Streamable HTTP) |
 | L3 Protocol | MCP Server     | Exposes tool implementations; optional Resources/Prompts  |
 
-The relationship among Runtime, Registry, and MCP Client inside the Host is shown in **Figure 23-1** (Registry architecture) and **Figure 24-1** (MCP bridging closed loop); a Client can connect to multiple MCP Servers (sidecar or shared service; deployment topologies are discussed below).
-
-When an enterprise integrates MCP, the key issue is whether it still respects the original runtime boundaries. Runtime should not bypass the Run state, Tool Call recording, and error categorization in Chapter 22 just because the tool originates from MCP; Registry should not abandon platform-side naming, versioning, and risk registration just because the MCP Server already has an `inputSchema`. MCP solves cross-process tool discovery and invocation; enterprise platforms still need to manage who can call the tool, which version, which logs results enter, and how failures replay.
+The relationship among Runtime, Registry, and MCP Client inside the Host is shown in **Figure 23-1** (Registry architecture) and **Figure 24-1** (MCP bridging closed loop); a Client can connect to multiple MCP Servers (sidecar or shared service; deployment topologies are discussed below). When an enterprise integrates MCP, the key issue is whether it still respects the original runtime boundaries. Runtime should not bypass the Run state, Tool Call recording, and error categorization in Chapter 22 just because the tool originates from MCP; Registry should not abandon platform-side naming, versioning, and risk registration just because the MCP Server already has an `inputSchema`. MCP solves cross-process tool discovery and invocation; enterprise platforms still need to manage who can call the tool, which version, which logs results enter, and how failures replay.
 
 ### 24.1.2 Four hard constraints for MCP integration
 
@@ -45,9 +45,7 @@ Registry governs unified naming, versioning, validation, permission policy, risk
 
 #### The Run main loop does not connect directly to MCP Server
 
-Creating a new MCP connection for every Tool Call causes latency and connection storms. MCP Client should be registered as a Registry handler, while connection pooling and circuit breaking are reused at the Client layer.
-
-Direct connection also breaks responsibility ownership. If Runtime holds an MCP Client and calls Server directly, the tool call no longer passes Registry version selection or schema validation. Trace also struggles to reconstruct which tool definition the model saw, which Server was actually called, and which recovery strategy was used after failure. This becomes especially dangerous when the same Server is shared by multiple Agents: one Agent may upgrade tool parameters while another still calls the old schema. The platform only sees a vague tool failure while the useful evidence stays in Server logs.
+Creating a new MCP connection for every Tool Call causes latency and connection storms. MCP Client should be registered as a Registry handler, while connection pooling and circuit breaking are reused at the Client layer. Direct connection also breaks responsibility ownership. If Runtime holds an MCP Client and calls Server directly, the tool call no longer passes Registry version selection or schema validation. Trace also struggles to reconstruct which tool definition the model saw, which Server was actually called, and which recovery strategy was used after failure. This becomes especially dangerous when the same Server is shared by multiple Agents: one Agent may upgrade tool parameters while another still calls the old schema. The platform only sees a vague tool failure while the useful evidence stays in Server logs.
 
 #### Resources do not replace RAG
 
@@ -58,7 +56,8 @@ MCP Resources provide readable URIs and snapshots. Enterprise retrieval, permiss
 MCP standardizes protocol. It does not provide enterprise IAM by itself. The Server side must record caller identity, `tenant_id`, tool name, parameter summary, result summary, and `run_id`. Platform Trace should link to those records (Chapter 38). The question of who can call which tool still belongs to Chapter 50 Policy and network isolation.
 
 ---
-## 24.2 Host / Client / Server Architecture and Deployment
+
+## 24.2 Host / Client / Server architecture and deployment
 
 The MCP specification defines three roles (Model Context Protocol 2024):
 
@@ -83,11 +82,7 @@ In MCP production deployment, "local process" and "remote service" are distingui
 | **HTTP+SSE (compatibility)** | Integration with deprecated endpoints per 2024-11-05 spec | Only for compatibility; new deployments should prioritize Streamable HTTP |
 | **In-process (Demo)** | Teaching and unit tests                      | Used by `tools/mcp_db/`; simulates only method/params dispatch, not production transport layer |
 
-This chapter's demo reduces dependencies by using in-process `McpDbClient -> McpDbServer` calls. Production implementations should replace this with official SDK's stdio or Streamable HTTP transports while preserving the call boundaries Runtime -> Registry -> handler -> MCP Client.
-
-Transmission mode affects failure characteristics. stdio Server failures often stem from subprocess lifecycle, stdio blocking, or container restart issues; remote HTTP Server failures often result from authentication problems, gateway timeouts, oversized bodies, connection pool exhaustion, or regional network policies. Packaging all errors as ordinary tool failures leads the Planner to repeat the same call. A better approach separates transport timeouts, Server business errors, schema mismatches, and permission denials for recording, enabling Runtime to choose retry, circuit breaking, Planner feedback, or escalation to human intervention.
-
-A typical `tools/list` and `tools/call` interaction sequence is as follows:
+This chapter's demo reduces dependencies by using in-process `McpDbClient -> McpDbServer` calls. Production implementations should replace this with official SDK's stdio or Streamable HTTP transports while preserving the call boundaries Runtime -> Registry -> handler -> MCP Client. Transmission mode affects failure characteristics. stdio Server failures often stem from subprocess lifecycle, stdio blocking, or container restart issues; remote HTTP Server failures often result from authentication problems, gateway timeouts, oversized bodies, connection pool exhaustion, or regional network policies. Packaging all errors as ordinary tool failures leads the Planner to repeat the same call. A better approach separates transport timeouts, Server business errors, schema mismatches, and permission denials for recording, enabling Runtime to choose retry, circuit breaking, Planner feedback, or escalation to human intervention. A typical `tools/list` and `tools/call` interaction sequence is as follows:
 
 *Table 24-4: Steps, directions, and descriptions of a single MCP communication. Source: Compiled by this book.*
 
@@ -116,7 +111,7 @@ MCP is built on the **JSON-RPC 2.0** message model (Model Context Protocol 2024)
 2. **Execution**: `tools/call` -> passes `name` and `arguments` object.
 3. **Lifecycle**: Protocol version and capability exchanged via `initialize` upon connection establishment. Production Client SDKs encapsulate this; this chapter references the (Model Context Protocol 2024) 2024-11-05 spec semantics, with remote transport based on Streamable HTTP (revision 2025-03-26).
 
-`mini-platform`'s `McpDbServer.handle_jsonrpc()` **only simulates method/params dispatch**, returning business objects rather than the full JSON-RPC envelope and does not implement the `initialize` handshake. It is convenient for offline study against the official protocol, but not representative of production MCP message format.
+`mini-platform`'s `McpDbServer.handle_jsonrpc()` **only simulates method/params dispatch**, returning business objects instead of the full JSON-RPC envelope and does not implement the `initialize` handshake. It is convenient for offline study against the official protocol, but not representative of production MCP message format.
 
 ### 24.2.4 Managing Multiple Clients Within a Host
 
@@ -132,7 +127,8 @@ A Host often connects to multiple Servers (databases, documents, ticketing). The
 | Quotas           | Limit concurrent `tools/call` per tenant to avoid overloading shared Server |
 
 ---
-## 24.3 Tools, Resources, and Prompts: Three Capability Categories
+
+## 24.3 Tools, Resources, and Prompts as capability categories
 
 MCP defines Tools for execution, Resources for read-only data URIs, and Prompts for reusable prompt templates (Model Context Protocol 2024).
 
@@ -163,9 +159,7 @@ Typical platform landing points for these three capabilities are as follows:
 | Resources  | Policy PDFs, metric snapshots | Cache + permissioned URI |
 | Prompts    | Standard analysis steps  | Prompt repository      |
 
-This chapter's demo focuses on **Tools**; Resources/Prompts are marked as production extensions in the checklist ☐.
-
-**Key conclusion:** By default, only **Tools** are `register_mcp_tools`-ed into the Registry and invoked by the Runtime; **Resources** are better suited for Memory/RAG or permissioned URI reading; **Prompts** enter the Prompt template repository (Chapter 8) to avoid dual-source template maintenance with the Server.
+This chapter's demo focuses on **Tools**; Resources/Prompts are marked as production extensions in the checklist ☐. **Key conclusion:** By default, only **Tools** are `register_mcp_tools`-ed into the Registry and invoked by the Runtime; **Resources** are better suited for Memory/RAG or permissioned URI reading; **Prompts** enter the Prompt template repository (Chapter 8) to avoid dual-source template maintenance with the Server.
 
 Mixing these three capabilities later complicates governance. Treating Resources as Tools means even read-only document reads enter side effect audit chains, causing unnecessary approval; treating Tools as Resources risks bypassing action permissions and idempotency checks; leaving Prompts inside MCP Server makes it impossible for ops teams to view real template versions in the Console. Enterprises should assign each capability at onboarding: executable actions go to the Registry, read-only objects go to permissioned resource readers or RAG, prompt templates go to a unified Prompt repository.
 
@@ -192,20 +186,15 @@ When integrating with existing systems, one can choose between direct HTTP or ex
 | Ecosystem       | No standard tool discovery  | `tools/list` auto-registration |
 | Suitable for    | Highly customized, ultra-low latency internal calls | Cross-team, multi-tool, IDE/multi-Host reuse |
 
-Enterprises should use MCP for **read-only data warehouse legacy** scenarios (broad reuse); retain gRPC direct calls for **millisecond trading risk control** scenarios that require ultra-low latency without MCP Server adaptation.
-
-This trade-off also applies to team boundaries. Cross-team sharing with standard discovery and IDE or multi-Host reuse suits MCP Server wrapped capabilities entered into Registry; only highly latency-sensitive internal calls with controlled interfaces should remain direct. Do not turn all HTTP APIs into MCP just because MCP is new, nor let each Agent maintain repeated clients just because direct is faster. Judgments should return to reuse scope, governance cost, latency budget, and audit requirements.
-
-A practical rule: first ask if this integration will be used by a second Host in the future. If no, MCP may not be worth it; if yes, standard discovery and unified registration typically quickly pay off the first version wrapping cost.
-
-This judgment should be recorded in the integration evaluation note to aid future retrospectives.
+Enterprises should use MCP for **read-only data warehouse legacy** scenarios (broad reuse); retain gRPC direct calls for **millisecond trading risk control** scenarios that require ultra-low latency without MCP Server adaptation. This trade-off also applies to team boundaries. Cross-team sharing with standard discovery and IDE or multi-Host reuse suits MCP Server wrapped capabilities entered into Registry; only highly latency-sensitive internal calls with controlled interfaces should remain direct. Do not turn all HTTP APIs into MCP just because MCP is new, nor let each Agent maintain repeated clients just because direct is faster. Judgments should return to reuse scope, governance cost, latency budget, and audit requirements. A practical rule: first ask if this integration will be used by a second Host in the future. If no, MCP may not be worth it; if yes, standard discovery and unified registration typically quickly pay off the first version wrapping cost. This judgment should be recorded in the integration evaluation note to aid future retrospectives.
 
 The review notes should also explain why direct integration is not used.
 
 ---
-## 24.4 Enterprise Integration: Identity, Networking, and Auditing
 
-When MCP enters enterprise production, three questions must be addressed: **Who can connect, how does traffic flow, and how to audit afterward**.
+## 24.4 Enterprise integration for identity, networking, and auditing
+
+When MCP enters enterprise production, the platform must answer who can connect, how traffic flows, and how the call can be audited afterward.
 
 ### 24.4.1 Identity and Tenancy
 
@@ -246,9 +235,10 @@ Cross-border operations must clarify **where MCP server processes and data resid
 Data residency also includes debugging traces. Many teams only check if business results cross borders, neglecting MCP Client logs, server access logs, error stacks, and trace sampling. A failed `tools/call` may write full parameters into error logs, including customer IDs, SQL conditions, or document URIs. Production integration must specify which fields can store raw text, which must be hashed or summarized, and which logs must remain in the same region. Otherwise, compliance risks may come not from normal calls but from troubleshooting and monitoring systems.
 
 ---
+
 ## 24.5 Integration of MCP Server with Tool Registry
 
-The goal of the integration is: **the Runtime recognizes only the Registry**, and MCP acts merely as one type of handler implementation source.
+The integration goal is straightforward: Runtime recognizes the Registry as the capability entry point, while MCP is one handler implementation source behind that entry point.
 
 !!! warning "MCP does not replace the Registry"
     Production Runtime should not directly call the MCP Server. MCP tools must first be registered as ToolSpecs, then invoked via the Registry; auditing and version governance continue to follow the unified model described in Chapter 22 and Chapter 23.
@@ -281,13 +271,13 @@ The important point is to preserve error classes. `TOOL_ARGUMENT_INVALID` means 
 
 ### 24.5.3 Version Migration and Canary Integration
 
-Once an MCP Server enters the enterprise platform, it becomes a shared published capability rather than a private tool process. Server-side changes to `inputSchema`, return structure, authentication, or resource URI semantics may affect ToolSpecs already registered in Registry. The platform should not assume that every fresh `tools/list` response is backward compatible. A safer pattern snapshots discovered MCP tools into platform versions, tests them in shadow mode, and then makes them visible to production Agents.
+Once an MCP Server enters the enterprise platform, it becomes a shared published capability instead of a private tool process. Server-side changes to `inputSchema`, return structure, authentication, or resource URI semantics may affect ToolSpecs already registered in Registry. The platform should not assume that every fresh `tools/list` response is backward compatible. A safer pattern snapshots discovered MCP tools into platform versions, tests them in shadow mode, and then makes them visible to production Agents.
 
 Canary integration usually has four steps. First, the Client fetches `tools/list` and generates candidate ToolSpecs without exposing them to Planner. Second, static checks review name, description, input schema, return structure, risk level, tenant scope, and Server identity. Third, replay or synthetic samples call the new Server and compare results with the old version while only writing Trace. Fourth, the new version is published into Registry and gradually enabled by Agent, tenant, or business line.
 
-This process may look slower than directly connecting to an MCP Server, but it protects production stability. Many incidents are semantic rather than total outages: `customer_id` becomes `account_id`, amount units change from yuan to cents, error codes change from strings to objects, or the default query scope moves from tenant-only to global. If those changes reach Planner directly, the model may keep producing plausible actions while Trace can no longer explain why the same user question behaved differently across two days.
+This process may look slower than directly connecting to an MCP Server, but it protects production stability. Many incidents are semantic instead of total outages: `customer_id` becomes `account_id`, amount units change from yuan to cents, error codes change from strings to objects, or the default query scope moves from tenant-only to global. If those changes reach Planner directly, the model may keep producing plausible actions while Trace can no longer explain why the same user question behaved differently across two days.
 
-The integration review should record three versions. `server_version` describes what the capability provider released. `tool_spec_version` describes what the platform registered. `registry_version` describes what a specific Agent can actually see. They do not need to change at the same time, but they must be traceable to one another. Rollback should normally change Registry visibility rather than asking the Server team to revert code immediately.
+The integration review should record three versions. `server_version` describes what the capability provider released. `tool_spec_version` describes what the platform registered. `registry_version` describes what a specific Agent can actually see. They do not need to change at the same time, but they must be traceable to one another. Rollback should normally change Registry visibility instead of asking the Server team to revert code immediately.
 
 ### 24.5.4 Failure Recovery and Degradation Strategy
 
@@ -298,6 +288,7 @@ These categories map to different actions. Connection failures can retry, switch
 User-visible degradation also needs a design. If a read-only query MCP Server is unavailable, the system can state that the data tool is temporarily unavailable and preserve the request for retry. If a document Resource cannot be read, the answer can degrade to cached evidence while clearly marking incomplete evidence. If a high-risk write tool fails, the platform should not silently switch to another write path. It should stop at a reviewable state. MCP provides a standard access protocol; production reliability comes from the deterministic behavior after access fails.
 
 ---
+
 ## 24.6 Practical Project: MCP Database Tool
 
 The MCP implementation is located in `tools/mcp_db/`; `build_workflow_registry()` registers it as **`mcp_db_query_sales@v1`** via `register_mcp_tools()`. During the Data Agent stage, it is invoked through RunLoop -> Registry `invoke`. The **standalone unit tests** bridging the MCP protocol and Registry are in `tests/test_mcp_db.py`.
@@ -338,9 +329,7 @@ cd mini-platform
 python3 projects/multi-agent-workflow/run.py start
 ```
 
-The SSE output includes Data Agent `action` / `result` events for `mcp_db_query_sales`.
-
-**MCP Protocol and Registry Unit Tests**:
+The SSE output includes Data Agent `action` / `result` events for `mcp_db_query_sales`. **MCP Protocol and Registry Unit Tests**:
 
 ```bash
 pytest tests/test_mcp_db.py -q
@@ -404,12 +393,92 @@ Fix: Host manages subprocess lifecycle or switch to Streamable HTTP remote Serve
 | Production Server timeout (`TOOL_UNAVAILABLE`) | Network issues, circuit breaker, Server down | Check MCP Client logs + Chapter 22 retry policy |
 
 ---
+
 Enterprise MCP integration starts by keeping Host, Client, and Server responsibilities separate. Host owns the user session and model orchestration, Client owns protocol communication, and Server exposes tools or resources. Identity, permission, and audit cannot be scattered across those roles; the platform needs one policy path that every MCP-backed tool follows.
 
 The Server lifecycle also needs ownership. Who publishes it, who upgrades it, who removes it, how compatibility is tested, and how failures degrade should be written into the Registry or delivery process. If an external Server changes interface behavior, the model may still generate a valid call, but the execution result may have changed. MCP reduces integration cost. The enterprise platform still has to provide the control plane.
 
 Deployment location changes the security model. A Server running on a developer laptop, inside a business network, in the platform cluster, or in a vendor environment has different identity, network, and audit requirements. Production Agents should not connect directly to personal MCP Servers, and external Servers should not hold long-lived high-privilege credentials. The same standard applies to Resources. A Resource may look like context, but once sent to a model it affects reasoning and can leak sensitive information. Platform integration should record which Resources entered context and apply the same data-classification rules used by retrieval and evidence systems.
 
+MCP integration also needs naming, credentials, audit, and isolation rules. Different teams may all expose `query_database`, `search_docs`, or `send_message`; Registry should assign enterprise tool names and versions so Planner selection remains stable. Server credentials should come from enterprise secret management, short-lived tokens, service identity, and rotation policies, not from long-lived local configuration. Audit logs need to cross the protocol boundary: Host should record `run_id` and `tool_call_id`, Client should record request and transport status, Server should record backend execution result. None of the three views is enough on its own.
+
+Production deployment should separate development, staging, and production. Developers can use simulated data and low-permission accounts. Staging should use masked data and restricted tools. Production connects to real systems under managed network policy. Resource responses need size and type limits as well. A Resource that returns a full schema, a large log file, or an unbounded document can expand context quickly and bypass data classification. The adapter layer should limit fields, media types, and payload size, and convert large objects into artifact references.
+
+## 24.7 MCP Server Admission Review
+
+After an MCP Server enters the production catalog, it needs periodic review. The review checks whether the tool still has an owner, whether schema stays aligned with Registry, whether credentials rotate on schedule, whether health checks are stable, whether error codes still map to Runtime recovery, and whether Resource responses follow size and permission limits. External Servers also need dependency review, supply-chain review, and network-scope review. If a Server has no active users, it can be frozen and then retired. If several Agents depend on it, the platform should add release windows and rollback plans. MCP makes tool onboarding fast; review keeps that speed from turning into unmanaged production risk.
+
+## 24.8 Failure-Recovery Boundaries For Protocol Interoperability
+
+After MCP enters an enterprise platform, failure recovery needs to cover the protocol layer, tool layer, and governance layer. The protocol layer can face disconnection, incompatible Server versions, schema parsing failure, or expired resource URIs. The tool layer can face timeout, permission denial, downstream rate limits, or changed return structures. The governance layer can face expired credentials, unapproved Server versions, or missing audit fields. If all of these cases are reduced to "tool call failed," the Runtime cannot decide whether to retry, degrade, switch Server, or suspend the task for human handling.
+
+The platform should define standard error classes for MCP Servers. Connection errors may allow short retry. Schema errors should block execution and notify the Server owner. Permission errors should guide the user toward access request or another path. Downstream rate limits should go through gateway and queue policy. Missing audit fields should stop high-risk actions. Error classes also belong in Trace. After an Agent Run fails on an MCP tool, the review material should show whether the failure happened in Host, Client, Server, network, credential, tool implementation, or downstream system. Without that breakdown, MCP pushes ecosystem complexity into the Agent dialogue.
+
+Protocol interoperability also needs platform boundaries. MCP can lower integration cost, while the enterprise platform still owns identity, permission, audit, admission, and rollback. A Server should not decide which tenants can see it, which fields can be returned, or which write operations can execute. These decisions should come from Tool Registry, Policy Engine, and Runtime. MCP Server owners are responsible for capability implementation and version notes. Platform teams are responsible for admission, routing, credentials, and audit. With these boundaries, MCP becomes an integration mechanism for a tool ecosystem without bypassing enterprise Agent governance.
+
+## 24.9 Vendor And Community Risk In The MCP Ecosystem
+
+MCP speeds up tool integration and also brings vendor and community risk into the platform. A community Server may move quickly but lack maintenance commitment. A vendor Server may be feature complete but fail enterprise audit requirements for logs, credentials, or network access. An internal team may write a Server that solves the current problem but lacks versioning, tests, and an owner. The platform should check whether a Server can remain in the production catalog after the first successful run.
+
+Admission material should include code source, dependency list, maintenance team, version strategy, network egress, credential method, log fields, error codes, and rollback method. External Servers should be checked for uncontrolled data transfer, sensitive-field logging, and whether the enterprise can pin a version. Internal Servers should have test samples, release records, and on-call ownership. If these materials are missing, the Server may enter experimentation but should not enter production Agents.
+
+Ecosystem governance should also support replacement. When a Server retires, a vendor changes terms, or a community project stops maintenance, the platform should know which Agents are affected, which ToolSpecs can switch to another implementation, and which tasks need degradation. MCP opens the tool ecosystem. The enterprise platform makes that ecosystem auditable, replaceable, and rollbackable.
+
+## 24.10 Runtime review of MCP tool catalogs
+
+After MCP Servers are connected, the tool catalog needs periodic review. Tool names, parameter schemas, resource URIs, authentication methods, permission scope, and returned fields all change as external systems change. If the catalog is not reviewed, an Agent may keep calling an interface that has changed, or send old parameters to a new service. MCP is useful because it unifies protocol access, but that same entry point exposes several external systems to the model.
+
+Review should use real call records. The platform should inspect which MCP tools are called often, which time out, which return oversized fields, which are rejected by policy, and which create permission disputes. A rarely used high-permission tool may no longer deserve exposure. A frequently used tool with a high failure rate may need schema, error-code, or retry fixes. A tool returning sensitive fields may need references or controlled views. The review is not a count of tools; it is a judgment about whether each tool remains suitable for Agent use.
+
+A first version can produce a monthly MCP runtime summary: call volume, failure reason, permission denial, average latency, return size, owner, and last change time. The summary should enter Tool Registry review and connect to tool governance in Chapter 23, human approval in Chapter 30, and Trace in Chapter 38. MCP integration then moves from connectivity to platform governance.
+
+## 24.11 Canary release and withdrawal for MCP integration
+
+MCP Server integration should support canary and withdrawal. A Server that passes `tools/list` and one `tools/call` has not yet proved that it belongs in production Agents. Before canary, the platform should confirm Server owner, version, authentication method, network location, log fields, error classes, and data domain. The tool can then be registered as a production candidate and exposed only to internal tenants, low-risk tasks, or read-only scenarios. During canary, the platform should watch connection failures, schema mismatch, oversized returns, permission denial, unmapped error codes, and user disputes about results. If these problems cluster, Registry visibility should be withdrawn; the Planner should not be asked to avoid the tool through dialogue alone.
+
+Withdrawal should preserve task evidence. Runtime decides whether already started Runs continue, move to human handling, or return a retryable state. Registry only closes the entry point for new calls. Trace should record withdrawal reason, affected tool version, affected Agents, and replacement path. If the MCP Server provides read-only query, the system may degrade to cache or ask the user to retry later. If it provides a write operation, withdrawal should not switch to an unapproved backup path. With clear canary and withdrawal rules, MCP can be released as a platform capability instead of a temporary external connection.
+
+This release discipline also helps ecosystem governance. External Servers, vendor Servers, and internal team Servers change at different speeds, and the platform cannot assume they follow the same release standard. Registry-level canary, freeze, withdrawal, and replacement paths translate external changes into manageable platform states. MCP keeps its standard access advantage without passing external release risk directly into user tasks.
+
+## 24.12 Replacement paths for MCP tool degradation
+
+After an MCP tool enters production, degradation does not always come from protocol errors. The Server may still respond and the schema may remain unchanged, while downstream rate limits, narrower credentials, vendor API changes, or reduced resource fields lower result quality. Planner still sees the same tool name, and users see a weaker task result. If the platform monitors only connection success, it misses this type of degradation.
+
+Replacement paths should be designed during integration. A read-only query tool can degrade to cache, static reports, or manual lookup. A write tool can move to HITL or pause execution. A resource reader can return an artifact reference and delayed-refresh state. An external vendor tool can switch to an internal Server or be limited to low-risk tenants. The model should not invent these paths during a dialogue. They should live in Registry capability metadata and Runtime recovery policy, so the system knows whether to continue, degrade, suspend, or refuse.
+
+Degradation review should inspect business impact. A low-frequency tool failure may affect only a few tasks. A high-permission write tool can create wrong actions or approval backlog. The platform should record degradation window, affected Agents, replacement path, unfinished Runs, user-visible message, and repair action. If degradation comes from a vendor or community Server, review should decide whether to pin a version, replace the implementation, or tighten admission.
+
+A first version can add two fields to each production MCP tool: `degradation_mode` and `replacement_path`. The first describes allowed degradation. The second describes replacement capability, manual handling, or pause policy. These fields are small, but they move MCP tools from callable integrations to recoverable platform capabilities, aligned with Runtime in Chapter 22, HITL in Chapter 30, and Trace in Chapter 38.
+
+## 24.13 Tenant-level admission policy for MCP servers
+
+After an MCP Server enters the enterprise platform, admission should not be judged only at the Server level. One Server may expose several tools, resources, and prompts. Some capabilities fit all tenants, some fit only certain business domains, and some require approval. If the platform adds the whole Server to the default candidate set, Planner may select it for the wrong tenant or task, creating permission, cost, or data-egress risk.
+
+Tenant-level admission should inspect Server capabilities separately. Each capability should state applicable tenants, identity mapping, accessible resources, network boundary, call budget, audit fields, and disable condition. Read-only resources can be opened more broadly. Write actions, external APIs, and data export should be limited by tenant, role, and approval policy. MCP Client should fetch tenant-visible capabilities from Registry before invocation, instead of trusting the Server declaration directly.
+
+Admission policy also needs fast withdrawal. If one tenant finds that a Server returns fields outside authorization, the platform should withdraw that tool for the tenant without shutting down the whole Server. If a vendor endpoint becomes unstable, the platform should reduce weight or remove the capability from candidates. Withdrawal should write to Trace and the tool catalog, so Planner knows why the capability is unavailable.
+
+A first version can maintain tenant-level allowlists for MCP capabilities. The allowlist can stay simple, but it should include tenant, capability, permission, budget, owner, and review time. MCP integration then fits enterprise multi-tenancy and stays consistent with Chapter 45 gateway governance and Chapter 23 Tool Registry.
+
+## 24.14 Tenant-level admission for MCP servers
+
+MCP exposes external tools, resources, and prompt templates to the Agent platform, and it also brings external-system risk into the runtime path. When an enterprise connects an MCP Server, it should verify more than protocol connectivity. Admission should happen at tenant level. Different tenants can have different data boundaries, tool permissions, audit requirements, and network policies. The same MCP Server may expose read-only resources to one tenant, be blocked for another, or allow only approved tool calls.
+
+Admission material should include capability list, data domain, authentication method, callable tools, resource types, returned-content structure, audit fields, error semantics, and owner. The platform turns this material into ToolSpec, Policy Engine rules, and Trace fields. If an MCP Server can return only unstructured text or cannot explain tool side effects, it is not suitable for high-risk production tools. Protocol compatibility is only the first step. Platform admission asks whether the server can be governed.
+
+A first version can classify MCP Servers into three groups: development and debugging, internal read-only, and production write. Development servers stay in sandboxes. Internal read-only servers need identity, audit, and resource scope. Production write servers need idempotency, compensation, approval, and sample replay. MCP can then enter the enterprise ecosystem without bypassing the tool registry in Chapter 23 or the security boundary in Chapter 50.
+
+## 24.15 Operating responsibility after MCP integration
+
+After MCP integration reaches production, a successful demo is not enough evidence. The platform needs stable fields for server owner, tool permission, call log, version change, failure receipt, and replacement path, and those fields should connect to release records, Trace, evaluation samples, and incident notes. When a production issue appears, teams can follow one set of facts to understand scope, ownership, and repair order instead of stitching together model logs, business logs, and verbal explanations.
+
+This evidence also connects the surrounding chapters. It links to Chapter 23 on tool registration, Chapter 29 on protocol interoperability, and Chapter 50 on security: upstream capabilities provide assumptions, downstream capabilities consume the result, and governance capabilities preserve evidence and review decisions. If these materials do not share identifiers and versions, the production system splits apart. Business owners see user complaints, platform owners see system errors, and security or compliance teams see explanations written after the fact. That separation makes it hard to decide whether the issue came from data, model behavior, tool contracts, workflow state, or organizational ownership.
+
+Common production risks include servers having no maintainer after integration, tool schema changes not notifying the platform, and external tool failures lacking degradation paths. These risks are less visible during demos because demos usually exercise the successful path. Production users bring boundary cases, repeated requests, permission changes, and long-running state. The platform team should turn such failures into release samples. Some samples should block launch, some can be handled by degradation, and some require the business owner to accept the remaining risk with a review date.
+
+After MCP capability enters the platform, it should be managed as a production tool with a real owner, version policy, and fallback path. The record can stay compact, but it should include time, version, owner, sample, action, and the next review condition. Without those fields, review remains informal experience. With them, one production issue can become material for later releases, evaluation suites, and training.
+
+A first platform version can start with a small set of high-risk paths. Choose flows with high traffic, high business impact, or sensitive data, require an evidence package for each change, and then expand the practice to ordinary scenarios. This keeps the capability at the engineering level: runnable, explainable, and recoverable.
 ## Chapter Recap
 
 1. **MCP is an L3 protocol**, with the Registry serving as the L2 capability hub; the integration flow is **discover -> register -> invoke**.
@@ -429,16 +498,7 @@ Deployment location changes the security model. A Server running on a developer 
 - `mini-platform/tests/test_mcp_db.py`
 
 ---
+
 ## References
 
-Anthropic. (2024). *Introducing the Model Context Protocol*. [https://www.anthropic.com/news/model-context-protocol](https://www.anthropic.com/news/model-context-protocol)
-
-Model Context Protocol. (2024). *Specification* (2024-11-05). [https://modelcontextprotocol.io/specification/2024-11-05](https://modelcontextprotocol.io/specification/2024-11-05)
-
-Model Context Protocol. (n.d.). *Architecture overview*. [https://modelcontextprotocol.io/docs/concepts/architecture](https://modelcontextprotocol.io/docs/concepts/architecture)
-
-Qu, C., et al. (2025). Tool learning with large language models: A survey. *Frontiers of Computer Science*, 19(8), 198343. [https://doi.org/10.1007/s11704-024-40678-2](https://doi.org/10.1007/s11704-024-40678-2)
-
-Hou, X., et al. (2024). Large language models for software engineering: A systematic literature review. arXiv:2404.06393. [https://arxiv.org/abs/2404.06393](https://arxiv.org/abs/2404.06393) (Discussion on tool integration and enterprise boundaries)
-
-Google. (2024). *Agent2Agent (A2A) protocol* (Preview of interoperability direction, to be read in comparison with MCP). [https://developers.googleblog.com/en/a2a-a-new-era-of-agent-interoperability/](https://developers.googleblog.com/en/a2a-a-new-era-of-agent-interoperability/)
+Anthropic. (2024). *Introducing the Model Context Protocol*. [https://www.anthropic.com/news/model-context-protocol](https://www.anthropic.com/news/model-context-protocol) Model Context Protocol. (2024). *Specification* (2024-11-05). [https://modelcontextprotocol.io/specification/2024-11-05](https://modelcontextprotocol.io/specification/2024-11-05) Model Context Protocol. (n.d.). *Architecture overview*. [https://modelcontextprotocol.io/docs/concepts/architecture](https://modelcontextprotocol.io/docs/concepts/architecture) Qu, C., et al. (2025). Tool learning with large language models: A survey. *Frontiers of Computer Science*, 19(8), 198343. [https://doi.org/10.1007/s11704-024-40678-2](https://doi.org/10.1007/s11704-024-40678-2) Hou, X., et al. (2024). Large language models for software engineering: A systematic literature review. arXiv:2404.06393. [https://arxiv.org/abs/2404.06393](https://arxiv.org/abs/2404.06393) (Discussion on tool integration and enterprise boundaries) Google. (2024). *Agent2Agent (A2A) protocol* (Preview of interoperability direction, to be read in comparison with MCP). [https://developers.googleblog.com/en/a2a-a-new-era-of-agent-interoperability/](https://developers.googleblog.com/en/a2a-a-new-era-of-agent-interoperability/)

@@ -12,11 +12,7 @@ Many teams seriously discuss Agent cost for the first time not in architecture r
 
 The most direct response is usually to switch models: replace strong models with smaller ones, limit output length, reduce running model judges. These actions may reduce bills but can also oversimplify cash flow attribution, increase SQL errors, and raise manual review pressures. The challenge of Agent cost governance is that one user request is a single model call, and a task chain composed of context assembly, model inference, tool calls, retrieval, product generation, evaluation, and retries.
 
-Chapter 38 on Trace mentioned using `session_id`, `run_id`, `step_id`, and `trace_id` to link a single task. In cost governance, these fields are no longer just debugging aids but become cost attribution keys. Without them, the platform only knows "model bill rose"; with them, it reveals which tenant, which Agent, which task type, and which step drove costs up.
-
-One can roughly express run cost as:
-
-$
+Chapter 38 on Trace mentioned using `session_id`, `run_id`, `step_id`, and `trace_id` to link a single task. In cost governance, these fields are no longer just debugging aids but become cost attribution keys. Without them, the platform only knows "model bill rose"; with them, it reveals which tenant, which Agent, which task type, and which step drove costs up. One can roughly express run cost as: $
 Cost_{run} =
 \sum_i Cost_{model_i}
 + \sum_j Cost_{tool_j}
@@ -26,11 +22,7 @@ Cost_{run} =
 + Cost_{retry}
 $
 
-Here, model calls include the final answer and intent detection, plan generation, SQL generation, error fixing, report summarization, and model judging. Tool calls include databases and file parsers, code executors, browsers, BI systems, and external APIs. Retry costs are often underestimated: auto-fixing failed SQL, reruns after model timeouts, repeated user clicks in short time all inflate true task cost.
-
-Model call cost can be further broken down:
-
-$
+Here, model calls include the final answer and intent detection, plan generation, SQL generation, error fixing, report summarization, and model judging. Tool calls include databases and file parsers, code executors, browsers, BI systems, and external APIs. Retry costs are often underestimated: auto-fixing failed SQL, reruns after model timeouts, repeated user clicks in short time all inflate true task cost. Model call cost can be further broken down: $
 Cost_{model} =
 P_{in} \cdot T_{in}
 + P_{out} \cdot T_{out}
@@ -77,9 +69,7 @@ The value of this record is adding billing granularity and enabling Chapters 38'
 
 ### 41.2.2 Unit Task Cost Is More Useful Than Total Amount
 
-Cost dashboards should not show only totals. Totals suit financial settlements but not engineering decisions. More diagnostic insight lies in unit task costs: average cost per successful run, average cost per accepted report, proportion of cost in failed runs, cache savings, P95 cost of similar tasks. If 30% of billing is spent on failed retries, optimization should focus on fixing tool errors, timeout policies, and retry limits-not cheaper models.
-
-Several key metrics can be displayed on the same dashboard but should not be obscured by an aggregate score:
+Cost dashboards should not show only totals. Totals suit financial settlements but not engineering decisions. More diagnostic insight lies in unit task costs: average cost per successful run, average cost per accepted report, proportion of cost in failed runs, cache savings, P95 cost of similar tasks. If 30% of billing is spent on failed retries, optimization should focus on fixing tool errors, timeout policies, and retry limits-not cheaper models. Several key metrics can be displayed on the same dashboard but should not be obscured by an aggregate score:
 
 *Table 41-1: Key Unit Task Cost Metrics, Questions Answered, and Typical Fix Directions. Source: Authors.*
 
@@ -97,9 +87,7 @@ The core logic here: price cutting is a downstream action; attribution is a prer
 
 Once cost attribution is clear, the team often finds this fact: not all tasks need the same model. Tasks like metric definition, field explanation, fixed FAQs have stable answers, short contexts, and low risk; small or local models usually suffice. Tasks like cash flow decline attribution, budget anomaly explanation, customer or HR data analysis involve longer context, stronger reasoning, higher risk, and stricter auditing-requiring strong models, full Trace, and rigorous evaluation.
 
-This is the premise of model routing. Model routing is not "always choose the cheapest model" but "place the right model on the right task." The router factors in task type, risk level, context length, latency goals, budget status, and historical effectiveness. It can use low-cost models first for intent detection and risk assessment, then decide to employ small model, strong model, local model, or escalate to manual approval.
-
-A simplified rule example:
+This is the premise of model routing. Model routing is not "always choose the cheapest model" but "place the right model on the right task." The router factors in task type, risk level, context length, latency goals, budget status, and historical effectiveness. It can use low-cost models first for intent detection and risk assessment, then decide to employ small model, strong model, local model, or escalate to manual approval. A simplified rule example:
 
 ```yaml
 routes:
@@ -128,9 +116,7 @@ routes:
     fallback_model: small_reasoning_model
 ```
 
-More abstractly, the router estimates a task utility function:
-
-$
+More abstractly, the router estimates a task utility function: $
 Utility(model, task) =
 \alpha \cdot Quality
 - \beta \cdot Cost
@@ -148,13 +134,9 @@ Model routing must integrate with evaluation systems. Every routing adjustment n
 
 ### 41.4.1 Different Caches Reuse Different Objects
 
-Prompt caches are application-layer. System prompts, tool instructions, stable schemas, metrics dictionaries, tenant configs, and permission policies that rarely change can be reusable context fragments. This solves whether these stable materials must be reconstructed, transmitted, and charged on every request.
+Prompt caches are application-layer. System prompts, tool instructions, stable schemas, metrics dictionaries, tenant configs, and permission policies that rarely change can be reusable context fragments. This solves whether these stable materials must be reconstructed, transmitted, and charged on every request. Prefix caches and KV caches are inference service layer. Transformer models cache key-value pairs of computed tokens during generation (KV cache). If multiple requests share the same token prefix, the inference server can reuse prefix calculation to reduce first-token latency and computational cost. Systems like vLLM and SGLang improve throughput by minimizing prefix recomputation.
 
-Prefix caches and KV caches are inference service layer. Transformer models cache key-value pairs of computed tokens during generation (KV cache). If multiple requests share the same token prefix, the inference server can reuse prefix calculation to reduce first-token latency and computational cost. Systems like vLLM and SGLang improve throughput by minimizing prefix recomputation.
-
-Result caches reuse deterministic outcomes. The same SQL query, the same low-risk metric explanation, the same static report description-when version, permissions, and data snapshots match-can be reused directly. Semantic cache goes further: it judges whether two questions are semantically close enough to reuse an existing answer, SQL template, or analytic plan.
-
-These should not be treated as a single on/off switch. Their boundaries can be understood as:
+Result caches reuse deterministic outcomes. The same SQL query, the same low-risk metric explanation, the same static report description-when version, permissions, and data snapshots match-can be reused directly. Semantic cache goes further: it judges whether two questions are semantically close enough to reuse an existing answer, SQL template, or analytic plan. These should not be treated as a single on/off switch. Their boundaries can be understood as:
 
 *Table 41-2: Main Reuse Targets, Suitable Scenarios, and Major Risks of Cache Types. Source: Authors.*
 
@@ -167,7 +149,7 @@ These should not be treated as a single on/off switch. Their boundaries can be u
 
 ### 41.4.2 Cache Keys Are Primarily Permission Boundaries
 
-Enterprise DataAgent cache invalidation conditions are far more complex than ordinary web caches. Prompt version changes, tool version updates, schema changes, metric definitions revisions, tenant and role changes, data snapshot updates, and security policy adjustments all may invalidate cache reuse. Cache keys therefore need version and permission context rather than only question text or prompt hash:
+Enterprise DataAgent cache invalidation conditions are far more complex than ordinary web caches. Prompt version changes, tool version updates, schema changes, metric definitions revisions, tenant and role changes, data snapshot updates, and security policy adjustments all may invalidate cache reuse. Cache keys therefore need version and permission context instead of only question text or prompt hash:
 
 ```json
 {
@@ -188,9 +170,7 @@ Without permission isolation, high-privilege user context or results may be reus
 
 Enterprises differ widely in token strategies and cannot apply uniform cost metrics. One class deploys local or private cloud small models, often domain fine-tuned, distilled, or instruction-tuned for fixed tasks like customer service Q&A, metric explanation, contract extraction, or equipment inspection. Here, tokens may not directly map to external billing but represent compute usage, memory pressure, throughput, and deployment costs. Cost governance focuses on model specs, concurrency, batching, quantization, prefix reuse, KV cache capacity, GPU/NPU utilization, and whether maintaining a dedicated small model per task is worthwhile.
 
-The other class mainly calls external large model APIs, where tokens are explicit billing and latency variables. Cache hit strategies are constrained by vendor API designs. Some APIs auto-cache common prefixes requiring stable long prefixes; others provide explicit cache annotations or checkpoints allowing callers to specify cache boundaries. If an enterprise Agent wraps all vendors as a simple "text input box," cache gains may be lost due to dynamic timestamps, user IDs, temporary tool results, and randomly ordered tool definitions appearing in cache prefixes, reducing hit rates.
-
-These differences can be summarized as:
+The other class mainly calls external large model APIs, where tokens are explicit billing and latency variables. Cache hit strategies are constrained by vendor API designs. Some APIs auto-cache common prefixes requiring stable long prefixes; others provide explicit cache annotations or checkpoints allowing callers to specify cache boundaries. If an enterprise Agent wraps all vendors as a simple "text input box," cache gains may be lost due to dynamic timestamps, user IDs, temporary tool results, and randomly ordered tool definitions appearing in cache prefixes, reducing hit rates. These differences can be summarized as:
 
 *Table 41-3: Token Meaning and Cache Optimization Focus for Self-Hosted Models vs. External APIs. Source: Authors.*
 
@@ -213,11 +193,7 @@ This figure's point is "different cache targets require different governance." P
 
 ## 41.5 Why Semantic Cache Must Be Conservative
 
-Semantic cache means reuse "based on semantic similarity." It does not require two questions be lexically identical but judges if their business intents are close enough. For example, "What is the definition of operating cash flow?" and "What does operating cash flow mean?" very likely share one metric explanation. "Why did cash flow decline this month?" and "Reasons for decreased cash flow this month?" are semantically similar but reuse is more cautious because time windows, tenants, permissions, data snapshots, and conversation history may differ.
-
-Semantic cache usually requires three simultaneous conditions:
-
-$
+Semantic cache means reuse "based on semantic similarity." It does not require two questions be lexically identical but judges if their business intents are close enough. For example, "What is the definition of operating cash flow?" and "What does operating cash flow mean?" very likely share one metric explanation. "Why did cash flow decline this month?" and "Reasons for decreased cash flow this month?" are semantically similar but reuse is more cautious because time windows, tenants, permissions, data snapshots, and conversation history may differ. Semantic cache usually requires three simultaneous conditions: $
 CacheHit =
 Similarity(q, q') > \tau_s
 \land Fresh(data) = true
@@ -226,9 +202,7 @@ $
 
 `Similarity` is semantic similarity, `\tau_s` is threshold, `Fresh` means data still fresh, and `PolicyAllowed` means the user has right to see cached result. The formula's focus is not on similarity but on data freshness and access policy. Many cache incidents are not vector similarity errors but ignoring freshness and permission boundaries.
 
-In DataAgent, a prudent approach is layered reuse rather than directly reusing final answers. Low-risk metric definitions, fixed explanations, and public FAQs can be directly reused; SQL templates can be reused but queries must be re-executed; analytic plans can be reused but data must be newly read; in high-risk scenarios, cache results should serve only as candidate prompts, not direct user responses.
-
-Reuse strategies form a spectrum from conservative to aggressive:
+In DataAgent, a prudent approach is layered reuse instead of directly reusing final answers. Low-risk metric definitions, fixed explanations, and public FAQs can be directly reused; SQL templates can be reused but queries must be re-executed; analytic plans can be reused but data must be newly read; in high-risk scenarios, cache results should serve only as candidate prompts, not direct user responses. Reuse strategies form a spectrum from conservative to aggressive:
 
 *Table 41-4: Semantic Cache Risk Levels and Recommended Practices by Reuse Target. Source: Authors.*
 
@@ -249,9 +223,7 @@ Tokens are the core variable for large model cost and latency. More input tokens
 
 Budget control can't wait until bills arrive. A better approach is estimating cost before a Run or key Steps: estimate tokens before generating a long report; estimate scan size before big SQL; judge if full evaluation is needed before model judging. Budgets can be set by tenant, user, Agent, scenario, project, and time window-e.g., tenant limits $5,000 per month, low-priority Agent limits 500,000 tokens per day, interactive request limited to 30 seconds and 20K tokens.
 
-Budget control should not be just "allow or deny." Approaching budget limits can notify admins; overly long context can trigger compression or fewer retrieval documents; peak times can force smaller models, disable non-high-risk tools, shift to async tasks; expensive tasks can require manual approval; denial occurs only when hard limits or policies are breached.
-
-A budget policy example:
+Budget control should not be just "allow or deny." Approaching budget limits can notify admins; overly long context can trigger compression or fewer retrieval documents; peak times can force smaller models, disable non-high-risk tools, shift to async tasks; expensive tasks can require manual approval; denial occurs only when hard limits or policies are breached. A budget policy example:
 
 ```yaml
 budget_policy:
@@ -278,11 +250,7 @@ The riskiest cost optimization approach is to only look at how much money is sav
 
 ### 41.7.1 Optimizations Must Pass Deployment Gates
 
-Engineering can follow this sequence: first guard safety and correctness; then guard availability and latency; finally optimize cost. Unauthorized access, data leakage, or high-risk metric errors must never be traded for cost savings; interactive tasks must show users progress or usable results promptly; only within protected quality and stability can model, context, tool, and evaluation costs be cut.
-
-An optimization deployment condition can be formulated:
-
-$
+Engineering can follow this sequence: first guard safety and correctness; then guard availability and latency; finally optimize cost. Unauthorized access, data leakage, or high-risk metric errors must never be traded for cost savings; interactive tasks must show users progress or usable results promptly; only within protected quality and stability can model, context, tool, and evaluation costs be cut. An optimization deployment condition can be formulated: $
 AllowedOptimization =
 Quality \ge Q_{min}
 \land Safety = pass
@@ -310,6 +278,78 @@ After grayscale release, unit successful task cost dropped 35%, P95 latency drop
 
 ---
 
+## 41.9 Cost-Anomaly Review And Budget Actions
+
+Agent cost anomalies rarely come from model unit price alone. A monthly bill increase may come from longer context, lower cache hit rate, RAG document rebuild, evaluation batches, resident GPU replicas, tool retries, report export, or multi-tenant isolation. Cost governance should map the bill back to task chains instead of summarizing only by model provider. Otherwise business teams see a total amount, platform teams see resource usage, and neither side knows which link to optimize.
+
+Cost review should record triggering task, model version, input and output tokens, cache hit, tool-call count, GPU hours, vector rebuild, human review, and failed retries. If cost rises in a business domain, the team should check whether adoption also increased. If cost comes from failed retries, tool and Planner repair should come first. If it comes from evaluation batches, the team should review evaluation windows, sample size, and concurrency. If it comes from low-use resident services, the model-service catalog in Chapter 44 should drive cleanup.
+
+Budget actions should remain tied to user experience. Blunt throttling can break high-value tasks, while unlimited budget lets low-value tasks consume shared capacity. The platform can define actions by task tier: low-risk Q&A degrades to smaller models, long reports move to async execution, batch evaluation enters night queues, high-risk business tasks receive protected budget, and experimental tasks above budget require owner confirmation. Cost governance should make each spend traceable to task value and operating evidence.
+
+## 41.10 Cost anomaly ledger and cache invalidation review
+
+Cost governance needs a replayable anomaly ledger. The ledger should record more than the amount spent. It should include the tenant, Agent, task type, model route, cache key, budget policy, retry count, evaluation policy, and user-visible result at the time of the anomaly. If a cost anomaly appears only in a finance report, engineers have little evidence for deciding whether it came from business growth, context expansion, tool loops, cache misses, or a change in evaluation sampling. A better review starts by reducing the anomalous bill to inspectable Runs. Each Run should show the call order, input length for each Step, tool-output size, retry reason, cache hit status, and final quality feedback. The discussion then stays on the execution path instead of turning into a generic complaint about model price.
+
+Cache invalidation should be part of the same ledger. Enterprise data changes through backfills, metric-definition edits, permission changes, knowledge-base rebuilds, model upgrades, and prompt releases. Each change should trigger a scoped cache action: backfills clear caches tied to the affected data snapshot, metric-definition edits clear caches tied to the semantic-layer version, permission changes clear caches within the affected user and role scope, and prompt or model releases trigger review of cached answer style and structured objects. Fixed TTL alone leaves stale answers in high-risk paths for too long. Full invalidation after every change erases most cache value. The ledger helps teams identify which invalidation events occur most often, which cache keys are too broad, and which tasks should reuse only intermediate artifacts.
+
+Budget SLOs also belong in the ledger. When a low-priority task is downgraded, the system should record the explanation shown to the user, the alternatives offered, and whether the task eventually completed. When a high-priority task exceeds budget, the ledger should record the approver, approval reason, and final quality result. Monthly review can then separate two problems: policies that are too tight and suppress legitimate work, and tasks whose design consumes resources out of proportion to business value. Cost governance becomes adjustable only when anomaly records, cache invalidation, quality feedback, and business value are reviewed together.
+
+## 41.11 Joint acceptance for cost governance and user experience
+
+Cost governance should not be accepted only by a lower bill. If the platform saves money by using weaker models, shortening context, increasing cache hits, or delaying execution, it must also observe answer quality, user waiting time, human takeover, and business rejection. A cost rule that repeatedly degrades high-value tasks may reduce invoices while pushing work back to manual processes or outside tools. Acceptance material should show cost, quality, and experience together.
+
+The user interface should also express cost strategy. Asynchronous reports, low-priority queues, cached results, approximate answers, and high-cost approval should be visible. Users do not need token prices, but they need to know whether a result came from cache, whether data time is current, why a task is queued, and whether a higher priority path exists. Clear cost signals reduce misunderstanding and help business owners decide which tasks deserve more resources.
+
+Cost review should return to product boundaries. If a class of questions remains expensive, the task may be too broad, the semantic layer may lack pre-aggregations, the prompt may request unnecessary explanation, or the tool may return oversized results. Lower model cost treats only the surface. The platform should turn cost anomalies into product and data-engineering questions: whether a new metric table is needed, whether the task should run asynchronously, whether export should be limited, or whether the task template should be rewritten. Cost governance then improves platform structure instead of only reducing spend.
+
+## 41.12 Review window for cost-policy changes
+
+Cost policy changes need review as well. When model-routing rules, cache invalidation, budget thresholds, evaluation sampling, retry limits, or async queue priorities change, users do not experience a configuration edit. They experience different response speed, answer completeness, waiting time, and human takeover probability. Before release, the platform should prepare a replay set for cost policies: low-risk frequent Q&A, high-risk business analysis, long reports, batch evaluation, permission-boundary queries, and cache-hit scenarios. Each sample should compare cost, latency, quality signal, and user-visible state before and after the change.
+
+The review window should pay special attention to the interaction between cache and budget. Tighter budgets may drive more cache hits or smaller model routes. Broader cache policy may lower visible cost while increasing stale answers, permission mismatches, or user follow-up. If the platform looks only at unit task cost, the strategy may look successful. Review material should count later follow-up, manual rejection, report return, and rerun cost. A cache hit that saves tokens but causes the user to rerun or escalate the work has not necessarily reduced real cost.
+
+Policy changes need canary and rollback. Low-risk FAQ can expand cache coverage first, while high-risk finance tasks should keep a longer observation period. Internal test tenants may use more aggressive model routing, while formal operating reports keep stronger models and full Trace. If canary shows longer waits, more human takeover, or Safety Set anomalies, the platform should roll back by tenant, task type, or data domain. Mature cost governance treats cost reduction as an observed operating discipline, not a one-time configuration change.
+
+## 41.13 Audit and anomaly explanation for cost policy
+
+After cost governance enters production, business and finance teams will ask two questions: where the money went, and whether savings changed task quality. The platform should provide more than a monthly invoice or token count. One Run may spend money on model calls, retrieval, SQL, chart rendering, object storage, evaluation sampling, human review, and retries. The audit view should aggregate by tenant, Agent, task type, model, tool, Run, and Step, while keeping policy version, cache hit, budget action, and degradation reason. Cost changes then become explainable before the month-end bill arrives.
+
+Anomaly explanation should connect cost with behavior. A tenant's cost may rise because usage grew, but it may also rise because of retry storms, cache invalidation, missing pre-aggregations in the semantic layer, oversized tool results, changed evaluation sampling, or conservative model routing. A report that says "cost increased by 30 percent" gives the business owner little to act on. A useful explanation identifies the tasks, steps, recovery paths, and user behavior behind the increase. Report-generation cost may rise because each report now runs three extra SQL queries. Knowledge-Q&A cost may rise because document-version changes invalidated a large cache segment.
+
+Cost audit should also inspect savings actions. Switching to smaller models, shortening context, broadening cache, reducing evaluation sampling, and delaying execution should all be recorded as policy actions. They should be linked to quality, waiting time, human takeover, and user feedback. If a savings action lowers the invoice but increases business-review rejection, the audit report should show the real trade. This lets FinOps, platform teams, and business owners discuss task value using shared evidence instead of arguing over unit price.
+
+A first version can produce a monthly cost explanation pack. It does not need to be complex, but it should include top cost tasks, largest anomalies, cache invalidation causes, retry cost, human-review cost, degradation counts, and quality regression results. Each anomaly should have an owner and a next action: tune a prompt, add pre-aggregation, adjust cache policy, limit export, change async queueing, or pause a low-value task. Cost governance should improve platform structure over time while reducing waste.
+
+## 41.14 User-visible feedback for cost policy
+
+Cost governance should not stay entirely in the background. When users see queued tasks, slower models, asynchronous report generation, or requests to narrow scope during peaks, they need to know that cost and capacity policy is active. If the platform returns only technical errors or simple rate-limit messages, users will rephrase repeatedly, create more requests, and read the system as unstable. Cost policy needs user-visible feedback.
+
+Feedback should be task-specific. For long reports, the system can say that the task entered an asynchronous queue and give an expected completion window. For expensive queries, it can suggest a narrower time range or a published metric. For repeated questions, it can explain that a cached result is being reused and show the data time. For low-priority batch tasks, it can say that execution will happen after resources free up. Users do not need token prices or cache algorithms, but they need to know how to adjust requests to get reliable results faster.
+
+Cost feedback also has to protect quality. The platform should not make users believe a low-cost path is equivalent to a full result. If the system uses cache, summary, sampling, or a weaker model, it should state the limits in the right place. For formal reports and high-risk decisions, cost degradation must enter EvidenceRef and publication records. Users can then understand where the result applies, and the platform can prove during review that cost policy did not sacrifice business trust.
+
+A first version can prepare standard feedback for common cost actions: queueing, asynchronous execution, cache reuse, scope narrowing, model downgrade, and human takeover. Each feedback type connects to Trace, budget policy, and user action guidance. Cost governance then becomes part of product experience and backend financial reporting at the same time.
+
+## 41.15 User feedback for cost policies
+
+Cost policies affect user experience. Cache hits, model degradation, context compression, async execution, and quota limits can make the system feel faster, slower, shorter, or more conservative. If the platform judges policy success only through cost dashboards, it may reduce spend while weakening high-value tasks. Cost governance needs user feedback linked to policy versions.
+
+Feedback should be analyzed by policy type. If users keep asking follow-up questions after a cache hit, the answer may be stale or missing context. If reports are rejected after model degradation, the cheaper model may not fit the task. If citations decrease after context compression, evidence may have been trimmed. If users cancel after async execution, waiting messages may be unclear. Each feedback type points to a different repair path, not simply a larger budget.
+
+A first version can record user impact in the cost policy ledger: policy version, affected task, cost change, latency change, adoption rate, rejection rate, and feedback label. After a cost optimization passes release, the platform should still observe real traffic for a period. Cost governance then serves business value instead of pushing every task toward the lowest-cost path.
+
+## 41.16 Task attribution for cost anomalies
+
+When task attribution for cost anomalies reaches production, the platform needs a shared evidence standard for tenant, task type, model route, cache hit, retry count, tool call, and business owner. This standard is not paperwork for its own sake. It lets business, platform, data, security, and operations teams discuss the same facts. Without this material, incident review depends on memory and personal judgment. With it, the team can see which inputs were valid, which actions executed, which artifacts can still be used, and which results need correction or withdrawal.
+
+This evidence should connect to Chapter 38 on Trace, Chapter 45 on the gateway, and Chapter 53 on operating review. The upstream chapters provide the capability base, downstream chapters consume the runtime result, and this chapter explains how the middle layer is verified. If a capability looks complete inside one chapter but cannot enter Trace, Eval, release records, or the compliance evidence package, the production system still has a break in the chain. Readers should treat cross-chapter interfaces as engineering contracts, not as a reading order.
+
+Common risks include cost being attributed only to the platform team, retry amplification going unnoticed, and cache hit rate improving while quality declines. A successful demo rarely exposes these problems because demo samples are usually clean, short, and direct. Real business traffic brings stale data, abnormal input, permission changes, user withdrawal, budget limits, and long-running state. If the platform does not turn those situations into samples and ledgers, later scenarios will hit the same class of issues again.
+
+Cost being attributed only to the platform team should be turned into a tracked review item when it appears repeatedly. The operating record should at least state owner, version, sample, affected scope, action, and review time. It does not need to become a long process report, but it must be clear enough for a later maintainer to understand the decision. For high-risk capability, the record should also state which conditions allow wider use and which failures require degradation or withdrawal.
+
+A first version can build this habit in a few representative scenarios. It is better to make high-traffic, high-risk, externally visible paths solid first, then copy the sample, ledger, and review method to related capabilities in other chapters. This makes the chapter read like engineering guidance: it explains how the capability is integrated, validated, operated, and retired.
+
 ## Chapter Recap
 
 Agent cost governance must start from the task chain, not from single model calls. Run cost comes from models, tools, retrieval, storage, evaluation, and retries. Only by attributing costs to `run_id`, `step_id`, and `trace_id` can teams determine where money is spent, if quality gains justify cost, and whether optimizations just shift risk elsewhere.
@@ -323,16 +363,8 @@ Model routing, caching, and budgets are not isolated strategies. Routing must re
 - [ ] Are graded controls (notifications, compression, degradation, approvals, denials) implemented on budget overruns?
 - [ ] Has cost optimization deployment been confirmed with no regressions in quality, safety, or latency gates?
 
-Related chapters: [Chapter 7 Inference Optimization](../../part02-model-inference/en/ch07.md), [Chapter 8 Structured Output and Prompt Engineering](../../part02-model-inference/en/ch08.md), [Chapter 38 Agent Observability and Runtime Diagnostics](ch38-trace.md), [Chapter 39 Enterprise DataAgent Evaluation and Benchmarking](ch39-dataagent-eval-benchmark.md), [Chapter 40 Online Evaluation, Model Judges, and Continuous Optimization](ch40-llm-as-judge.md), [Chapter 42 SLO Management, Throttling and System Resilience](ch42-slo.md), [Chapter 45 LLM Gateway and Multi-tenancy](../../part08-deployment/en/ch45-llm.md).
-
-Engineering topics to follow: model gateway, inference service caching, semantic caching, token budgeting, cost dashboards, tenant-level throttling, grayscale release, and evaluation gating.
+Related chapters: [Chapter 7 Inference Optimization](../../part02-model-inference/en/ch07.md), [Chapter 8 Structured Output and Prompt Engineering](../../part02-model-inference/en/ch08.md), [Chapter 38 Agent Observability and Runtime Diagnostics](ch38-trace.md), [Chapter 39 Enterprise DataAgent Evaluation and Benchmarking](ch39-dataagent-eval-benchmark.md), [Chapter 40 Online Evaluation, Model Judges, and Continuous Optimization](ch40-llm-as-judge.md), [Chapter 42 SLO Management, Throttling and System Resilience](ch42-slo.md), [Chapter 45 LLM Gateway and Multi-tenancy](../../part08-deployment/en/ch45-llm.md). Engineering topics to follow: model gateway, inference service caching, semantic caching, token budgeting, cost dashboards, tenant-level throttling, grayscale release, and evaluation gating.
 
 ## References
 
-LiteLLM. (n.d.). [Documentation](https://docs.litellm.ai/).
-
-GPTCache. (n.d.). [Documentation](https://gptcache.readthedocs.io/).
-
-FinOps Foundation. (n.d.). [Framework](https://www.finops.org/framework/).
-
-OpenTelemetry. (n.d.). [Metrics documentation](https://opentelemetry.io/docs/concepts/signals/metrics/).
+LiteLLM. (n.d.). [Documentation](https://docs.litellm.ai/). GPTCache. (n.d.). [Documentation](https://gptcache.readthedocs.io/). FinOps Foundation. (n.d.). [Framework](https://www.finops.org/framework/). OpenTelemetry. (n.d.). [Metrics documentation](https://opentelemetry.io/docs/concepts/signals/metrics/).

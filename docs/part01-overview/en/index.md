@@ -5,7 +5,7 @@
 The task of Part I is not to dive immediately into a particular framework, code segment, or product, but first to answer four more fundamental questions:
 
 1. What exactly is an Agent, and how does it differ from RAG, Copilot, or Workflow?
-2. Why do enterprises truly need a platform rather than a collection of disconnected intelligent projects?
+2. Why do enterprises truly need a platform instead of a collection of disconnected intelligent projects?
 3. What is an AI-native business system, and how does it differ from simply "adding AI features to existing systems"?
 4. Why are the subsequent 55 chapters organized in the current order, and how should they be read?
 
@@ -26,9 +26,7 @@ These four chapters jointly serve as the "foundational overview" of the volume. 
 
 ## Recommended Reading Approach for This Section
 
-If you are encountering enterprise-level Agent platforms for the first time, we recommend reading the four chapters in order, as they form a progressive argument chain.
-
-If you already have some project experience, you can skim selectively as follows:
+If you are encountering enterprise-level Agent platforms for the first time, we recommend reading the four chapters in order, as they form a progressive argument chain. If you already have some project experience, you can skim selectively as follows:
 
 | Your Current Top Question | Recommended First Chapter to Read |
 |---|---|

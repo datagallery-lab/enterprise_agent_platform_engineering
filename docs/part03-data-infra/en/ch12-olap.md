@@ -24,9 +24,7 @@ Figure 12-1 illustrates "one lakehouse asset, multiple consumption modes." DataA
 
 ### 12.1.1 Enterprise Analytics Workload Classification
 
-Engine selection should start with workload classification.
-
-Workload type matters more than product name because the same SQL engine can behave very differently under different workloads. Ad hoc queries prioritize flexible joins and fault tolerance; fixed dashboards emphasize concurrency and stable latency; metric queries require consistent definitions and cacheability; federated queries hinge on connector capabilities; local exploration values single-node efficiency and usability; event analytics require time filters and high write throughput. Identifying workloads lets platforms assign distinct latency targets, budgets, permissions, and degradation strategies.
+Engine selection should start with workload classification. Workload type matters more than product name because the same SQL engine can behave very differently under different workloads. Ad hoc queries prioritize flexible joins and fault tolerance; fixed dashboards emphasize concurrency and stable latency; metric queries require consistent definitions and cacheability; federated queries hinge on connector capabilities; local exploration values single-node efficiency and usability; event analytics require time filters and high write throughput. Identifying workloads lets platforms assign distinct latency targets, budgets, permissions, and degradation strategies.
 
 *Table 12-1: Latency targets and engine recommendations by analysis workload (source: author)*
 
@@ -69,9 +67,7 @@ Third, "Choose engines solely by benchmark rankings." Benchmarks can't replace a
 
 ## 12.2 Lakehouse Query Path: Collaboration among Catalog, Open Table Formats, Object Storage, and Compute Engines
 
-A controlled lakehouse query typically passes five steps: user/DataAgent submits intent; query router selects engine; policy controller validates permissions, budgets, timeouts; catalog adapter resolves tables, snapshots, connections; execution adapter submits to engine and returns result handle.
-
-The core idea is "control before execution." DataAgent's SQL merely expresses intent and cannot be directly submitted. The platform must first decide workload type, user permission, scan budget, snapshot fixation, and usage of masked views. Only after these checks, the execution adapter sends the query to Trino, StarRocks, Snowflake, or others.
+A controlled lakehouse query typically passes five steps: user/DataAgent submits intent; query router selects engine; policy controller validates permissions, budgets, timeouts; catalog adapter resolves tables, snapshots, connections; execution adapter submits to engine and returns result handle. The core idea is "control before execution." DataAgent's SQL merely expresses intent and cannot be directly submitted. The platform must first decide workload type, user permission, scan budget, snapshot fixation, and usage of masked views. Only after these checks, the execution adapter sends the query to Trino, StarRocks, Snowflake, or others.
 
 ![Figure 12-4: Controlled lakehouse queries pass routing, policy, and catalog](../../images/part3/en/ch12-04.png)
 
@@ -150,7 +146,7 @@ Errors:
 }
 ```
 
-The contract splits query execution into observable states rather than simply returning result tables. The `workload` helps routing; `latency_budget_ms` and `cost_budget` help policy evaluation; `result_mode` determines preview versus materialized results. The `retryable` flag is important-permission denials and budget overruns usually should not trigger automatic retries; temporary engine unavailability may trigger failover or rerouting.
+The contract splits query execution into observable states instead of simply returning result tables. The `workload` helps routing; `latency_budget_ms` and `cost_budget` help policy evaluation; `result_mode` determines preview versus materialized results. The `retryable` flag is important-permission denials and budget overruns usually should not trigger automatic retries; temporary engine unavailability may trigger failover or rerouting.
 
 ### 12.2.3 Performance Engineering: Materialized Views, Rollups, Data Distribution, Hot-Cold Layers, and Query Acceleration
 
@@ -194,9 +190,7 @@ Security here is broader than preventing table drops; "legal but dangerous" quer
 
 *Figure 12-7: Agent query security boundary enforces controls before engine submission. Source: author. Alt text: Prior to SQL submission, four gates enforce read-only check, timeout, row limit, and masking, with arrows showing any failure blocks submission.*
 
-Figure 12-7 stresses security enforcement must precede submission. Read-only enforcement, dangerous statement blocking, scan limits, timeouts, masking, and auditing are unified platform responsibilities-not relying on Agent to produce safe SQL. These gates are before execution adapters, meaning unauthorized queries should never reach back-end engines.
-
-State machine example:
+Figure 12-7 stresses security enforcement must precede submission. Read-only enforcement, dangerous statement blocking, scan limits, timeouts, masking, and auditing are unified platform responsibilities-not relying on Agent to produce safe SQL. These gates are before execution adapters, meaning unauthorized queries should never reach back-end engines. State machine example:
 
 *Table 12-6: Agent query states, entry conditions, and failure handling (source: author)*
 
@@ -230,9 +224,7 @@ This embodies the chapter's core idea: routing rules precede execution adapters.
 
 *Figure 12-9: mini-platform generates engine routing decisions based on workload tags. Source: author. Alt text: Queries tagged with workload labels like adhoc, report, realtime enter router, which outputs target engines by tags and data location, showing label-driven routing.*
 
-Figure 12-9 shows the mini-platform routing closed loop: input workload tag and latency budget; rules return primary engine, alternatives, scan budget, feasibility.
-
-`mini-platform/infra/lakehouse/engine_selector.py`:
+Figure 12-9 shows the mini-platform routing closed loop: input workload tag and latency budget; rules return primary engine, alternatives, scan budget, feasibility. `mini-platform/infra/lakehouse/engine_selector.py`:
 
 ```python
 class Workload(str, Enum):
@@ -310,7 +302,7 @@ local_analytics -> DuckDB
 route realtime_bi@1500ms -> StarRocks budget=1500ms feasible=False
 ```
 
-The last line shows: caller requests 1500ms latency but `realtime_bi` target is 3000ms. Router still returns StarRocks but marks `latency_feasible=False` to signal upper layers to narrow query scope, use materialized views, or adjust SLAs rather than blindly submit slow queries.
+The last line shows: caller requests 1500ms latency but `realtime_bi` target is 3000ms. Router still returns StarRocks but marks `latency_feasible=False` to signal upper layers to narrow query scope, use materialized views, or adjust SLAs instead of blindly submit slow queries.
 
 ### 12.3.1 Release gates for the query execution chain
 
@@ -349,6 +341,66 @@ Evidence management also protects the feedback loop. A timeout can become a perf
 
 ---
 
+## 12.4 Metric Drift And Query Evidence In OLAP
+
+When OLAP supports DataAgent, metric drift directly affects user trust. The same "sales amount" may change because of return handling, tax treatment, channel attribution, time partitioning, or exchange-rate conversion. In traditional BI, users can slowly align through report notes. In Agent scenarios, the system turns query results into natural-language conclusions, so metric differences are easier to read as factual conflict. The platform needs to bind OLAP metric changes to query evidence.
+
+Each metric change should leave semantic-layer version, SQL fragment, data snapshot range, affected reports, affected Agent samples, and effective time. When DataAgent answers, it should be able to cite the metric version and query evidence used at that moment. If users review a historical question, the platform should explain which definition produced the old result instead of recalculating with the current definition and overwriting history. OLAP query then becomes traceable evidence.
+
+Metric-drift review should also inspect query performance. A corrected metric may add complex joins, window functions, or wide scans, raising Agent latency and cost. Data teams, platform teams, and business owners should decide whether to pre-aggregate, add materialized views, restrict natural-language query scope, or move the task to async reporting. OLAP engineering quality ultimately appears as stable, explainable, and reviewable Agent answers.
+
+## 12.5 Coordination between OLAP query policy and the semantic layer
+
+The OLAP layer should not decide every query policy on its own. After a natural-language question enters DataAgent, the semantic layer identifies metrics, dimensions, time range, and candidate datasets. The OLAP layer then chooses an execution path based on engine capability, resource queues, and permission policy. If the semantic layer fails to state the metric definition clearly, fast execution can still produce the wrong answer. If the OLAP layer does not return resource and execution status, the semantic layer cannot know when to rewrite, degrade, or move the task to an asynchronous report.
+
+The interface should include a formal plan review. Before submission, a query plan should carry metric version, candidate tables, filters, estimated scan size, target latency, user permission, and expected result size. The semantic layer explains what the question should read. The OLAP layer decides whether the plan can run under current resources and permissions. When the plan fails, the reason should be structured: missing metric, missing permission, excessive scan size, unsupported engine feature, stale data, or oversized result. The Planner can then narrow the time range, switch to a metric entry point, ask for clarification, or require human confirmation.
+
+This coordination also reduces cost. Many natural-language questions appear to require detail-level scans but can be answered from published metric tables. Many follow-up questions can reuse the same snapshot and intermediate result. The semantic layer keeps task context, and the OLAP layer keeps execution evidence. Together they reduce repeated scans and prevent expensive engines from being used only to keep the conversation instant. For a first platform version, connecting query plans, execution evidence, and failure reasons matters more than adding another OLAP product.
+
+## 12.6 Answer consistency checks after OLAP engine changes
+
+After an OLAP engine change, the platform should check DataAgent answer consistency. Moving a query from Trino to StarRocks, or replacing detail queries with materialized views, can change function semantics, time zone handling, null behavior, approximate aggregation, and permission implementation. SQL may still execute successfully while the number in the answer changes.
+
+Consistency checks should use a set of common business questions and compare old engine, new engine, semantic-layer metric, and human-confirmed result. If the difference comes from performance optimization, the acceptable range should be stated. If it comes from metric-definition change, update semantic-layer version and user message. If it comes from permission implementation, pause the rollout. The object of OLAP migration acceptance is the business answer users see, not the engine alone.
+
+## 12.7 Canary and rollback for OLAP query policy
+
+An OLAP query-policy canary usually changes more than engine selection. A small routing change may also alter resource queues, scan thresholds, materialized-view preference, cache eligibility, pagination behavior, and failure codes. DataAgent uses those signals to decide whether to ask a follow-up question, rewrite SQL, request human confirmation, or move a task to async execution. For that reason, query-policy releases should ramp by business domain, tenant, metric group, and task type. During the canary, the platform should retain execution evidence from both old and new policies and compare business answers, scan cost, latency, failure category, cache reuse, and follow-up-question rate. Stable engine metrics alone do not prove the release is ready; the Planner, semantic layer, and frontend explanation may still absorb the damage.
+
+Rollback design belongs before the canary starts. Reverting one configuration file is insufficient when the new policy has already populated caches, generated report artifacts, changed intermediate results, or launched async jobs. The platform should link policy version, semantic-layer version, data snapshot, and cache entries. If one metric group misbehaves after ramp-up, rollback should narrow by tenant, business domain, or metric scope instead of switching the whole platform back. Generated results also need policy-version labels, so historical review does not compare numbers produced under different policies as if they came from the same execution path. For high-risk operating metrics, rollback should trigger replay of representative historical questions and verify answer text, charts, and cited evidence.
+
+OLAP policy releases also need user-facing explanation. Users do not need engine-routing details, but they do need to understand why the same question is slower today, why a detail query moved to async processing, or why the system asks for a narrower time range. Raw technical errors push users to rephrase the same expensive request. A better interface translates resource limits, permission limits, and data-refresh state into task-level messages while Trace keeps the original failure. The frontend sets expectations for the user, and the backend keeps enough evidence for engineering review. A successful OLAP canary preserves stable, explainable, and traceable business answers after the execution path changes.
+
+## 12.8 Evidence boundaries for query-result cache
+
+OLAP query cache can reduce cost and latency, but DataAgent needs tighter rules. The system may reuse the previous query result during follow-up questions. During peaks, it may return cached metrics. During report generation, several charts may share intermediate results. If cache lacks evidence boundaries, numbers can drift away from data snapshots, permission scope, and metric version. Higher cache hit rate requires clearer explanation of the facts behind each hit.
+
+Cache evidence should include query semantics, SQL, semantic-layer version, data snapshot, permission context, generation time, invalidation condition, and use case. If user permissions change, the cache should not be reused. If metric version changes, the cache should expire. If lower-level partitions refresh, the platform should decide whether the cache remains inside the acceptable time window. For high-risk operating metrics, cached results should also record whether human confirmation or report publication occurred. Cache should not present old facts as fresh answers.
+
+Cache policy should also separate interaction from reporting. Interactive data questions may use short-lived cache to avoid repeated scans. Formal reports should bind to snapshots and preserve query evidence. Exploratory analysis can reuse intermediate results, but it should mark them as draft before user confirmation. One cache policy across all tasks creates hidden conflict between cost and trust. Planner and frontend need to know whether the current result came from real-time execution, acceptable cache, or historical artifact.
+
+A first version can add `cache_source` and `evidence_scope` to the OLAP query interface. `cache_source` states whether the result came from real-time execution, same-session cache, cross-session cache, or historical report. `evidence_scope` states the bound data snapshot, permission scope, and metric version. Query-performance optimization in Chapter 12 can then support trusted DataAgent answers without sacrificing replayability for speed.
+
+## 12.9 OLAP query evidence and cache explanation
+
+OLAP systems often use pre-aggregation, materialized views, result cache, and query rewrite. For ordinary BI users, these mechanisms are performance optimizations. For DataAgent, they are also part of the evidence source. If the same question returns different numbers at different times, the platform needs to explain whether the difference came from cache expiry, materialized-view refresh lag, query rewrite, permission filtering, or source-data change. Keeping only the final number is not enough for review.
+
+Query evidence should include execution path. After an Agent calls an OLAP tool, Trace should record logical SQL, actual SQL, materialized view hit, cache state, data timestamp, permission filter, returned row count, and key aggregate values. If the result came from cache, the system needs cache creation time and invalidation rule. If it came from pre-aggregation, the system needs coverage and refresh time. When the report layer cites a number, it can then state which data version produced it.
+
+Cache explanation should also reach users. Low-risk dashboards can show cache time directly. High-risk reports should verify that the cache is still within the allowed freshness window. Approval recommendations usually need the latest verifiable data or a waiting state. A first version can have OLAP tools return `freshness_status`, `cache_source`, and `evidence_ref`. Performance optimization then strengthens the evidence chain instead of weakening it.
+
+## 12.10 Change safeguards for the OLAP query layer
+
+When change safeguards for the olap query layer reaches production, the platform needs a shared evidence standard for query templates, materialized views, metric definitions, permission filters, cache policy, slow-query samples, and rollback method. This standard is not paperwork for its own sake. It lets business, platform, data, security, and operations teams discuss the same facts. Without this material, incident review depends on memory and personal judgment. With it, the team can see which inputs were valid, which actions executed, which artifacts can still be used, and which results need correction or withdrawal.
+
+This evidence should connect to Chapter 33 on the semantic layer, Chapter 34 on NL2SQL, and Chapter 41 on cost governance. The upstream chapters provide the capability base, downstream chapters consume the runtime result, and this chapter explains how the middle layer is verified. If a capability looks complete inside one chapter but cannot enter Trace, Eval, release records, or the compliance evidence package, the production system still has a break in the chain. Readers should treat cross-chapter interfaces as engineering contracts, not as a reading order.
+
+Common risks include cache hits using stale definitions, materialized-view refresh failures, permission filters enforced only in the frontend, and query optimization changing result order. A successful demo rarely exposes these problems because demo samples are usually clean, short, and direct. Real business traffic brings stale data, abnormal input, permission changes, user withdrawal, budget limits, and long-running state. If the platform does not turn those situations into samples and ledgers, later scenarios will hit the same class of issues again.
+
+Cache hits using stale definitions should be turned into a tracked review item when it appears repeatedly. The operating record should at least state owner, version, sample, affected scope, action, and review time. It does not need to become a long process report, but it must be clear enough for a later maintainer to understand the decision. For high-risk capability, the record should also state which conditions allow wider use and which failures require degradation or withdrawal.
+
+A first version can build this habit in a few representative scenarios. It is better to make high-traffic, high-risk, externally visible paths solid first, then copy the sample, ledger, and review method to related capabilities in other chapters. This makes the chapter read like engineering guidance: it explains how the capability is integrated, validated, operated, and retired.
+
 ## Chapter Recap
 
 1. Lakehouse table format addresses data asset openness; OLAP engines address analytic query performance, concurrency, serviceability, and cost.
@@ -369,10 +421,4 @@ Evidence management also protects the feedback loop. A timeout can become a perf
 
 ## References
 
-DuckDB. (n.d.). [Documentation](https://duckdb.org/docs/).
-
-Trino. (n.d.). [Documentation](https://trino.io/docs/current/).
-
-ClickHouse. (n.d.). [Documentation](https://clickhouse.com/docs/).
-
-Apache Doris. (n.d.). [Documentation](https://doris.apache.org/docs/).
+DuckDB. (n.d.). [Documentation](https://duckdb.org/docs/). Trino. (n.d.). [Documentation](https://trino.io/docs/current/). ClickHouse. (n.d.). [Documentation](https://clickhouse.com/docs/). Apache Doris. (n.d.). [Documentation](https://doris.apache.org/docs/).

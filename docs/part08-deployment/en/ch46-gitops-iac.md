@@ -33,9 +33,7 @@ GitOps four principles:
 
 The reconcile loop is the heartbeat of GitOps: ArgoCD compares Git commits to cluster objects every 3 minutes by default, and if diffs exist, it performs a Sync or sends alerts. The prod `llm-gateway-prod` Application disables automated sync but continues diff monitoring. OutOfSync itself signals that someone bypassed Git.
 
-Several terms need to be separated before the delivery flow becomes readable. GitOps uses Git to drive deployment and change, and it focuses on continuous alignment between desired cluster state and actual state. It is different from CI, which mainly builds and verifies artifacts. IaC describes infrastructure in code and covers multiple layers, including Terraform, Helm, and Kustomize. Promotion means advancing configuration from dev to staging and then to prod, not simply copying an image tag. Drift means that the actual cluster state no longer matches the state declared in Git; this is different from a Canary traffic ratio, which is still part of an intentional release strategy.
-
-Git repo structure (indicative, matching component names in Chapters 44/45):
+Several terms need to be separated before the delivery flow becomes readable. GitOps uses Git to drive deployment and change, and it focuses on continuous alignment between desired cluster state and actual state. It is different from CI, which mainly builds and verifies artifacts. IaC describes infrastructure in code and covers multiple layers, including Terraform, Helm, and Kustomize. Promotion means advancing configuration from dev to staging and then to prod, not simply copying an image tag. Drift means that the actual cluster state no longer matches the state declared in Git; this is different from a Canary traffic ratio, which is still part of an intentional release strategy. Git repo structure (indicative, matching component names in Chapters 44/45):
 
 ```text
 agent-platform-gitops/
@@ -79,7 +77,7 @@ The delivery stack in Part VIII has four collaboration layers: **Terraform manag
 
 IaC also has to encode who may change which object. GPU node pools, model buckets, and IAM policies normally require platform owner and security review. Model URIs, Canary percentages, and gateway tenant policy require platform and business owner review. Observability and alerting changes require SRE review. GitOps does not create governance by itself; PR reviewers, CODEOWNERS, branch protection, and ArgoCD RBAC turn governance into daily practice.
 
-For an Agent platform, declarative configuration also serves as documentation. A reader should be able to inspect `values-prod.yaml` and understand which model services, tenants, fallbacks, and edge overlays exist in production. If the configuration is only a pile of variable names with no naming convention or comments, the GitOps repository becomes another black box. This chapter cares about reviewable, comparable, and rollback-capable operating assumptions, rather than the slogan that everything must be YAML.
+For an Agent platform, declarative configuration also serves as documentation. A reader should be able to inspect `values-prod.yaml` and understand which model services, tenants, fallbacks, and edge overlays exist in production. If the configuration is only a pile of variable names with no naming convention or comments, the GitOps repository becomes another black box. This chapter cares about reviewable, comparable, and rollback-capable operating assumptions, instead of the slogan that everything must be YAML.
 
 *Table 46-1: Responsibilities and managed objects of IaC tools like Terraform and Helm Chart. Source: this book.*
 
@@ -122,9 +120,7 @@ Delivery order should be bottom-up, consistent with Chapters 43-45. Upper Applic
 | L5 Platform Apps | Agent Runtime, DataAgent | Helm/Kustomize | L4 |
 | L6 Observability | OTel, Langfuse | Helm | L5 |
 
-Direct cluster changes that skip PRs break upper-layer assumptions. Typical errors include manually scaling GPU node pool `max_size` without updating Terraform, which causes Cluster Autoscaler and FinOps tag drift, or manually changing a LiteLLM backend without updating Helm, which lets ArgoCD overwrite the change on the next sync and creates intermittent failures that look mysterious during incident review.
-
-Helm release order of L3 and L4 is controlled by ArgoCD Application dependencies or sync waves: first `model-serving-prod`, then `llm-gateway-prod` after the model service is Ready. This prevents gateways from pointing to nonexistent InferenceServices.
+Direct cluster changes that skip PRs break upper-layer assumptions. Typical errors include manually scaling GPU node pool `max_size` without updating Terraform, which causes Cluster Autoscaler and FinOps tag drift, or manually changing a LiteLLM backend without updating Helm, which lets ArgoCD overwrite the change on the next sync and creates intermittent failures that look mysterious during incident review. Helm release order of L3 and L4 is controlled by ArgoCD Application dependencies or sync waves: first `model-serving-prod`, then `llm-gateway-prod` after the model service is Ready. This prevents gateways from pointing to nonexistent InferenceServices.
 
 ### 46.2.2 Environment Management: Config Differences, Secret Management, and Promotion Process for Dev, Staging, Prod
 
@@ -142,19 +138,17 @@ Three-environment differences are more than halved replica counts. Model weights
 
 Secrets management has a hard baseline: never store plaintext keys in Git. Use External Secrets Operator (ESO) to inject from Vault/KMS. LiteLLM `master_key`, cloud API keys, and OSS credentials all use Secret references. A PR shows only `secretRef: vault/path/openai-key`, never plaintext. Finance tenant cloud keys do not exist at the Vault path level, adding a second control alongside the Chapter 45 tenant whitelist.
 
-Promotion process: dev auto sync -> staging auto sync plus integration tests (including the Chapter 39 offline gate) -> prod Platform Owner approval plus ArgoCD manual sync. Config diffs must be auditable: ArgoCD `app diff` should match the PR diff. After staging passes, create tag `prod-v1.2.0`; the prod Application's `targetRevision` points to that tag rather than a floating `main`. Production cannot track a moving head.
+Promotion process: dev auto sync -> staging auto sync plus integration tests (including the Chapter 39 offline gate) -> prod Platform Owner approval plus ArgoCD manual sync. Config diffs must be auditable: ArgoCD `app diff` should match the PR diff. After staging passes, create tag `prod-v1.2.0`; the prod Application's `targetRevision` points to that tag instead of a floating `main`. Production cannot track a moving head.
 
 ![Figure 46-3: Production promotion requires manual gating, cannot rely on automatic sync as in dev](../../images/part8/en/ch46-03.png)
 
 *Figure 46-3: Production promotion must have manual gate, different from dev's automatic sync. Source: this book. Alt text: dev and staging allow automatic sync, but prod has a manual approval gate indicated at the entry, with arrows showing sync only triggers after approval, reflecting differentiated release cadence.*
 
-Figure 46-3 emphasizes the difference in production sync strategy: dev and staging may auto sync, while prod requires manual approval and manual sync. Promotion windows before a business peak should be scheduled early. For example, `llm-general-32b.minReplicas` is promoted with a tag after staging load tests, and prod manual sync happens during a low-traffic window rather than a few hours before the peak.
+Figure 46-3 emphasizes the difference in production sync strategy: dev and staging may auto sync, while prod requires manual approval and manual sync. Promotion windows before a business peak should be scheduled early. For example, `llm-general-32b.minReplicas` is promoted with a tag after staging load tests, and prod manual sync happens during a low-traffic window instead of a few hours before the peak.
 
 ### 46.2.3 Edge Inference Scenarios: Store Terminals, Factory Edge Nodes, Offline/Low Network, and Hybrid Cloud Topologies
 
-A retail enterprise platform team may need to serve hundreds of stores with offline shopping assistants; manufacturing factories may run isolated networks that require millisecond-level responses for QC Agents; logistics handheld devices still need waybill queries over mobile networks. Sending everything to the Chapter 45 cloud gateway and Chapter 44 32B models is impractical because weak network RTT and disconnections break the experience. **Edge inference is a deployment location extension, not a separate architecture:** the control plane remains central GitOps, while edge uses special `overlay` and OTA reconcile policies.
-
-Edge scenario characteristics:
+A retail enterprise platform team may need to serve hundreds of stores with offline shopping assistants; manufacturing factories may run isolated networks that require millisecond-level responses for QC Agents; logistics handheld devices still need waybill queries over mobile networks. Sending everything to the Chapter 45 cloud gateway and Chapter 44 32B models is impractical because weak network RTT and disconnections break the experience. **Edge inference is a deployment location extension, not a separate architecture:** the control plane remains central GitOps, while edge uses special `overlay` and OTA reconcile policies. Edge scenario characteristics:
 
 *Table 46-4: Constraints, model sizes, and sync strategies of edge inference scenarios like stores and factories. Source: this book.*
 
@@ -168,7 +162,7 @@ Stores can run llama.cpp 7B Q4 for high-frequency Q&A about size, inventory, and
 
 ![Figure 46-4: Edge nodes are GitOps special overlays, not islands outside governance](../../images/part8/en/ch46-04.png)
 
-*Figure 46-4: Edge nodes are GitOps special overlays, not governance-isolated islands. Source: this book. Alt text: Cloud Git repo applies overlays to cover edge node special configs such as lightweight models and offline cache; edge nodes remain within the GitOps sync framework rather than becoming manually maintained islands.*
+*Figure 46-4: Edge nodes are GitOps special overlays, not governance-isolated islands. Source: this book. Alt text: Cloud Git repo applies overlays to cover edge node special configs such as lightweight models and offline cache; edge nodes remain within the GitOps sync framework instead of becoming manually maintained islands.*
 
 Figure 46-4 illustrates a hybrid topology with central GitOps and three edge node types: store, factory, and logistics. Edge nodes run llama.cpp, ONNX, or MLC small models; the control plane still synchronizes OTA from a central manifest. They are not separate governance islands. Factory QC ONNX models exported from the central training pipeline share the same version schema as cloud KServe models, which makes it possible to reconcile complaints about "edge 7B vision versus cloud 32B review" against the same release train.
 
@@ -398,7 +392,7 @@ Edge does not run ArgoCD Server, but the OTA Agent pulls manifest tags matching 
 
 Production delivery should bind permissions, audit, and rollback together. ArgoCD AppProject should limit which Namespace and resource types each Application may write, and prod sync should be executable only by the Platform Owner or release automation. Git PR, ArgoCD Sync, and Terraform apply records must line up with each other. If a model release is visible in Git but no corresponding ArgoCD Sync exists, it has not actually reached production. If a Terraform apply has no run_id, the team cannot later explain why a node pool became larger at a specific time.
 
-Cost and performance should also enter the GitOps record. Terraform GPU node pools need environment, business unit, and cost-center tags, and autoscaling bounds should be reviewed through PR rather than changed in a cloud console. Helm CI `template` validation proves only that YAML renders; it does not prove that the model loads. Before prod promotion, staging still needs smoke tests for cold start, gateway, tenant policies, and rollback using the same model weights as production. Edge nodes also need to report `edge_model_version`, manifest tag, and verification results; an edge version that central inventory cannot see is not governable.
+Cost and performance should also enter the GitOps record. Terraform GPU node pools need environment, business unit, and cost-center tags, and autoscaling bounds should be reviewed through PR instead of changed in a cloud console. Helm CI `template` validation proves only that YAML renders; it does not prove that the model loads. Before prod promotion, staging still needs smoke tests for cold start, gateway, tenant policies, and rollback using the same model weights as production. Edge nodes also need to report `edge_model_version`, manifest tag, and verification results; an edge version that central inventory cannot see is not governable.
 
 Disaster recovery starts with fixed versions. Prod Applications should not track a floating branch. They should track `prod-v*` tags. Rollback syncs to the previous tag and retains the corresponding Terraform, Helm values, and model manifest. `argocd app sync --revision <tag>` is not a magic button; it works only if the old model URI, Secret references, and edge manifests remain accessible.
 
@@ -410,9 +404,7 @@ Triple audit also supports normal operations. A platform monthly review can use 
 
 For the English edition and later versions, this GitOps chapter also provides the book's closure around engineering reproducibility. Earlier chapters cover Runtime, model service, gateway, observability, and security. If deployment still depends on manual operations, readers cannot reproduce those capabilities reliably. Chapter 46 puts them back into a declarative delivery flow and shows that an enterprise Agent platform must be versioned, audited, rolled back, and reproduced across environments.
 
-This is also what makes the chapter different from a general DevOps tutorial. The book is not mainly concerned with deploying any application to Kubernetes. It is concerned with Agent-platform-specific change objects: model weights, prompts, ToolSpecs, tenant policies, GPU node pools, edge manifests, and evaluation evidence. Together they determine which path an Agent call takes, what capabilities it sees, and what risks it carries. GitOps puts these objects in one reviewable change system so the platform can move from pilot engineering to maintainable production.
-
-GitOps is therefore not decorative closure for Part VIII. It is the mechanism that keeps the previous layers running according to their design. Without it, model serving, gateways, and scheduling will drift after a few manual repairs.
+This is also what makes the chapter different from a general DevOps tutorial. The book is not mainly concerned with deploying any application to Kubernetes. It is concerned with Agent-platform-specific change objects: model weights, prompts, ToolSpecs, tenant policies, GPU node pools, edge manifests, and evaluation evidence. Together they determine which path an Agent call takes, what capabilities it sees, and what risks it carries. GitOps puts these objects in one reviewable change system so the platform can move from pilot engineering to maintainable production. GitOps is therefore not decorative closure for Part VIII. It is the mechanism that keeps the previous layers running according to their design. Without it, model serving, gateways, and scheduling will drift after a few manual repairs.
 
 The key judgment for readers is this: any object that can change Agent behavior, cost, permissions, or observability evidence belongs in a declarative change process. Only then can an enterprise platform stay consistent across people, environments, models, and edge nodes. The same principle applies to future case studies and hands-on projects.
 
@@ -428,7 +420,7 @@ The key judgment for readers is this: any object that can change Agent behavior,
 
 All three systems use consistent `tenant` and `environment` tags matching Chapter 45. This lets finance compliance audits trace any PR that relaxes cloud backend permissions. Under the intended process there should be no such PR; if one exists, the process has already failed.
 
-## 46.7 GitOps as the Release Evidence Chain
+## 46.4 GitOps as the Release Evidence Chain
 
 GitOps is useful because it turns production changes into an evidence chain. A model-service scale-out, gateway policy adjustment, secret rotation, or edge model rollout should be traceable from Git PR to ArgoCD Sync, then to cluster objects and runtime metrics. When an incident occurs, the team can determine who changed what, when it entered production, and which tenants were affected.
 
@@ -440,6 +432,51 @@ Drift handling needs rules. Production cannot avoid every emergency change, but 
 
 GitOps should also connect to evaluation gates. Before PRs for model services, gateway routing, and Guardrails policy can be merged, the corresponding evaluations should run. If evaluation fails, the configuration should not enter production sync. In that sense, Git records change and also becomes a quality-control entry point.
 
+## 46.5 GitOps drift review and emergency-change closure
+
+The value of GitOps is not limited to automatic synchronization. It also detects drift. Production environments still see manual hotfixes, console edits, temporary scaling, secret rotation, vendor callback changes, and network-policy exceptions. If those changes do not return to Git, platform state gradually diverges from declarative configuration. Drift review should record change source, affected resources, duration, write-back plan, and risk judgment, so emergency handling does not become a permanent hidden state.
+
+Emergency changes also need closure. During an incident, SRE may temporarily adjust replicas, disable a route, freeze a tool, or expand a queue. After the incident, the real state must be reconciled back into Git, Terraform, Helm values, or ArgoCD Application. Closure compares desired state with actual state and decides which changes remain, which roll back, and which become formal configuration. Without this closure, GitOps becomes declarative in normal times and manual under pressure, leaving audit and incident review without a stable source of truth.
+
+A first version can keep a simple drift review record. Whenever production configuration differs from Git, the record states resource, difference, operator, reason, business impact, retention decision, and write-back pull request. The record does not need to be heavy, but it should let the platform answer whether the current environment matches repository declarations, which differences are intentional, and which remain unresolved. For an enterprise Agent platform, GitOps should govern release, rollback, drift, and emergency-change closure together.
+
+## 46.6 GitOps change windows and rollback drills
+
+After GitOps records changes in the repository, teams still need to manage change windows. An Agent platform deploys many objects: model services, gateways, Runtime, tool adapters, Trace Collector, evaluation jobs, and edge inference services. Their risks differ, so they should not all follow the same merge and sync rhythm. High-risk model routing, gateway policy, and permission configuration should ship during low business traffic or canary windows. Lower-risk documentation, metric dashboards, and non-production configuration can move faster.
+
+Change windows should align with business calendars, capacity planning, and support staffing. During promotions, quarter close, regulatory reporting, business review meetings, or major model upgrades, the platform should restrict high-risk infrastructure and policy changes. If an emergency fix cannot wait, the change record should state why, which tenants are affected, how rollback works, and who watches the result. GitOps records what changed. The change window explains why that time was acceptable.
+
+Rollback drills should verify more than whether ArgoCD can return to an old commit. Teams should confirm that old images are still pullable, old Helm values still fit the current cluster, old Terraform state will not damage new resources, old gateway policies can recognize current tenants, and old model services can read current weights and caches. For edge inference, they should also confirm that offline nodes will not overwrite newer configuration after network recovery. Without these drills, GitOps can create the appearance of rollback safety while recovery still fails.
+
+A first version can define release windows and rollback-drill frequency by change type. Model-service and gateway-policy changes rehearse before each high-risk release. GPU node pools and edge nodes rehearse quarterly. Low-risk configuration receives monthly sampled checks. Drill results should enter the review material for Chapter 38 Trace and Chapter 42 SLO. GitOps then becomes part of change evidence, risk communication, and recovery capability for the Agent platform.
+
+## 46.7 Security audit for declarative configuration
+
+GitOps and IaC turn infrastructure changes into declarative configuration, and they also place security risk in the repository. A Helm value, Terraform variable, or ArgoCD Application change may open external access, broaden permission, change model routing, disable audit logs, or relax network policy. The platform should check more than whether configuration can deploy. It should check whether configuration satisfies security and compliance constraints. Declarative delivery is reviewable, and the review should include risk semantics.
+
+Security audit should happen before merge and after deployment. Before merge, checks can detect leaked secrets, overly broad IAM, public LoadBalancers, unrestricted egress, missing resource limits, disabled audit, and approval bypass. After deployment, the platform should confirm that real cluster state matches declaration, because manual hotfixes or controller defaults can change the security boundary. If an emergency change bypasses the normal flow, it still needs to return to Git afterward with reason, approval, diff, and rollback record.
+
+A first version can maintain a configuration-audit checklist for the Agent platform: model serving, gateway, vector database, tool service, Trace, logs, object storage, queue, and frontend entry points each have security fields. Every GitOps release produces configuration diff, policy-check result, and post-deployment state summary. Infrastructure changes then become security and compliance evidence along with repeatable deployment.
+
+## 46.8 Business-readable summaries for GitOps changes
+
+GitOps changes usually appear as YAML diffs, which business owners cannot easily interpret. A change to `replicaCount`, `canaryTrafficPercent`, `model_uri`, or `tenant_quota` can affect cost, latency, model capability, and user-visible output. The platform should convert key GitOps changes into business-readable summaries as part of release material.
+
+The summary does not need to explain every field, but it should state affected scope. A model service change states affected models and tasks. A gateway quota change states affected tenants. An edge version change states affected stores or factories. Network and permission changes state whether external access or audit is affected. The summary should also include rollback method and observation metrics. Business owners then approve runtime impact instead of an opaque configuration diff.
+
+A first version can generate change summaries in CI: component, environment, key fields, affected tasks, risk level, rollback path, and owner. The summary enters PR comments, release records, and audit material. GitOps then provides communication for infrastructure change along with automatic synchronization.
+
+## 46.9 Incident drills for declarative changes
+
+After GitOps and IaC reaches production, a successful demo is not enough evidence. The platform needs stable fields for change set, approval, drift detection, rollback command, impact scope, and recovery time, and those fields should connect to release records, Trace, evaluation samples, and incident notes. When a production issue appears, teams can follow one set of facts to understand scope, ownership, and repair order instead of stitching together model logs, business logs, and verbal explanations.
+
+This evidence also connects the surrounding chapters. It links to Chapter 43 on GPU scheduling, Chapter 44 on model serving, and Chapter 53 on organizational governance: upstream capabilities provide assumptions, downstream capabilities consume the result, and governance capabilities preserve evidence and review decisions. If these materials do not share identifiers and versions, the production system splits apart. Business owners see user complaints, platform owners see system errors, and security or compliance teams see explanations written after the fact. That separation makes it hard to decide whether the issue came from data, model behavior, tool contracts, workflow state, or organizational ownership.
+
+Common production risks include declarative configuration passing review while runtime drifts, emergency changes bypassing Git, and rollback scripts existing only in documentation. These risks are less visible during demos because demos usually exercise the successful path. Production users bring boundary cases, repeated requests, permission changes, and long-running state. The platform team should turn such failures into release samples. Some samples should block launch, some can be handled by degradation, and some require the business owner to accept the remaining risk with a review date.
+
+GitOps maturity should be confirmed through drills that keep configuration, approval, and recovery actions on one evidence path. The record can stay compact, but it should include time, version, owner, sample, action, and the next review condition. Without those fields, review remains informal experience. With them, one production issue can become material for later releases, evaluation suites, and training.
+
+A first platform version can start with a small set of high-risk paths. Choose flows with high traffic, high business impact, or sensitive data, require an evidence package for each change, and then expand the practice to ordinary scenarios. This keeps the capability at the engineering level: runnable, explainable, and recoverable.
 ## Chapter Recap
 
 1. GitOps shifts agent platform delivery from manual operations to PR-driven declarative reconciliation; Git is SSOT, ArgoCD is executor.
@@ -450,10 +487,4 @@ GitOps should also connect to evaluation gates. Before PRs for model services, g
 
 ## References
 
-HashiCorp. (n.d.). [Terraform documentation](https://developer.hashicorp.com/terraform/docs).
-
-Helm. (n.d.). [Documentation](https://helm.sh/docs/).
-
-Argo CD. (n.d.). [Documentation](https://argo-cd.readthedocs.io/).
-
-ONNX Runtime. (n.d.). [Documentation](https://onnxruntime.ai/docs/).
+HashiCorp. (n.d.). [Terraform documentation](https://developer.hashicorp.com/terraform/docs). Helm. (n.d.). [Documentation](https://helm.sh/docs/). Argo CD. (n.d.). [Documentation](https://argo-cd.readthedocs.io/). ONNX Runtime. (n.d.). [Documentation](https://onnxruntime.ai/docs/).
