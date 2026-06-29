@@ -81,6 +81,10 @@ The companion `mini-platform/` maps chapter concepts to code structure, includin
 - Application developers moving Agent demos toward production systems
 - Team leads responsible for AI system security, compliance, audit, and governance
 
+## Acknowledgements
+
+Thanks to the [LINUX DO](https://linux.do/) community for their support and discussion.
+
 ## License
 
 This project is licensed under the terms in [LICENSE](LICENSE).

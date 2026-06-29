@@ -81,6 +81,10 @@
 - 正在把 Agent Demo 推向生产系统的应用开发者
 - 关注 AI 系统安全、合规、审计和组织治理的团队负责人
 
+## 致谢
+
+感谢 [LINUX DO](https://linux.do/) 社区的支持与讨论。
+
 ## 许可证
 
 请以仓库 [LICENSE](LICENSE) 文件为准。
